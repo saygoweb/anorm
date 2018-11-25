@@ -14,4 +14,4 @@ before_script:
   - mysql -e 'create database anorm_test;'
   # Should be good to do php from here on
 script:
-  - vendor/phpunit/phpunit/phpunit
+  - vendor/bin/phpunit
