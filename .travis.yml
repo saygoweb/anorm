@@ -1,0 +1,17 @@
+language: php
+php:
+#  - "5.6"
+  - "7.0"
+#  - "7.1"
+#  - "7.2"
+services:
+  - mysql
+before_script:
+  # composer
+  - phpenv config-rm xdebug.ini
+  - composer install
+  # db setup
+  - mysql -e 'create database anorm_test;'
+  # Should be good to do php from here on
+script:
+  - vendor/phpunit/phpunit/phpunit
