@@ -1,5 +1,7 @@
 # Anorm: Another ORM for PHP
 
+[![Build Status](https://travis-ci.org/saygoweb/anorm.svg?branch=master)](https://travis-ci.org/saygoweb/anorm)
+
 Yes, yet another ORM for PHP. This meets my needs for an ORM with the following characteristics:
 
 * Works well with legacy databases.
