@@ -1,6 +1,7 @@
 # Anorm: Another ORM for PHP
 
 [![Build Status](https://travis-ci.org/saygoweb/anorm.svg?branch=master)](https://travis-ci.org/saygoweb/anorm)
+[![Coverage Status](https://coveralls.io/repos/github/saygoweb/anorm/badge.svg?branch=master)](https://coveralls.io/github/saygoweb/anorm?branch=master)
 [![MIT Licence](https://badges.frapsoft.com/os/mit/mit.svg?v=103)](https://opensource.org/licenses/mit-license.php)
 
 Yes, yet another ORM for PHP. This meets my needs for an ORM with the following characteristics:
