@@ -10,6 +10,8 @@ before_script:
   # composer
   - phpenv config-rm xdebug.ini
   - composer install
+  # Add xdbeug required for code coverage
+  - phpenv config-add xdebug.ini
   # db setup
   - mysql -e 'create database anorm_test;'
   # Should be good to do php from here on
