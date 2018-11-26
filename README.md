@@ -16,4 +16,5 @@ If you are starting a new project and have not yet defined your schema there are
 If nothing else this section serves as a nod to other ORMs and their use cases.
 
 | Name | Use Case |
+| ---- | -------- |
 | Red Bean | Great for new projects with a single database (although it can work with multiple) |
