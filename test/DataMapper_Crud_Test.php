@@ -24,6 +24,17 @@ class SomeTableModel extends Model {
     public $dtc;
 }
 
+class BogusModel extends Model {
+    public function __construct(\PDO $pdo)
+    {
+        parent::__construct($pdo, DataMapper::createByClass($pdo, $this));
+    }
+
+    public $id;
+    public $name;
+    public $dtc;
+}
+
 class DataMapperCrudTest extends TestCase
 {
     /** @var \PDO */
@@ -85,6 +96,26 @@ class DataMapperCrudTest extends TestCase
     {
         $model = new SomeTableModel($this->pdo);
         $result = $model->read('1');
+        $this->assertFalse($result);
+    }
+
+    /**
+     * @expectedException Anorm\SqlException
+     */
+    function testBogusWrite_Fails()
+    {
+        $model = new BogusModel($this->pdo);
+        $result = $model->write();
+        $this->assertFalse($result);
+    }
+
+    /**
+     * @expectedException Anorm\SqlException
+     */
+    function testBogusDelete_Fails()
+    {
+        $model = new BogusModel($this->pdo);
+        $result = $model->_mapper->delete('bogus');
         $this->assertFalse($result);
     }
 }

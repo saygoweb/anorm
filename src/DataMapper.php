@@ -20,11 +20,7 @@ class DataMapper
     
     public static function createByClass(\PDO $pdo, $c, $tablePrefix = '')
     {
-        return self::create(
-            $pdo,
-            $tablePrefix . self::autoTable($c),
-            self::autoMap($c)
-        );
+        return self::create($pdo, $tablePrefix . self::autoTable($c), self::autoMap($c));
     }
     
     /**
@@ -123,22 +119,6 @@ class DataMapper
             $sql = 'UPDATE `' . $this->table . '` SET ' . $set . ' WHERE ' . $keyField . "='" . $id . "'";
             $this->pdo->query($sql); // TODO check result?
         }
-    }
-    
-    public function writeArray(&$c, &$data, $exclude = array())
-    {
-        if ($data) {
-            foreach ($this->map as $property => $field) {
-                if ($property[0] == '_') {
-                    continue;
-                }
-                if (!in_array($property, $exclude)) {
-                    $data[$field] = $c->$property;
-                }
-            }
-            return true;
-        }
-        return false;
     }
     
     public function read(&$c, $id, $key = 'id')
