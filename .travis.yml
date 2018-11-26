@@ -8,10 +8,10 @@ services:
   - mysql
 before_script:
   # composer
-  - phpenv config-rm xdebug.ini
-  - composer install
-  # Add xdbeug required for code coverage
-  - phpenv config-add xdebug.ini
+  # Code coverage requires xdebug, so we don't disable it.
+  # - phpenv config-rm xdebug.ini
+  # 
+  - travis_retry composer install --no-interaction --no-suggest
   # db setup
   - mysql -e 'create database anorm_test;'
   # Should be good to do php from here on

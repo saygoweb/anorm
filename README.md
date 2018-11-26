@@ -9,7 +9,7 @@ Yes, yet another ORM for PHP. This meets my needs for an ORM with the following 
 * Works well with legacy databases.
 * Provides (requires) a Model class which helps coding in IDEs.
 
-## How does this compare wth 'some other ORM'?
+## How does this compare with 'some other ORM'?
 
 If you are starting a new project and have not yet defined your schema there are many other fine ORMs of varying complexity available for PHP. I recommend Red Bean.
 
