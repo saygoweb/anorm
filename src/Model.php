@@ -8,6 +8,7 @@ class Model
 
     public function __construct(\PDO $pdo, DataMapper $mapper)
     {
+        $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         $this->_mapper = $mapper;
     }
 

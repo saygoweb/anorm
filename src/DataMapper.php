@@ -8,7 +8,10 @@ class DataMapper
     
     /** @var array<string, string> Map of property names to column names */
     public $map;
-    
+
+    /** @var string The property in the model that is used as the primary key */
+    public $modelPrimaryKey = 'id';
+
     /** @var string Name of the table */
     public $table;
 
@@ -92,8 +95,9 @@ class DataMapper
         return $properties;
     }
     
-    public function write(&$c, $key = 'id')
+    public function write(&$c)
     {
+        $key = $this->modelPrimaryKey;
         $set = '';
         foreach ($this->map as $property => $field) {
             if ($property == $key || $property[0] == '_') {
@@ -108,10 +112,6 @@ class DataMapper
         if ($c->$key === null) {
             $sql = 'INSERT INTO `' . $this->table . '` SET ' . $set;
             $result = $this->pdo->query($sql);
-            if ($result === false)
-            {
-                throw new SqlException($sql);
-            }
             $c->$key = $this->pdo->lastInsertId();
         } else {
             $keyField = $this->map[$key];
@@ -121,11 +121,11 @@ class DataMapper
         }
     }
     
-    public function read(&$c, $id, $key = 'id')
+    public function read(&$c, $id)
     {
-        $keyField = $this->map[$key];
+        $databasePrimaryKey = $this->map[$this->modelPrimaryKey];
         // TODO Could make the '*' explicit from the map
-        $sql = 'SELECT * FROM `' . $this->table . '` WHERE ' . $keyField . "='" . $id . "'";
+        $sql = 'SELECT * FROM `' . $this->table . '` WHERE ' . $databasePrimaryKey . "='" . $id . "'";
         $result = $this->query($sql);
         return $this->readRow($c, $result);
     }
@@ -166,15 +166,11 @@ class DataMapper
         return true;
     }
     
-    public function delete($id, $key = 'id')
+    public function delete($id)
     {
-        $keyField = $this->map[$key];
+        $keyField = $this->map[$this->modelPrimaryKey];
         $sql = 'DELETE FROM `' . $this->table . '` WHERE ' . $keyField . "='" . $id . "'";
         $result = $this->query($sql);
-        if ($result === false)
-        {
-            throw new SqlException($sql);
-        }
         // This allows for imprecise deletes which may not be the best idea. CP 25 Nov 2018
         return $result->rowCount() >= 1;
     }

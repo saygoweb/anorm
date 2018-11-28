@@ -1,6 +1,6 @@
 <?php
 
-require_once(__DIR__ . '/../vendor/autoload.php');
+require_once(__DIR__ . '/../../vendor/autoload.php');
 
 use PHPUnit\Framework\TestCase;
 
@@ -11,6 +11,7 @@ class SomeTableModel extends Model {
     public function __construct(\PDO $pdo)
     {
         parent::__construct($pdo, DataMapper::createByClass($pdo, $this));
+        $this->_mapper->modelPrimaryKey = 'someId';
     }
 
     public function countRows()
@@ -19,7 +20,7 @@ class SomeTableModel extends Model {
         return $result->rowCount();
     }
 
-    public $id;
+    public $someId;
     public $name;
     public $dtc;
 }
@@ -28,9 +29,10 @@ class BogusModel extends Model {
     public function __construct(\PDO $pdo)
     {
         parent::__construct($pdo, DataMapper::createByClass($pdo, $this));
+        $this->_mapper->modelPrimaryKey = 'someId';
     }
 
-    public $id;
+    public $someId;
     public $name;
     public $dtc;
 }
@@ -60,9 +62,9 @@ class DataMapperCrudTest extends TestCase
         // Create
         $model0->name = 'bob';
         $model0->dtc = '2018-11-25';
-        $this->assertNull($model0->id);
+        $this->assertNull($model0->someId);
         $model0->write();
-        $this->assertNotNull($model0->id);
+        $this->assertNotNull($model0->someId);
         
         // Count current rows (n+1)
         $n1 = $model0->countRows();
@@ -70,7 +72,7 @@ class DataMapperCrudTest extends TestCase
 
         // Read (data present)
         $model1 = new SomeTableModel($this->pdo);
-        $model1->read($model0->id);
+        $model1->read($model0->someId);
         $this->assertEquals($model0->name, $model1->name);
         $this->assertEquals($model0->dtc, $model1->dtc);
 
@@ -80,11 +82,11 @@ class DataMapperCrudTest extends TestCase
 
         // Read (data changed)
         $model2 = new SomeTableModel($this->pdo);
-        $model2->read($model1->id);
+        $model2->read($model1->someId);
         $this->assertEquals($model1->name, $model2->name);
 
         // Delete
-        $model0->_mapper->delete($model0->id);
+        $model0->_mapper->delete($model0->someId);
 
         // Count current rows (n)
         $n2 = $model0->countRows();
@@ -100,7 +102,8 @@ class DataMapperCrudTest extends TestCase
     }
 
     /**
-     * @expectedException Anorm\SqlException
+     * @expectedException \PDOException
+     * @expectedExceptionMessage SQLSTATE[42S02]: Base table or view not found: 1146 Table 'anorm_test.bogus' doesn't exist
      */
     function testBogusWrite_Fails()
     {
@@ -110,7 +113,8 @@ class DataMapperCrudTest extends TestCase
     }
 
     /**
-     * @expectedException Anorm\SqlException
+     * @expectedException \PDOException
+     * @expectedExceptionMessage SQLSTATE[42S02]: Base table or view not found: 1146 Table 'anorm_test.bogus' doesn't exist
      */
     function testBogusDelete_Fails()
     {
