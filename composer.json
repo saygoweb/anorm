@@ -13,10 +13,14 @@
             "email": "cambell.prince@gmail.com"
         }
     ],
-    "require": {},
+    "require": {
+        "wp-cli/php-cli-tools": "^0.11.10"
+    },
     "autoload": {
         "psr-4": {
+            "Anorm\\Tools\\": "tools/src/",
             "Anorm\\": "src/"
         }
-    }
+    },
+    "bin": ["bin/anorm.php"]
 }

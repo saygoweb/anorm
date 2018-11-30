@@ -4,15 +4,18 @@
 >
     <testsuites>
         <testsuite name="Anorm Test Suite">
-            <directory>./test</directory>
+            <directory>./test/anorm</directory>
+            <directory>./test/tools</directory>
         </testsuite>
     </testsuites>
 
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="true">
             <directory suffix=".php">src</directory>
+            <directory suffix=".php">tools/src</directory>
             <exclude>
                 <directory>vendor</directory>
+                <file>tools/src/anorm.php</file>
             </exclude>
         </whitelist>
     </filter>
