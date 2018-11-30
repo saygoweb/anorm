@@ -2,13 +2,21 @@
 <?php
 namespace Anorm\Tools;
 
-define ('VERSION', '0.1.0');
+define('VERSION', '0.1.0');
 
-require_once (__DIR__ . '/../vendor/autoload.php');
+// Try 3rd party install relative to bin folder
+if (\file_exists(__DIR__ . '/../../../autoload.php')) {
+    require_once(__DIR__ . '/../../../autoload.php');
+// Try dev install relative to the bin folder
+} elseif (\file_exists(__DIR__ . '/../vendor/autoload.php')) {
+    require_once(__DIR__ . '/../vendor/autoload.php');
+} else {
+    echo "Anorm Error: Failed to load vendor/autoload.php" . PHP_EOL;
+}
 
 use \cli\Arguments;
 
-define ('HEADER', 'Anorm: Yet Another ORM CLI');
+define('HEADER', 'Anorm: Yet Another ORM CLI');
 
 class App
 {
@@ -56,18 +64,15 @@ class App
 
     public function run()
     {
-        if ($this->options['help'])
-        {
+        if ($this->options['help']) {
             $this->help();
             return;
         }
-        if ($this->options['version'])
-        {
+        if ($this->options['version']) {
             $this->version();
             return;
         }
-        switch ($this->command)
-        {
+        switch ($this->command) {
             case 'make':
                 $this->make();
                 break;
@@ -76,7 +81,6 @@ class App
                 echo $this->title();
                 printf("Error: Unknown command '%s', try 'help'\n", $this->command);
         }
-
     }
 
     public function make()
@@ -85,12 +89,10 @@ class App
         // var_dump($this->commandArgs);
         $database;
         $table = '';
-        if (count($this->commandArgs) >= 2)
-        {
+        if (count($this->commandArgs) >= 2) {
             $table = $this->commandArgs[1];
         }
-        if (count($this->commandArgs) >= 1)
-        {
+        if (count($this->commandArgs) >= 1) {
             $database = $this->commandArgs[0];
         } else {
             echo "Error: make command must have a database specified" . PHP_EOL;
@@ -98,22 +100,18 @@ class App
         }
 
         $password = '';
-        if ($this->options['password'])
-        {
+        if ($this->options['password']) {
             $password = \cli\prompt("Password", false, ':', true); // hide
         }
-        try
-        {
+        try {
             $pdo = new \PDO('mysql:host=localhost;dbname=' . $this->commandArgs[0], $this->options['user'], $password);
-        } catch (\PDOException $e)
-        {
+        } catch (\PDOException $e) {
             echo 'Error: Database connection failed, ' . $e->getMessage() . PHP_EOL;
             return;
         }
         $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         $tables = array($table);
-        foreach ($tables as $table)
-        {
+        foreach ($tables as $table) {
             $modelMakerOptions = new ModelMakerOptions();
             $modelMakerOptions->classSuffix = $this->options['classsuffix'];
             $modelMakerOptions->namespace = $this->options['namespace'];
@@ -147,7 +145,6 @@ EOD;
         echo HEADER . PHP_EOL;
         echo 'Version: ' . VERSION . PHP_EOL;
     }
-
 }
 
 $app = new App();
