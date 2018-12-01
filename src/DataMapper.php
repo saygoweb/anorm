@@ -117,8 +117,9 @@ class DataMapper
             $keyField = $this->map[$key];
             $id = $c->$key;
             $sql = 'UPDATE `' . $this->table . '` SET ' . $set . ' WHERE ' . $keyField . "='" . $id . "'";
-            $this->pdo->query($sql); // TODO check result?
+            $this->pdo->query($sql);
         }
+        return $c->$key;
     }
     
     public function read(&$c, $id)
@@ -165,7 +166,7 @@ class DataMapper
         }
         return true;
     }
-    
+
     public function delete($id)
     {
         $keyField = $this->map[$this->modelPrimaryKey];
@@ -174,4 +175,10 @@ class DataMapper
         // This allows for imprecise deletes which may not be the best idea. CP 25 Nov 2018
         return $result->rowCount() >= 1;
     }
+
+    public function find($creatable, \PDO $pdo)
+    {
+        return new QueryBuilder($creatable, $pdo);
+    }
+
 }
