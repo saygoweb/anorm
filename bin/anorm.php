@@ -2,7 +2,7 @@
 <?php
 namespace Anorm\Tools;
 
-define('VERSION', '0.1.1');
+define('VERSION', '0.2.0');
 
 // Try 3rd party install relative to bin folder
 if (\file_exists(__DIR__ . '/../../../autoload.php')) {
