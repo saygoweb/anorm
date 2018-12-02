@@ -176,7 +176,7 @@ class DataMapper
         return $result->rowCount() >= 1;
     }
 
-    public function find($creatable, \PDO $pdo)
+    public static function find($creatable, \PDO $pdo)
     {
         return new QueryBuilder($creatable, $pdo);
     }
