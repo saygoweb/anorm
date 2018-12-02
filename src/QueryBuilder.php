@@ -55,6 +55,7 @@ class QueryBuilder
 
     public function some()
     {
+        $this->ensureFrom();
         /** @var DataMapper */
         $mapper = $this->instance->_mapper;
         $result = $mapper->query($this->sql);
