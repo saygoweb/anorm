@@ -48,6 +48,7 @@ class DataMapperFindTest extends TestCase
     public function testFindSome_OK()
     {
         $generator = DataMapper::find('SomeTableModel', $this->pdo)
+            ->orderBy("name")
             ->limit(3)
             ->some();
         $i = 0;

@@ -53,6 +53,13 @@ class QueryBuilder
         return $this;
     }
 
+    public function orderBy($sql)
+    {
+        $this->ensureFrom();
+        $this->sql .= ' ORDER BY ' . $sql;
+        return $this;
+    }
+
     public function some()
     {
         $this->ensureFrom();
