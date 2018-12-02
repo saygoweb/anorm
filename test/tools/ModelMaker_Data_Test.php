@@ -45,7 +45,7 @@ use Anorm\Model;
 
 class ModelTestModel extends Model
 {
-    public function __constructor(\PDO \$pdo)
+    public function __construct(\PDO \$pdo)
     {
         parent::__construct(\$pdo, DataMapper::createByClass(\$pdo, \$this));
         \$this->_mapper->modelPrimaryKey = 'someId';

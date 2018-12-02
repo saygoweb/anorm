@@ -55,7 +55,7 @@ use Anorm\Model;
 
 class SomeTableModel extends Model
 {
-    public function __constructor(\PDO \$pdo)
+    public function __construct(\PDO \$pdo)
     {
         parent::__construct(\$pdo, DataMapper::createByClass(\$pdo, \$this));
 
@@ -118,7 +118,7 @@ use Anorm\Model;
 
 class SomeTableModel extends Model
 {
-    public function __constructor(\PDO \$pdo)
+    public function __construct(\PDO \$pdo)
     {
         parent::__construct(\$pdo, DataMapper::createByClass(\$pdo, \$this));
 
@@ -157,7 +157,7 @@ use Anorm\Model;
 
 class SomeTableModel extends Model
 {
-    public function __constructor(\PDO \$pdo)
+    public function __construct(\PDO \$pdo)
     {
         parent::__construct(\$pdo, DataMapper::createByClass(\$pdo, \$this));
 
