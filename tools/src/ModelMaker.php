@@ -116,7 +116,7 @@ use Anorm\Model;
 
 class $modelName extends Model
 {
-    public function __constructor(\\PDO \$pdo)
+    public function __construct(\\PDO \$pdo)
     {
         parent::__construct(\$pdo, DataMapper::createByClass(\$pdo, \$this));
 $primaryProperty
