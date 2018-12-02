@@ -2,28 +2,12 @@
 
 require_once(__DIR__ . '/../../vendor/autoload.php');
 
+require_once(__DIR__ . '/SomeTableModel.php');
+
 use PHPUnit\Framework\TestCase;
 
 use Anorm\DataMapper;
 use Anorm\Model;
-
-class SomeTableModel extends Model {
-    public function __construct(\PDO $pdo)
-    {
-        parent::__construct($pdo, DataMapper::createByClass($pdo, $this));
-        $this->_mapper->modelPrimaryKey = 'someId';
-    }
-
-    public function countRows()
-    {
-        $result = $this->_mapper->query('SELECT * FROM `some_table`');
-        return $result->rowCount();
-    }
-
-    public $someId;
-    public $name;
-    public $dtc;
-}
 
 class BogusModel extends Model {
     public function __construct(\PDO $pdo)
@@ -46,9 +30,14 @@ class DataMapperCrudTest extends TestCase
     {
         parent::__construct();
         $this->pdo = new \PDO('mysql:host=localhost;dbname=anorm_test', 'travis', '');
-        $this->pdo->query('DROP TABLE IF EXISTS `some_table`');
+    }
+    
+    public static function setUpBeforeClass()
+    {
+        $pdo = new \PDO('mysql:host=localhost;dbname=anorm_test', 'travis', '');
+        $pdo->query('DROP TABLE IF EXISTS `some_table`');
         $sql = file_get_contents(__DIR__ . '/TestSchema.sql');
-        $this->pdo->query($sql);
+        $pdo->query($sql);
     }
 
     public function testCrud_OK()

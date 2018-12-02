@@ -12,11 +12,17 @@ class Model
         $this->_mapper = $mapper;
     }
 
+    /**
+     * @return int The primary key id of the model.
+     */
     public function write()
     {
-        $this->_mapper->write($this);
+        return $this->_mapper->write($this);
     }
 
+    /**
+     * @param int $id The primary key id of the model to read.
+     */
     public function read($id)
     {
         return $this->_mapper->read($this, $id);
