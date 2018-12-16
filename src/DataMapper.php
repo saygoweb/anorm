@@ -3,6 +3,12 @@ namespace Anorm;
 
 class DataMapper
 {
+
+    const MODE_DYNAMIC = 'dynamic';
+    const MODE_STATIC  = 'static';
+
+    public $mode = self::MODE_STATIC;
+
     /** @var \PDO  */
     public $pdo;
     
@@ -111,13 +117,17 @@ class DataMapper
         }
         if ($c->$key === null) {
             $sql = 'INSERT INTO `' . $this->table . '` SET ' . $set;
-            $result = $this->pdo->query($sql);
-            $c->$key = $this->pdo->lastInsertId();
+            $this->dynamicWrapper(function () use ($sql, $c, $key) {
+                $result = $this->pdo->query($sql);
+                $c->$key = $this->pdo->lastInsertId();
+            }, $c);
         } else {
             $keyField = $this->map[$key];
             $id = $c->$key;
             $sql = 'UPDATE `' . $this->table . '` SET ' . $set . ' WHERE ' . $keyField . "='" . $id . "'";
-            $this->pdo->query($sql);
+            $this->dynamicWrapper(function () use ($sql) {
+                $this->pdo->query($sql);
+            }, $c);
         }
         return $c->$key;
     }
@@ -127,17 +137,42 @@ class DataMapper
         $databasePrimaryKey = $this->map[$this->modelPrimaryKey];
         // TODO Could make the '*' explicit from the map
         $sql = 'SELECT * FROM `' . $this->table . '` WHERE ' . $databasePrimaryKey . "='" . $id . "'";
-        $result = $this->query($sql);
+        $result = $this->dynamicWrapper(function () use ($sql) {
+            return $this->pdo->query($sql);
+        }, $c);
         return $this->readRow($c, $result);
     }
     
+    private function dynamicWrapper(callable $fn, $model = null)
+    {
+        $lastException = '';
+        for ($strike = 0; $strike < 10; ++$strike) {
+            try {
+                return $fn();
+            } catch (\PDOException $e) {
+                if ($this->mode !== self::MODE_DYNAMIC) {
+                    throw $e;
+                }
+                TableMaker::fix($e, $this, $model);
+                if ($e->getMessage() == $lastException) {
+                    // Same exception twice in a row so throw.
+                    throw $e; // @codeCoverageIgnore
+                }
+                $lastException = $e->getMessage();
+            }
+        }
+        throw new \Exception("$strike strikes in DataMapper."); // @codeCoverageIgnore
+    }
+
     /**
      * @var $sql string SQL query
      * @return \PDOStatement
      */
     public function query($sql)
     {
-        return $this->pdo->query($sql);
+        return $this->dynamicWrapper(function () use ($sql) {
+            return $this->pdo->query($sql);
+        });
     }
     
     /**
