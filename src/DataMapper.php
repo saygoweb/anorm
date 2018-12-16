@@ -156,12 +156,12 @@ class DataMapper
                 TableMaker::fix($e, $this, $model);
                 if ($e->getMessage() == $lastException) {
                     // Same exception twice in a row so throw.
-                    throw $e;
+                    throw $e; // @codeCoverageIgnore
                 }
                 $lastException = $e->getMessage();
             }
         }
-        throw new \Exception("$strike strikes in DataMapper.");
+        throw new \Exception("$strike strikes in DataMapper."); // @codeCoverageIgnore
     }
 
     /**

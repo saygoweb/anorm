@@ -44,7 +44,7 @@ class TableMaker
         // Regex the message to get the name of the table
         $matches = array();
         if (!\preg_match("/'([^\.']*)\.([^\.']*)'/", $this->exception->getMessage(), $matches)) {
-            return; // Or throw?
+            throw new \Exception('Anorm: Could not parse PDOException', 0, $this->exception);
         }
         $tableName = $matches[2];
         // Create the table with an auto increment id as primary key.
@@ -65,7 +65,7 @@ class TableMaker
         // Regex the message to get the name of the table
         $matches = array();
         if (!\preg_match("/column '([^\.']*)'/", $this->exception->getMessage(), $matches)) {
-            return; // Or throw?
+            throw new \Exception('Anorm: Could not parse PDOException', 0, $this->exception);
         }
         $columnName = $matches[1];
         // Add the column.
@@ -97,10 +97,10 @@ class TableMaker
             if (preg_match('/(\d{4})-(\d{2})-(\d{2})/', $sampleData) === 1) {
                 return "DATETIME NULL";
             }
-            if (strlen($sampleData > 256)) {
+            if (strlen($sampleData) > 256) {
                 return "TEXT";
             }
-            if (strlen($sampleData > 128)) {
+            if (strlen($sampleData) > 128) {
                 return "VARCHAR(256)";
             }
         }
