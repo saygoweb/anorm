@@ -60,7 +60,7 @@ class DataMapperDynamicTest extends TestCase
 
         // Create
         $model0->name = 'bob';
-        $model0->dtc = '2018-11-25';
+        $model0->dtc = '2018-11-25 00:00:00';
         $this->assertNull($model0->id);
         $model0->write();
         $this->assertNotNull($model0->id);
