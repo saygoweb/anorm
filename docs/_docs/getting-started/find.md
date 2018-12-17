@@ -1,6 +1,6 @@
 ---
 title: Finding Data
-category: Common Use
+category: Getting Started
 order: 4
 ---
 

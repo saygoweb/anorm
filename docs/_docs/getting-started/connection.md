@@ -1,6 +1,6 @@
 ---
 title: Connection
-category: Common Use
+category: Getting Started
 order: 2
 ---
 
