@@ -1,38 +1,80 @@
 ---
-title: Welcome
+title: Anorm TLDR;
 ---
 
-This is the **Edition** template from [CloudCannon](http://cloudcannon.com/).
-**Edition** is perfect for documenting your product, application or service.
-It's populated with example content to give you some ideas.
+**Anorm** is yet Another ORM for PHP from [SayGoWeb](https://saygoweb.com/).
 
-ChatApp is a fictional chat application for sending messages and media to others.
-Teams and friend groups would use ChatApp to stay up to date if it existed.
+> Check it out [on GitHub](https://github.com/saygoweb/anorm).
 
-> [Sign up](http://example.com/signup) or learn more about ChatApp at [example.com](http://example.com/).
+### Connecting
 
-### Getting Started
+```php
+$anorm = Anorm::connect('mydata', 'mysql:host=localhost;dbname=some_db', 'user', 'password');
+```
 
-Getting a message sent is quick and easy with ChatApp:
+then having connected you can fetch a reference to the connection with `use`.
 
-1. Sign up for an account
-2. Add your friends from their email addresses
-3. Type a message or send a photo
+```php
+$anorm = Anorm::use('mydata');
+```
 
-> Feel free to send us a message at [feedback@example.com](mailto:feedback@example.com) with your feedback.
+### Create and Update
 
-### Features
+Step 1. Define a model class
 
-Explore more of ChatApp by reading about our features:
+```php
+use Anorm\DataMapper;
+use Anorm\Model;
 
-#### Media
+class SomeTableModel extends Model {
+    public function __construct(Anorm $anorm)
+    {
+        parent::__construct($anorm->pdo, DataMapper::createByClass($anorm->pdo, $this));
+    }
 
-Send images, videos and other media to people. Sources include your computer, phone and Facebook.
+    /** @var integer The primary key */
+    public $id;
 
-#### Contact Syncing
+    /** @var string Useful documentation about 'name' for intellisense */
+    public $name;
 
-Sync your contact list with your phone and/or Facebook contacts. Never lose your contacts between devices again!
+}
+```
 
-#### Devices
+Step 2. Use it to create a record in the database.
 
-ChatApp is available everywhere. Find out how to set it up on your all your devices.
+```php
+$model = new SomeTableModel(Anorm::use('mydata'));
+$model->name = 'bob';
+$model->write();
+```
+
+### Find Many
+
+```php
+$anorm = Anorm::use('mydata');
+$data = DataMapper::find('SomeTableModel', $anorm->pdo)
+    ->orderBy("name")
+    ->limit(3)
+    ->some();
+foreach ($data as $model) {
+    // ...
+}
+```
+
+### Find One
+
+```php
+$anorm = Anorm::use('mydata');
+$model = DataMapper::find('SomeTableModel', $anorm->pdo)
+    ->where("`name`='Name 1'")
+    ->one();
+```
+
+### Delete
+
+```php
+$id = 3; // Likely passed on via GET or POST
+$model = new SomeTableModel(Anorm::use('mydata'));
+$model->_mapper->delete($id);
+```
