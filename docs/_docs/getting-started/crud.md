@@ -16,6 +16,7 @@ class SomeTableModel extends Model {
     public function __construct(Anorm $anorm)
     {
         parent::__construct($anorm->pdo, DataMapper::createByClass($anorm->pdo, $this));
+        $this->_mapper->mode = DataMapper::MODE_DYNAMIC; // Optional. Enables dynamic mode to alter the table to suit the model.
     }
 
     /** @var integer The primary key */

@@ -8,6 +8,7 @@ Yes, yet another ORM for PHP. This meets my needs for an ORM with the following 
 
 * Works well with legacy databases.
 * Provides (requires) a Model class which helps coding in IDEs.
+* Creates and modifies the underlying database schema as required to match the Model.
 
 ## Features
 
