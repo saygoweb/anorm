@@ -92,4 +92,13 @@ class QueryBuilder
         }
         return $this->instance;
     }
+
+    public function oneOrThrow()
+    {
+        $result = $this->one();
+        if ($result === false) {
+            throw new \Exception(sprintf("QueryBuilder: Expected one not found from '%s'", $this->sql));
+        }
+        return $result;
+    }
 }

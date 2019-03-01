@@ -45,6 +45,15 @@ class DataMapperFindTest extends TestCase
         $this->assertEquals('Name 1', $model->name);
     }
 
+    public function testFindOneOrThrow_OK()
+    {
+        /** @var SomeTableModel */
+        $model = DataMapper::find('SomeTableModel', $this->pdo)
+            ->where("`name`='Name 1'")
+            ->oneOrThrow();
+        $this->assertEquals('Name 1', $model->name);
+    }
+
     public function testFindSome_OK()
     {
         $generator = DataMapper::find('SomeTableModel', $this->pdo)
@@ -66,6 +75,18 @@ class DataMapperFindTest extends TestCase
             ->where("`name`='Bogus Name'")
             ->one();
         $this->assertEquals(false, $model);
+    }
+
+    /** 
+     * @expectedException \Exception
+     * @expectedExceptionMessage QueryBuilder: Expected one not found from 'SELECT * FROM `some_table` WHERE `name`='Bogus Name' LIMIT 1'
+     */
+    public function testFindOneOrThrow_NotPresent_Throws()
+    {
+        /** @var SomeTableModel */
+        $model = DataMapper::find('SomeTableModel', $this->pdo)
+            ->where("`name`='Bogus Name'")
+            ->oneOrThrow();
     }
 
 }
