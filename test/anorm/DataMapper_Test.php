@@ -31,6 +31,18 @@ class DataMapperTest extends TestCase
         $this->assertEquals('test_two_three_four', $name);
     }
     
+    function testPropertyName_EndsWithDigit_OK()
+    {
+        $name = DataMapper::propertyName('test1');
+        $this->assertEquals('test1', $name);
+    }
+    
+    function testPropertyName_TwoWordsEndsWithDigit_OK()
+    {
+        $name = DataMapper::propertyName('testTwo1');
+        $this->assertEquals('test_two1', $name);
+    }
+    
     function testAutoMap_TestClass_OK()
     {
         $actual = DataMapper::autoMap(new TestClassModel());
