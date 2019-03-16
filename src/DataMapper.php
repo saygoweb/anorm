@@ -18,6 +18,9 @@ class DataMapper
     /** @var string The property in the model that is used as the primary key */
     public $modelPrimaryKey = 'id';
 
+    /** @var bool If true REPLACE is used rather than INSERT and UPDATE */
+    public $useReplace = false;
+
     /** @var string Name of the table */
     public $table;
 
@@ -104,30 +107,60 @@ class DataMapper
     public function write(&$c)
     {
         $key = $this->modelPrimaryKey;
-        $set = '';
-        foreach ($this->map as $property => $field) {
-            if ($property == $key || $property[0] == '_') {
-                continue;
+        if ($this->useReplace) {
+            if (!$c->$key) {
+                throw new \Exception("Key '$key' must be set when using replace mode");
             }
-            if ($set) {
-                $set .= ', ';
+            $fields = '';
+            $values = '';
+            foreach ($this->map as $property => $field) {
+                if ($property[0] == '_') {
+                    continue;
+                }
+                if ($fields) {
+                    $fields .= ', ';
+                }
+                if ($values) {
+                    $values .= ', ';
+                }
+                $fields .= $field;
+                $value = $c->$property;
+                $values .= "'$value'";
             }
-            $value = $c->$property;
-            $set .= "$field='$value'";
-        }
-        if ($c->$key === null) {
-            $sql = 'INSERT INTO `' . $this->table . '` SET ' . $set;
-            $this->dynamicWrapper(function () use ($sql, $c, $key) {
-                $result = $this->pdo->query($sql);
-                $c->$key = $this->pdo->lastInsertId();
-            }, $c);
-        } else {
             $keyField = $this->map[$key];
             $id = $c->$key;
-            $sql = 'UPDATE `' . $this->table . '` SET ' . $set . ' WHERE ' . $keyField . "='" . $id . "'";
+            // CP Maybe REPLACE isn't the best to use? It requires a unique key in the db
+            // An alternative would be to detect based on SELECT query WHERE key and if found ...
+            $sql = 'REPLACE INTO`' . $this->table . '` (' . $fields . ') VALUES (' . $values . ')';
             $this->dynamicWrapper(function () use ($sql) {
                 $this->pdo->query($sql);
             }, $c);
+        } else {
+            $set = '';
+            foreach ($this->map as $property => $field) {
+                if ($property == $key || $property[0] == '_') {
+                    continue;
+                }
+                if ($set) {
+                    $set .= ', ';
+                }
+                $value = $c->$property;
+                $set .= "$field='$value'";
+            }
+            if ($c->$key === null) {
+                $sql = 'INSERT INTO `' . $this->table . '` SET ' . $set;
+                $this->dynamicWrapper(function () use ($sql, $c, $key) {
+                    $result = $this->pdo->query($sql);
+                    $c->$key = $this->pdo->lastInsertId();
+                }, $c);
+            } else {
+                $keyField = $this->map[$key];
+                $id = $c->$key;
+                $sql = 'UPDATE `' . $this->table . '` SET ' . $set . ' WHERE ' . $keyField . "='" . $id . "'";
+                $this->dynamicWrapper(function () use ($sql) {
+                    $this->pdo->query($sql);
+                }, $c);
+            }
         }
         return $c->$key;
     }
