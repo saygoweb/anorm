@@ -27,6 +27,8 @@ class QueryBuilderTest extends TestCase
         $this->assertSame($o, $result);
         $result = $o->from('');
         $this->assertSame($o, $result);
+        $result = $o->join('');
+        $this->assertSame($o, $result);
         $result = $o->where('', []);
         $this->assertSame($o, $result);
         $result = $o->orderBy('');
