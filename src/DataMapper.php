@@ -124,7 +124,11 @@ class DataMapper
                     $values .= ', ';
                 }
                 $fields .= $field;
-                $value = $this->pdo->quote($c->$property);
+                if ($c->$property === null) {
+                    $value = 'NULL';
+                } else {
+                    $value = $this->pdo->quote($c->$property);
+                }
                 $values .= $value;
             }
             $keyField = $this->map[$key];
@@ -144,7 +148,11 @@ class DataMapper
                 if ($set) {
                     $set .= ', ';
                 }
-                $value = $this->pdo->quote($c->$property);
+                if ($c->$property === null) {
+                    $value = 'NULL';
+                } else {
+                    $value = $this->pdo->quote($c->$property);
+                }
                 // TODO Move this to bound value CP 2020-06
                 $set .= "$field=$value";
             }
