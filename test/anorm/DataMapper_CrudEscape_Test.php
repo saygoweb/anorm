@@ -2,23 +2,17 @@
 
 require_once(__DIR__ . '/../../vendor/autoload.php');
 
-require_once(__DIR__ . '/SomeTableModel.php');
-require_once(__DIR__ . '/TestEnvironment.php');
-
 use PHPUnit\Framework\TestCase;
 
-use Anorm\DataMapper;
-use Anorm\Model;
+use Anorm\Test\SomeTableModel;
+use Anorm\Test\TestEnvironment;
 
 class DataMapperCrudEscapeTest extends TestCase
 {
-    /** @var \PDO */
-    private $pdo;
-
     public function __construct()
     {
         parent::__construct();
-        $this->pdo = TestEnvironment::pdo();
+        TestEnvironment::connect();
     }
     
     public static function setUpBeforeClass()
@@ -31,8 +25,7 @@ class DataMapperCrudEscapeTest extends TestCase
 
     public function testCrud_OK()
     {
-        $model0 = new SomeTableModel($this->pdo);
-        $this->assertEquals($this->pdo, $model0->_mapper->pdo);
+        $model0 = new SomeTableModel();
         // Count current rows
         $n0 = $model0->countRows();
         $this->assertEquals(0, $n0);
@@ -49,7 +42,7 @@ class DataMapperCrudEscapeTest extends TestCase
         $this->assertEquals($n0 + 1, $n1);
 
         // Read (data present)
-        $model1 = new SomeTableModel($this->pdo);
+        $model1 = new SomeTableModel();
         $model1->read($model0->someId);
         $this->assertEquals($model0->name, $model1->name);
         $this->assertEquals($model0->dtc, $model1->dtc);
@@ -59,7 +52,7 @@ class DataMapperCrudEscapeTest extends TestCase
         $model1->write();
 
         // Read (data changed)
-        $model2 = new SomeTableModel($this->pdo);
+        $model2 = new SomeTableModel();
         $model2->read($model1->someId);
         $this->assertEquals($model1->name, $model2->name);
 

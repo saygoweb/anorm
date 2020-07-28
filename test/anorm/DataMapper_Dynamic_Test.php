@@ -4,12 +4,15 @@ require_once(__DIR__ . '/../../vendor/autoload.php');
 
 use PHPUnit\Framework\TestCase;
 
+use Anorm\Anorm;
 use Anorm\DataMapper;
 use Anorm\Model;
+use Anorm\Test\TestEnvironment;
 
 class NotYetModel extends Model {
-    public function __construct(\PDO $pdo)
+    public function __construct()
     {
+        $pdo = Anorm::pdo();
         parent::__construct($pdo, DataMapper::createByClass($pdo, $this));
         $this->_mapper->mode = DataMapper::MODE_DYNAMIC;
     }
@@ -27,24 +30,16 @@ class NotYetModel extends Model {
 
 class DataMapperDynamicTest extends TestCase
 {
-    /** @var \PDO */
-    private $pdo;
-
-    public function __construct()
-    {
-        parent::__construct();
-        $this->pdo = new \PDO('mysql:host=localhost;dbname=anorm_test', 'travis', '');
-    }
-    
     public function setUp()
     {
-        $this->pdo->query('DROP TABLE IF EXISTS `not_yet`');
+        $pdo = TestEnvironment::pdo();
+        $pdo->query('DROP TABLE IF EXISTS `not_yet`');
     }
 
     public function testFindOne_OK()
     {
         /** @var NotYetModel */
-        $model = DataMapper::find('NotYetModel', $this->pdo)
+        $model = DataMapper::find('NotYetModel', Anorm::pdo())
             ->where("`name`=:name", [':name' => 'Name 1'])
             ->one();
         $this->assertTrue(true); // Just testing that we haven't yet thrown.
@@ -52,8 +47,7 @@ class DataMapperDynamicTest extends TestCase
 
     public function testCrud_OK()
     {
-        $model0 = new NotYetModel($this->pdo);
-        $this->assertEquals($this->pdo, $model0->_mapper->pdo);
+        $model0 = new NotYetModel();
         // Count current rows
         $n0 = $model0->countRows();
         $this->assertEquals(0, $n0);
@@ -70,7 +64,7 @@ class DataMapperDynamicTest extends TestCase
         $this->assertEquals($n0 + 1, $n1);
 
         // Read (data present)
-        $model1 = new NotYetModel($this->pdo);
+        $model1 = new NotYetModel();
         $model1->read($model0->id);
         $this->assertEquals($model0->name, $model1->name);
         $this->assertEquals($model0->dtc, $model1->dtc);
@@ -80,7 +74,7 @@ class DataMapperDynamicTest extends TestCase
         $model1->write();
 
         // Read (data changed)
-        $model2 = new NotYetModel($this->pdo);
+        $model2 = new NotYetModel();
         $model2->read($model1->id);
         $this->assertEquals($model1->name, $model2->name);
 

@@ -1,11 +1,14 @@
 <?php
+namespace Anorm\Test;
 
+use Anorm\Anorm;
 use Anorm\DataMapper;
 use Anorm\Model;
 
 class SomeTableModel extends Model {
-    public function __construct(\PDO $pdo)
+    public function __construct()
     {
+        $pdo = Anorm::pdo();
         parent::__construct($pdo, DataMapper::createByClass($pdo, $this));
         $this->_mapper->modelPrimaryKey = 'someId';
         $this->dtc = null;

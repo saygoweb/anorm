@@ -4,6 +4,8 @@ namespace Anorm;
 class Anorm
 {
 
+    const DEFAULT = 'default';
+
     private static $connections = array();
 
     /**
@@ -37,12 +39,26 @@ class Anorm
      * @return Anorm
      * @see connect
      */
-    public static function use($name)
+    public static function use($name = self::DEFAULT)
     {
         if (!\array_key_exists($name, self::$connections)) {
             throw new \Exception("Anorm: Connection '$name' doesn't exist. Call Anorm::connection first.");
         }
         return self::$connections[$name];
+    }
+
+    /**
+     * Returns the \PDO instance of the Anorm connection of the given $name
+     * @param string $name Name of the connection to use.
+     * @return \PDO
+     * @see connect
+     */
+    public static function pdo($name = self::DEFAULT)
+    {
+        if (!\array_key_exists($name, self::$connections)) {
+            throw new \Exception("Anorm: Connection '$name' doesn't exist. Call Anorm::connection first.");
+        }
+        return self::$connections[$name]->pdo;
     }
 
     /** @var \PDO The connection */
