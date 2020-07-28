@@ -37,6 +37,7 @@ class QueryBuilder
     {
         $this->ensureSelect();
         $this->sql .= ' FROM ' . $sql;
+        return $this;
     }
 
     private function ensureFrom()
