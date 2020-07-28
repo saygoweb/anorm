@@ -9,6 +9,7 @@ class ReplaceTableModel extends Model {
         parent::__construct($pdo, DataMapper::createByClass($pdo, $this));
         $this->_mapper->modelPrimaryKey = 'replaceId';
         $this->_mapper->useReplace = true;
+        $this->dtc = null;
     }
 
     public function countRows()
@@ -19,5 +20,6 @@ class ReplaceTableModel extends Model {
 
     public $replaceId;
     public $name;
+    public $dtc;
 }
 
