@@ -8,6 +8,7 @@ class SomeTableModel extends Model {
     {
         parent::__construct($pdo, DataMapper::createByClass($pdo, $this));
         $this->_mapper->modelPrimaryKey = 'someId';
+        $this->dtc = null;
     }
 
     public function countRows()

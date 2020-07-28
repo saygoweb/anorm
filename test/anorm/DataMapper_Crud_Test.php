@@ -83,6 +83,17 @@ class DataMapperCrudTest extends TestCase
 
     }
 
+    function testDateWrite_Null_Ok()
+    {
+        $model1 = new SomeTableModel($this->pdo);
+        $model1->dtc = null;
+        $model1->name = 'bob';
+        $id = $model1->write();
+        $model2 = new SomeTableModel($this->pdo);
+        $model2->read($id);
+        $this->assertNull($model2->dtc);
+    }
+
     function testBogusRead_Fails()
     {
         $model = new SomeTableModel($this->pdo);
