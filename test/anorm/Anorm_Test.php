@@ -28,6 +28,15 @@ class AnormTest extends TestCase
     }
 
     /**
+     * @expectedException \Exception
+     * @expectedExceptionMessage Anorm: Connection 'bogusname' doesn't exist. Call Anorm::connection first.
+     */
+    public function testPdo_NotConnected_Fails()
+    {
+        $result = Anorm::pdo('bogusname');
+    }
+
+    /**
      * @expectedException \PDOException
      * @expectedExceptionMessage SQLSTATE[HY000] [1045] Access denied for user 'bogus'@'localhost' (using password: NO)
      */
