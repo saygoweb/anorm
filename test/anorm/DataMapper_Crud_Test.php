@@ -2,16 +2,18 @@
 
 require_once(__DIR__ . '/../../vendor/autoload.php');
 
-require_once(__DIR__ . '/SomeTableModel.php');
-
 use PHPUnit\Framework\TestCase;
 
+use Anorm\Anorm;
 use Anorm\DataMapper;
 use Anorm\Model;
+use Anorm\Test\SomeTableModel;
+use Anorm\Test\TestEnvironment;
 
 class BogusModel extends Model {
-    public function __construct(\PDO $pdo)
+    public function __construct()
     {
+        $pdo = Anorm::pdo();
         parent::__construct($pdo, DataMapper::createByClass($pdo, $this));
         $this->_mapper->modelPrimaryKey = 'someId';
     }
@@ -23,18 +25,16 @@ class BogusModel extends Model {
 
 class DataMapperCrudTest extends TestCase
 {
-    /** @var \PDO */
-    private $pdo;
 
     public function __construct()
     {
         parent::__construct();
-        $this->pdo = new \PDO('mysql:host=localhost;dbname=anorm_test', 'travis', '');
+        TestEnvironment::connect();
     }
     
     public static function setUpBeforeClass()
     {
-        $pdo = new \PDO('mysql:host=localhost;dbname=anorm_test', 'travis', '');
+        $pdo = TestEnvironment::pdo();
         $pdo->query('DROP TABLE IF EXISTS `some_table`');
         $sql = file_get_contents(__DIR__ . '/TestSchema.sql');
         $pdo->query($sql);
@@ -42,8 +42,7 @@ class DataMapperCrudTest extends TestCase
 
     public function testCrud_OK()
     {
-        $model0 = new SomeTableModel($this->pdo);
-        $this->assertEquals($this->pdo, $model0->_mapper->pdo);
+        $model0 = new SomeTableModel();
         // Count current rows
         $n0 = $model0->countRows();
         $this->assertEquals(0, $n0);
@@ -60,7 +59,7 @@ class DataMapperCrudTest extends TestCase
         $this->assertEquals($n0 + 1, $n1);
 
         // Read (data present)
-        $model1 = new SomeTableModel($this->pdo);
+        $model1 = new SomeTableModel();
         $model1->read($model0->someId);
         $this->assertEquals($model0->name, $model1->name);
         $this->assertEquals($model0->dtc, $model1->dtc);
@@ -70,7 +69,7 @@ class DataMapperCrudTest extends TestCase
         $model1->write();
 
         // Read (data changed)
-        $model2 = new SomeTableModel($this->pdo);
+        $model2 = new SomeTableModel();
         $model2->read($model1->someId);
         $this->assertEquals($model1->name, $model2->name);
 
@@ -85,18 +84,18 @@ class DataMapperCrudTest extends TestCase
 
     function testDateWrite_Null_Ok()
     {
-        $model1 = new SomeTableModel($this->pdo);
+        $model1 = new SomeTableModel();
         $model1->dtc = null;
         $model1->name = 'bob';
         $id = $model1->write();
-        $model2 = new SomeTableModel($this->pdo);
+        $model2 = new SomeTableModel();
         $model2->read($id);
         $this->assertNull($model2->dtc);
     }
 
     function testBogusRead_Fails()
     {
-        $model = new SomeTableModel($this->pdo);
+        $model = new SomeTableModel();
         $result = $model->read('1');
         $this->assertFalse($result);
     }
@@ -107,7 +106,7 @@ class DataMapperCrudTest extends TestCase
      */
     function testBogusWrite_Fails()
     {
-        $model = new BogusModel($this->pdo);
+        $model = new BogusModel();
         $result = $model->write();
         $this->assertFalse($result);
     }
@@ -118,7 +117,7 @@ class DataMapperCrudTest extends TestCase
      */
     function testBogusDelete_Fails()
     {
-        $model = new BogusModel($this->pdo);
+        $model = new BogusModel();
         $result = $model->_mapper->delete('bogus');
         $this->assertFalse($result);
     }

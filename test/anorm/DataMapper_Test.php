@@ -6,7 +6,6 @@ use PHPUnit\Framework\TestCase;
 
 use Anorm\DataMapper;
 
-
 class TestClassModel {
     public $testProperty;
 }

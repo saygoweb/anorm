@@ -5,8 +5,8 @@ require_once(__DIR__ . '/../../vendor/autoload.php');
 use PHPUnit\Framework\TestCase;
 
 use Anorm\QueryBuilder;
-
-require_once(__DIR__ . '/TestEnvironment.php');
+use Anorm\Test\SomeTableModel;
+use Anorm\Test\TestEnvironment;
 
 class QueryBuilderTest extends TestCase
 {
@@ -22,7 +22,7 @@ class QueryBuilderTest extends TestCase
     public function testFunctions_ReturnThis()
     {
         $pdo = TestEnvironment::pdo();
-        $o = new QueryBuilder('SomeTableModel', $pdo);
+        $o = new QueryBuilder(SomeTableModel::class, $pdo);
         $result = $o->select('');
         $this->assertSame($o, $result);
         $result = $o->from('');

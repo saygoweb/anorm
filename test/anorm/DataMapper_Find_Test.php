@@ -2,13 +2,11 @@
 
 require_once(__DIR__ . '/../../vendor/autoload.php');
 
-require_once(__DIR__ . '/SomeTableModel.php');
-require_once(__DIR__ . '/TestEnvironment.php');
-
 use PHPUnit\Framework\TestCase;
 
 use Anorm\DataMapper;
-use Anorm\Model;
+use Anorm\Test\SomeTableModel;
+use Anorm\Test\TestEnvironment;
 
 class DataMapperFindTest extends TestCase
 {
@@ -40,7 +38,7 @@ class DataMapperFindTest extends TestCase
     // public function testFindOne_OK()
     // {
     //     /** @var SomeTableModel */
-    //     $model = DataMapper::find('SomeTableModel', $this->pdo)
+    //     $model = DataMapper::find(SomeTableModel::class, $this->pdo)
     //         ->where("`name`='Name 1'")
     //         ->one();
     //     $this->assertEquals('Name 1', $model->name);
@@ -49,7 +47,7 @@ class DataMapperFindTest extends TestCase
     public function testFindOne_OK()
     {
         /** @var SomeTableModel */
-        $model = DataMapper::find('SomeTableModel', $this->pdo)
+        $model = DataMapper::find(SomeTableModel::class, $this->pdo)
             ->where("`name`=:name", [':name' => 'Name 1'])
             ->one();
         $this->assertEquals('Name 1', $model->name);
@@ -58,7 +56,7 @@ class DataMapperFindTest extends TestCase
     public function testFindOneOrThrow_OK()
     {
         /** @var SomeTableModel */
-        $model = DataMapper::find('SomeTableModel', $this->pdo)
+        $model = DataMapper::find(SomeTableModel::class, $this->pdo)
         ->where("`name`=:name", [':name' => 'Name 1'])
         ->oneOrThrow();
         $this->assertEquals('Name 1', $model->name);
@@ -66,7 +64,7 @@ class DataMapperFindTest extends TestCase
 
     public function testFindSome_OK()
     {
-        $generator = DataMapper::find('SomeTableModel', $this->pdo)
+        $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
             ->orderBy("name")
             ->limit(3)
             ->some();
@@ -81,7 +79,7 @@ class DataMapperFindTest extends TestCase
     public function testFindOne_NotPresent_False()
     {
         /** @var SomeTableModel */
-        $model = DataMapper::find('SomeTableModel', $this->pdo)
+        $model = DataMapper::find(SomeTableModel::class, $this->pdo)
             ->where("`name`=:name", [':name' => 'Bogus Name'])
             ->one();
         $this->assertEquals(false, $model);
@@ -94,7 +92,7 @@ class DataMapperFindTest extends TestCase
     public function testFindOneOrThrow_NotPresent_Throws()
     {
         /** @var SomeTableModel */
-        $model = DataMapper::find('SomeTableModel', $this->pdo)
+        $model = DataMapper::find(SomeTableModel::class, $this->pdo)
             ->where("`name`=:name", [':name' => 'Bogus Name'])
             ->oneOrThrow();
     }
