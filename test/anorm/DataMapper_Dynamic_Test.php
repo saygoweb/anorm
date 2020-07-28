@@ -45,7 +45,7 @@ class DataMapperDynamicTest extends TestCase
     {
         /** @var NotYetModel */
         $model = DataMapper::find('NotYetModel', $this->pdo)
-            ->where("`name`='Name 1'")
+            ->where("`name`=:name", [':name' => 'Name 1'])
             ->one();
         $this->assertTrue(true); // Just testing that we haven't yet thrown.
     }

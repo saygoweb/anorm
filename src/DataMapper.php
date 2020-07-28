@@ -207,13 +207,16 @@ class DataMapper
     }
 
     /**
-     * @var $sql string SQL query
+     * @var string $sql string SQL query
+     * @var array $data array of values for bound parameters
      * @return \PDOStatement
      */
-    public function query($sql)
+    public function query($sql, $data = null)
     {
-        return $this->dynamicWrapper(function () use ($sql) {
-            return $this->pdo->query($sql);
+        return $this->dynamicWrapper(function () use ($sql, $data) {
+            $statement = $this->pdo->prepare($sql);
+            $statement->execute($data);
+            return $statement;
         });
     }
     

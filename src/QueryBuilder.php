@@ -3,11 +3,14 @@ namespace Anorm;
 
 class QueryBuilder
 {
+    public $boundData = null;
+
     private $method;
 
     private $instance;
 
     private $sql;
+
 
     public function __construct($creatable, \PDO $pdo = null)
     {
@@ -47,10 +50,11 @@ class QueryBuilder
         }
     }
 
-    public function where($sql)
+    public function where($sql, $data)
     {
         $this->ensureFrom();
         $this->sql .= ' WHERE ' . $sql;
+        $this->boundData = $data;
         return $this;
     }
 
@@ -66,7 +70,7 @@ class QueryBuilder
         $this->ensureFrom();
         /** @var DataMapper */
         $mapper = $this->instance->_mapper;
-        $result = $mapper->query($this->sql);
+        $result = $mapper->query($this->sql, $this->boundData);
         while ($mapper->readRow($this->instance, $result)) {
             yield $this->instance;
         }
@@ -86,7 +90,7 @@ class QueryBuilder
         /** @var DataMapper */
         $mapper = $this->instance->_mapper;
         $this->limit(1);
-        $result = $mapper->query($this->sql);
+        $result = $mapper->query($this->sql, $this->boundData);
         $couldRead = $mapper->readRow($this->instance, $result);
         if ($couldRead === false) {
             return false;
