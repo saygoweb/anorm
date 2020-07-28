@@ -3,6 +3,7 @@
 require_once(__DIR__ . '/../../vendor/autoload.php');
 
 require_once(__DIR__ . '/SomeTableModel.php');
+require_once(__DIR__ . '/TestEnvironment.php');
 
 use PHPUnit\Framework\TestCase;
 
@@ -17,12 +18,12 @@ class DataMapperFindTest extends TestCase
     public function __construct()
     {
         parent::__construct();
-        $this->pdo = new \PDO('mysql:host=localhost;dbname=anorm_test', 'travis', '');
+        $this->pdo = TestEnvironment::pdo();
     }
     
     public static function setUpBeforeClass()
     {
-        $pdo = new \PDO('mysql:host=localhost;dbname=anorm_test', 'travis', '');
+        $pdo = TestEnvironment::pdo();
         $pdo->query('DROP TABLE IF EXISTS `some_table`');
         $sql = file_get_contents(__DIR__ . '/TestSchema.sql');
         $pdo->query($sql);
@@ -36,11 +37,20 @@ class DataMapperFindTest extends TestCase
         }
     }
 
+    // public function testFindOne_OK()
+    // {
+    //     /** @var SomeTableModel */
+    //     $model = DataMapper::find('SomeTableModel', $this->pdo)
+    //         ->where("`name`='Name 1'")
+    //         ->one();
+    //     $this->assertEquals('Name 1', $model->name);
+    // }
+
     public function testFindOne_OK()
     {
         /** @var SomeTableModel */
         $model = DataMapper::find('SomeTableModel', $this->pdo)
-            ->where("`name`='Name 1'")
+            ->where("`name`=:name", [':name' => 'Name 1'])
             ->one();
         $this->assertEquals('Name 1', $model->name);
     }
@@ -49,8 +59,8 @@ class DataMapperFindTest extends TestCase
     {
         /** @var SomeTableModel */
         $model = DataMapper::find('SomeTableModel', $this->pdo)
-            ->where("`name`='Name 1'")
-            ->oneOrThrow();
+        ->where("`name`=:name", [':name' => 'Name 1'])
+        ->oneOrThrow();
         $this->assertEquals('Name 1', $model->name);
     }
 
@@ -72,20 +82,20 @@ class DataMapperFindTest extends TestCase
     {
         /** @var SomeTableModel */
         $model = DataMapper::find('SomeTableModel', $this->pdo)
-            ->where("`name`='Bogus Name'")
+            ->where("`name`=:name", [':name' => 'Bogus Name'])
             ->one();
         $this->assertEquals(false, $model);
     }
 
     /** 
      * @expectedException \Exception
-     * @expectedExceptionMessage QueryBuilder: Expected one not found from 'SELECT * FROM `some_table` WHERE `name`='Bogus Name' LIMIT 1'
+     * @expectedExceptionMessage QueryBuilder: Expected one not found from 'SELECT * FROM `some_table` WHERE `name`=:name LIMIT 1'
      */
     public function testFindOneOrThrow_NotPresent_Throws()
     {
         /** @var SomeTableModel */
         $model = DataMapper::find('SomeTableModel', $this->pdo)
-            ->where("`name`='Bogus Name'")
+            ->where("`name`=:name", [':name' => 'Bogus Name'])
             ->oneOrThrow();
     }
 
