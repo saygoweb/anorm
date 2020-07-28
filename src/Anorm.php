@@ -45,7 +45,7 @@ class Anorm
         return self::$connections[$name];
     }
 
-    /** @var PDO The connection */
+    /** @var \PDO The connection */
     public $pdo;
 
     private function __construct($dsn, $user, $password)

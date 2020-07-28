@@ -54,7 +54,7 @@ class TableMaker
         // Current design choice is to wait until later even if it means
         // a highly iterative, multiple exception approach on the common
         // first write case.
-        $sql = "CREATE TABLE $tableName(
+        $sql = "CREATE TABLE `$tableName`(
             id INT(11) AUTO_INCREMENT PRIMARY KEY
         )";
         $this->mapper->pdo->query($sql);
