@@ -50,6 +50,13 @@ class QueryBuilder
         }
     }
 
+    public function join($sql)
+    {
+        $this->ensureFrom();
+        $this->sql .= ' ' . $sql; // Assume the type of join is included in $sql
+        return $this;
+    }
+    
     public function where($sql, $data)
     {
         $this->ensureFrom();
