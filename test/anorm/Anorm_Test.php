@@ -38,7 +38,6 @@ class AnormTest extends TestCase
 
     /**
      * @expectedException \PDOException
-     * @expectedExceptionMessage SQLSTATE[HY000] [1045] Access denied for user 'bogus'@'localhost' (using password: NO)
      */
     public function testConnction_Bogus_Fails()
     {

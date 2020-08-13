@@ -24,6 +24,9 @@ class DataMapper
     /** @var string Name of the table */
     public $table;
 
+    /** @var array */
+    public $transformers = [];
+
     public static function create(\PDO $pdo, $table, $map)
     {
         $mapper = new DataMapper($pdo, $table, $map);
@@ -127,7 +130,11 @@ class DataMapper
                 if ($c->$property === null) {
                     $value = 'NULL';
                 } else {
-                    $value = $this->pdo->quote($c->$property);
+                    if (array_key_exists($field, $this->transformers)) {
+                        $value = $this->pdo->quote($this->transformers[$field]->txModelToDatabase($c->$property));
+                    } else {
+                        $value = $this->pdo->quote($c->$property);
+                    }
                 }
                 $values .= $value;
             }
@@ -151,7 +158,11 @@ class DataMapper
                 if ($c->$property === null) {
                     $value = 'NULL';
                 } else {
-                    $value = $this->pdo->quote($c->$property);
+                    if (array_key_exists($field, $this->transformers)) {
+                        $value = $this->pdo->quote($this->transformers[$field]->txModelToDatabase($c->$property));
+                    } else {
+                        $value = $this->pdo->quote($c->$property);
+                    }
                 }
                 // TODO Move this to bound value CP 2020-06
                 $set .= "$field=$value";
@@ -241,7 +252,11 @@ class DataMapper
                 continue;
             }
             if (!in_array($property, $exclude) && array_key_exists($field, $data)) {
-                $c->$property = $data[$field];
+                if (array_key_exists($field, $this->transformers)) {
+                    $c->$property = $this->transformers[$field]->txDatabaseToModel($data[$field]);
+                } else {
+                    $c->$property = $data[$field];
+                }
             }
         }
         return true;
