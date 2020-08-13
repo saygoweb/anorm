@@ -50,7 +50,7 @@ class DataMapperFindTest extends TestCase
         $model = DataMapper::find(SomeTableModel::class, $this->pdo)
             ->where("`name`=:name", [':name' => 'Name 1'])
             ->one();
-        $this->assertEquals('Name 1', $model->name);
+        $this->assertEquals('name 1', $model->name);
     }
 
     public function testFindOneOrThrow_OK()
@@ -59,7 +59,7 @@ class DataMapperFindTest extends TestCase
         $model = DataMapper::find(SomeTableModel::class, $this->pdo)
         ->where("`name`=:name", [':name' => 'Name 1'])
         ->oneOrThrow();
-        $this->assertEquals('Name 1', $model->name);
+        $this->assertEquals('name 1', $model->name);
     }
 
     public function testFindSome_OK()
@@ -70,7 +70,7 @@ class DataMapperFindTest extends TestCase
             ->some();
         $i = 0;
         foreach ($generator as $model) {
-            $this->assertEquals("Name $i", $model->name);
+            $this->assertEquals("name $i", $model->name);
             ++$i;
         }
         $this->assertEquals(3, $i);
