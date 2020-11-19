@@ -167,7 +167,7 @@ class DataMapper
                 // TODO Move this to bound value CP 2020-06
                 $set .= "$field=$value";
             }
-            if ($c->$key === null || $c->key === '') {
+            if ($c->$key === null || $c->$key === '') {
                 $sql = 'INSERT INTO `' . $this->table . '` SET ' . $set;
                 $this->dynamicWrapper(function () use ($sql, $c, $key) {
                     $result = $this->pdo->query($sql);
