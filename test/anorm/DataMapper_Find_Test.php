@@ -107,6 +107,7 @@ class DataMapperFindTest extends TestCase
             ->from("some_table AS s")
             ->groupBy("category")
             ->some();
+        
         $result = [];
         foreach ($generator as $model) {
             $result[] = [
