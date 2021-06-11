@@ -5,6 +5,7 @@ require_once(__DIR__ . '/../../vendor/autoload.php');
 use PHPUnit\Framework\TestCase;
 
 use Anorm\DataMapper;
+use Anorm\Test\SomeTableAggregateModel;
 use Anorm\Test\SomeTableModel;
 use Anorm\Test\TestEnvironment;
 
@@ -31,6 +32,7 @@ class DataMapperFindTest extends TestCase
         for ($i = 0; $i < 10; ++$i) {
             $model->name = "Name $i";
             $model->someId = null;
+            $model->category = floor($i / 4);
             $model->write();
         }
     }
@@ -95,6 +97,40 @@ class DataMapperFindTest extends TestCase
         $model = DataMapper::find(SomeTableModel::class, $this->pdo)
             ->where("`name`=:name", [':name' => 'Bogus Name'])
             ->oneOrThrow();
+    }
+
+    public function testFindSome_GroupBy_OK()
+    {
+        /** @var SomeTableAggregateModel[] */
+        $generator = DataMapper::find(SomeTableAggregateModel::class, $this->pdo)
+            ->select("COUNT(s.category) AS category_count,MIN(s.some_id) AS id_min,MAX(s.some_id) AS id_max")
+            ->from("some_table AS s")
+            ->groupBy("category")
+            ->some();
+        $result = [];
+        foreach ($generator as $model) {
+            $result[] = [
+                'count' => $model->categoryCount,
+                'min' => $model->idMin,
+                'max' => $model->idMax,
+            ];
+        }
+        $this->assertEquals(3, count($result));
+        $this->assertEquals([
+            'count' => '4',
+            'min' => '1',
+            'max' => '4',
+        ], $result[0]);
+        $this->assertEquals([
+            'count' => '4',
+            'min' => '5',
+            'max' => '8',
+        ], $result[1]);
+        $this->assertEquals([
+            'count' => '2',
+            'min' => '9',
+            'max' => '10',
+        ], $result[2]);
     }
 
 }

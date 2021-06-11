@@ -27,6 +27,7 @@ class SomeTableModel extends Model {
 
     public $someId;
     public $name;
+    public $category;
     public $dtc;
 }
 
