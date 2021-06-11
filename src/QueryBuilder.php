@@ -65,6 +65,13 @@ class QueryBuilder
         return $this;
     }
 
+    public function groupBy($sql)
+    {
+        $this->ensureFrom();
+        $this->sql .= ' GROUP BY ' . $sql;
+        return $this;
+    }
+
     public function orderBy($sql)
     {
         $this->ensureFrom();

@@ -30,7 +30,7 @@ class DataMapperFindTest extends TestCase
         $model = new SomeTableModel($pdo);
         for ($i = 0; $i < 10; ++$i) {
             $model->name = "Name $i";
-            $model->someId = null;
+            $model->someId = $i % 4;
             $model->write();
         }
     }
@@ -95,6 +95,21 @@ class DataMapperFindTest extends TestCase
         $model = DataMapper::find(SomeTableModel::class, $this->pdo)
             ->where("`name`=:name", [':name' => 'Bogus Name'])
             ->oneOrThrow();
+    }
+
+    public function testFindSome_GroupBy_OK()
+    {/*
+        $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
+            ->select(COUNT())
+            ->groupBy("some_id")
+            ->some();
+        $i = 0;
+        foreach ($generator as $model) {
+            $this->assertEquals("name $i", $model->name);
+            ++$i;
+        }
+        $this->assertEquals(3, $i);
+        */
     }
 
 }
