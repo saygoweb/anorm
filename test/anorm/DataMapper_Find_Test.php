@@ -5,6 +5,7 @@ require_once(__DIR__ . '/../../vendor/autoload.php');
 use PHPUnit\Framework\TestCase;
 
 use Anorm\DataMapper;
+use Anorm\Test\SomeTableAggregateModel;
 use Anorm\Test\SomeTableModel;
 use Anorm\Test\TestEnvironment;
 
@@ -30,7 +31,8 @@ class DataMapperFindTest extends TestCase
         $model = new SomeTableModel($pdo);
         for ($i = 0; $i < 10; ++$i) {
             $model->name = "Name $i";
-            $model->someId = $i % 4;
+            $model->someId = null;
+            $model->category = floor($i / 4);
             $model->write();
         }
     }
@@ -98,18 +100,37 @@ class DataMapperFindTest extends TestCase
     }
 
     public function testFindSome_GroupBy_OK()
-    {/*
-        $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
-            ->select(COUNT())
-            ->groupBy("some_id")
+    {
+        /** @var SomeTableAggregateModel[] */
+        $generator = DataMapper::find(SomeTableAggregateModel::class, $this->pdo)
+            ->select("COUNT(s.category) AS category_count,MIN(s.some_id) AS id_min,MAX(s.some_id) AS id_max")
+            ->from("some_table AS s")
+            ->groupBy("category")
             ->some();
-        $i = 0;
+        $result = [];
         foreach ($generator as $model) {
-            $this->assertEquals("name $i", $model->name);
-            ++$i;
+            $result[] = [
+                'count' => $model->categoryCount,
+                'min' => $model->idMin,
+                'max' => $model->idMax,
+            ];
         }
-        $this->assertEquals(3, $i);
-        */
+        $this->assertEquals(3, count($result));
+        $this->assertEquals([
+            'count' => '4',
+            'min' => '1',
+            'max' => '4',
+        ], $result[0]);
+        $this->assertEquals([
+            'count' => '4',
+            'min' => '5',
+            'max' => '8',
+        ], $result[1]);
+        $this->assertEquals([
+            'count' => '2',
+            'min' => '9',
+            'max' => '10',
+        ], $result[2]);
     }
 
 }
