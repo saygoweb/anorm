@@ -1,7 +1,9 @@
 <?php
-namespace Anorm;
+namespace Anorm\Transform;
 
-class Transformer
+use Anorm\TransformInterface;
+
+class FunctionTransform implements TransformInterface
 {
 
     /** @var callable */

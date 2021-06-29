@@ -24,7 +24,7 @@ class DataMapper
     /** @var string Name of the table */
     public $table;
 
-    /** @var array */
+    /** @var TransformInterface[] */
     public $transformers = [];
 
     public static function create(\PDO $pdo, $table, $map)
