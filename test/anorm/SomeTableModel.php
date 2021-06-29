@@ -4,7 +4,7 @@ namespace Anorm\Test;
 use Anorm\Anorm;
 use Anorm\DataMapper;
 use Anorm\Model;
-use Anorm\Transformer;
+use Anorm\Transform\FunctionTransform;
 
 class SomeTableModel extends Model {
     public function __construct()
@@ -12,7 +12,7 @@ class SomeTableModel extends Model {
         $pdo = Anorm::pdo();
         parent::__construct($pdo, DataMapper::createByClass($pdo, $this));
         $this->_mapper->modelPrimaryKey = 'someId';
-        $this->_mapper->transformers['name'] = new Transformer(
+        $this->_mapper->transformers['name'] = new FunctionTransform(
             function($value) { return strtolower($value); },
             function($value) { return strtoupper($value); }
         );
