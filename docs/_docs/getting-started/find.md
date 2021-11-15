@@ -17,6 +17,21 @@ foreach ($data as $model) {
 }
 ```
 
+### Find Many with Paging
+
+Use the `limit` for paging `limit($recordCount, $offset)`. The example below returns 5 records starting at 100.
+
+```php
+$anorm = Anorm::use('mydata');
+$data = DataMapper::find('SomeTableModel', $anorm->pdo)
+    ->orderBy("name")
+    ->limit(5, 100)
+    ->some();
+foreach ($data as $model) {
+    // ...
+}
+```
+
 ### Find One
 
 ```php

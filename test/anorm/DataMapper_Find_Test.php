@@ -68,14 +68,16 @@ class DataMapperFindTest extends TestCase
     {
         $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
             ->orderBy("name")
-            ->limit(3)
+            ->limit(2, 1)
             ->some();
-        $i = 0;
+        $i = 1;
+        $j = 0;
         foreach ($generator as $model) {
             $this->assertEquals("name $i", $model->name);
             ++$i;
+            ++$j;
         }
-        $this->assertEquals(3, $i);
+        $this->assertEquals(2, $j);
     }
 
     public function testFindOne_NotPresent_False()
@@ -89,7 +91,7 @@ class DataMapperFindTest extends TestCase
 
     /** 
      * @expectedException \Exception
-     * @expectedExceptionMessage QueryBuilder: Expected one not found from 'SELECT * FROM `some_table` WHERE `name`=:name LIMIT 1'
+     * @expectedExceptionMessage QueryBuilder: Expected one not found from 'SELECT * FROM `some_table` WHERE `name`=:name LIMIT 0, 1'
      */
     public function testFindOneOrThrow_NotPresent_Throws()
     {
