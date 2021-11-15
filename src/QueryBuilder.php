@@ -90,11 +90,11 @@ class QueryBuilder
         }
     }
 
-    public function limit($n) //TODO Offset also
+    public function limit($n, $offset = 0) //TODO Offset also
     {
         $this->ensureFrom();
         if (false === stripos($this->sql, 'LIMIT')) {
-            $this->sql .= " LIMIT $n";
+            $this->sql .= " LIMIT $offset, $n";
         }
         return $this;
     }
