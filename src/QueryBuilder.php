@@ -90,7 +90,7 @@ class QueryBuilder
         }
     }
 
-    public function limit($n, $offset = 0) //TODO Offset also
+    public function limit($n, $offset = 0)
     {
         $this->ensureFrom();
         if (false === stripos($this->sql, 'LIMIT')) {
