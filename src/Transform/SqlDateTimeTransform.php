@@ -16,12 +16,12 @@ class SqlDateTimeTransform implements TransformInterface
 
     public function txDatabaseToModel($value)
     {
-        return new \DateTime($value);
+        return $value !== null ? new \DateTime($value) : null;
     }
 
     public function txModelToDatabase(/** @var \DateTime */$value)
     {
-        return $value->format($this->format);
+        return $value !== null ? $value->format($this->format) : null;
     }
 
 }
