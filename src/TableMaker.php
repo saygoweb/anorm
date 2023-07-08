@@ -79,7 +79,7 @@ class TableMaker
         }
         $columnFn = Anorm::$columnFn; // Redundant, but can't do this Anorm::$columnFn(...)
         $columnDefinition = $columnFn($columnName, $sampleData);
-        $sql = "ALTER TABLE " . $this->mapper->table . " ADD $columnName $columnDefinition";
+        $sql = "ALTER TABLE `" . $this->mapper->table . "` ADD $columnName $columnDefinition";
         $this->mapper->pdo->query($sql);
     }
 
@@ -94,14 +94,19 @@ class TableMaker
                     return "DOUBLE NULL";
                 }
             }
-            if (preg_match('/(\d{4})-(\d{2})-(\d{2})/', $sampleData) === 1) {
+            if (is_object($sampleData) && get_class($sampleData) == 'Moment\Moment') {
                 return "DATETIME NULL";
             }
-            if (strlen($sampleData) > 256) {
-                return "TEXT";
-            }
-            if (strlen($sampleData) > 128) {
-                return "VARCHAR(256)";
+            if (is_string($sampleData)) {
+                if (preg_match('/(\d{4})-(\d{2})-(\d{2})/', $sampleData) === 1) {
+                    return "DATETIME NULL";
+                }
+                if (strlen($sampleData) > 256) {
+                    return "TEXT";
+                }
+                if (strlen($sampleData) > 128) {
+                    return "VARCHAR(256)";
+                }
             }
         }
         return 'VARCHAR(128)';
