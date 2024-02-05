@@ -72,6 +72,13 @@ class QueryBuilder
         return $this;
     }
 
+    public function having($sql)
+    {
+        $this->ensureFrom();
+        $this->sql .= ' HAVING ' . $sql;
+        return $this;
+    }
+
     public function orderBy($sql)
     {
         $this->ensureFrom();

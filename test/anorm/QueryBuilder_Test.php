@@ -33,6 +33,8 @@ class QueryBuilderTest extends TestCase
         $this->assertSame($o, $result);
         $result = $o->groupBy('');
         $this->assertSame($o, $result);
+        $result = $o->having('');
+        $this->assertSame($o, $result);
         $result = $o->orderBy('');
         $this->assertSame($o, $result);
         $result = $o->limit('');

@@ -199,7 +199,7 @@ class DataMapper
     private function dynamicWrapper(callable $fn, $model = null)
     {
         $lastException = '';
-        for ($strike = 0; $strike < 10; ++$strike) {
+        for ($strike = 0; $strike < 100; ++$strike) {
             try {
                 return $fn();
             } catch (\PDOException $e) {
