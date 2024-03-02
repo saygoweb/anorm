@@ -56,7 +56,7 @@ class Anorm
     public static function pdo($name = self::DEFAULT)
     {
         if (!\array_key_exists($name, self::$connections)) {
-            throw new \Exception("Anorm: Connection '$name' doesn't exist. Call Anorm::connection first.");
+            throw new \Exception("Anorm: Connection '$name' doesn't exist. Call Anorm::connect first.");
         }
         return self::$connections[$name]->pdo;
     }
@@ -66,6 +66,9 @@ class Anorm
 
     private function __construct($dsn, $user, $password)
     {
+        if (strpos($dsn, 'mysql') !== false && strpos($dsn, 'charset') === false) {
+            $dsn .= ';charset=utf8mb4';
+        }
         $this->pdo = new \PDO($dsn, $user, $password);
         $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
     }
