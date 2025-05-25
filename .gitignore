@@ -1,3 +1,4 @@
 /vendor/
+/build/coverage/
 /build/code_coverage/
 /build/logs/
