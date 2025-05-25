@@ -104,7 +104,7 @@ class App
             $password = \cli\prompt("Password", false, ':', true); // hide
         }
         try {
-            $pdo = new \PDO('mysql:host=localhost;dbname=' . $this->commandArgs[0], $this->options['user'], $password);
+            $pdo = new \PDO('mysql:host=db;dbname=' . $this->commandArgs[0], $this->options['user'], $password);
         } catch (\PDOException $e) {
             echo 'Error: Database connection failed, ' . $e->getMessage() . PHP_EOL;
             return;
