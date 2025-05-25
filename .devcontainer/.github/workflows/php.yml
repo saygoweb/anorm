@@ -1,0 +1,68 @@
+name: PHP Composer
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    services:
+      db:
+        image: mariadb:latest
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: anorm_test
+          MARIADB_USER: dev
+          MARIADB_PASSWORD: dev
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mariadb-admin ping --silent" 
+          --health-interval=10s 
+          --health-timeout=5s 
+          --health-retries=3
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Validate composer.json and composer.lock
+      run: composer validate --strict
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress
+
+    - name: Wait for MariaDB to be ready
+      run: |
+        for i in {1..30}; do
+          if mysql -h127.0.0.1 -udev -pdev -e 'SELECT 1' anorm_test; then
+            echo "Database is ready!"
+            break
+          fi
+          echo "Waiting for database..."
+          sleep 2
+        done
+
+    - name: Run PHPUnit with coverage
+      run: vendor/bin/phpunit --coverage-clover=build/logs/clover.xml
+      env:
+        DB_HOST: 127.0.0.1
+        DB_DATABASE: anorm_test
+        DB_USERNAME: dev
+        DB_PASSWORD: dev
