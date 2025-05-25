@@ -33,6 +33,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Set up PHP 7.4
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '7.4'
+        extensions: pdo, pdo_mysql, zip, xdebug
+
     - name: Validate composer.json and composer.lock
       run: composer validate --strict
 
