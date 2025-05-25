@@ -6,9 +6,9 @@ services:
     restart: always
     environment:
       MARIADB_ROOT_PASSWORD: root
-      MYSQL_DATABASE: app
-      MYSQL_USER: dev
-      MYSQL_PASSWORD: dev
+      MARIADB_DATABASE: anorm_test
+      MARIADB_USER: dev
+      MARIADB_PASSWORD: dev
     ports:
       - "3306:3306"
     volumes:
@@ -38,7 +38,7 @@ services:
       DATABASE_HOST: db
       DATABASE_USER: dev
       DATABASE_PASSWORD: dev
-      DATABASE_NAME: app
+      DATABASE_NAME: anorm_test
     command: sleep infinity
 
 volumes:
