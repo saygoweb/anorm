@@ -42,7 +42,7 @@ class Anorm
     public static function use($name = self::DEFAULT)
     {
         if (!\array_key_exists($name, self::$connections)) {
-            throw new \Exception("Anorm: Connection '$name' doesn't exist. Call Anorm::connection first.");
+            throw new \Exception("Anorm: Connection '$name' doesn't exist. Call Anorm::connect first.");
         }
         return self::$connections[$name];
     }

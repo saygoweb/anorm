@@ -7,7 +7,7 @@ class TestEnvironment
 
     public static function connect()
     {
-        Anorm::connect(Anorm::DEFAULT, 'mysql:host=localhost;dbname=anorm_test', 'travis', '');
+        Anorm::connect(Anorm::DEFAULT, 'mysql:host=db;dbname=anorm_test', 'dev', 'dev');
     }
 
     public static function pdo() : \PDO

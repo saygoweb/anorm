@@ -14,7 +14,7 @@ class ModelMakerDataTest extends TestCase
     public function __construct()
     {
         parent::__construct();
-        $this->pdo = new \PDO('mysql:host=localhost;dbname=anorm_test', 'travis', '');
+        $this->pdo = new \PDO('mysql:host=db;dbname=anorm_test', 'dev', 'dev');
         $this->pdo->query('DROP TABLE IF EXISTS `model_test`');
         $sql = file_get_contents(__DIR__ . '/ModelMakerSchema.sql');
         $this->pdo->query($sql);

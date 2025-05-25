@@ -10,7 +10,7 @@ class AnormTest extends TestCase
 {
     public function testConnctionAndUse_OK()
     {
-        $anorm1 = Anorm::connect('testname', 'mysql:host=localhost;dbname=anorm_test', 'travis', '');
+        $anorm1 = Anorm::connect('testname', 'mysql:host=db;dbname=anorm_test', 'dev', 'dev');
         $this->assertInstanceOf('Anorm\Anorm', $anorm1);
 
         $anorm2 = Anorm::use('testname');
@@ -20,7 +20,7 @@ class AnormTest extends TestCase
 
     /**
      * @expectedException \Exception
-     * @expectedExceptionMessage Anorm: Connection 'bogusname' doesn't exist. Call Anorm::connection first.
+     * @expectedExceptionMessage Anorm: Connection 'bogusname' doesn't exist. Call Anorm::connect first.
      */
     public function testUse_NotConnected_Fails()
     {
@@ -29,7 +29,7 @@ class AnormTest extends TestCase
 
     /**
      * @expectedException \Exception
-     * @expectedExceptionMessage Anorm: Connection 'bogusname' doesn't exist. Call Anorm::connection first.
+     * @expectedExceptionMessage Anorm: Connection 'bogusname' doesn't exist. Call Anorm::connect first.
      */
     public function testPdo_NotConnected_Fails()
     {
@@ -41,7 +41,7 @@ class AnormTest extends TestCase
      */
     public function testConnction_Bogus_Fails()
     {
-        $result = Anorm::connect('bogusname', 'mysql:host=localhost;dbname=bogus', 'bogus', '');
+        $result = Anorm::connect('bogusname', 'mysql:host=db;dbname=bogus', 'bogus', '');
     }
 
 }
