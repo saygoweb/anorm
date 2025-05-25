@@ -5,6 +5,7 @@ require_once(__DIR__ . '/../../vendor/autoload.php');
 use PHPUnit\Framework\TestCase;
 
 use Anorm\Tools\ModelMaker;
+use Anorm\Test\TestDbConfig;
 
 class ModelMakerDataTest extends TestCase
 {
@@ -14,7 +15,7 @@ class ModelMakerDataTest extends TestCase
     public function __construct()
     {
         parent::__construct();
-        $this->pdo = new \PDO('mysql:host=db;dbname=anorm_test', 'dev', 'dev');
+        $this->pdo = TestDbConfig::getPdo();
         $this->pdo->query('DROP TABLE IF EXISTS `model_test`');
         $sql = file_get_contents(__DIR__ . '/ModelMakerSchema.sql');
         $this->pdo->query($sql);

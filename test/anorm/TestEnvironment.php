@@ -2,12 +2,18 @@
 namespace Anorm\Test;
 
 use Anorm\Anorm;
+use Anorm\Test\TestDbConfig;
 class TestEnvironment
 {
 
     public static function connect()
     {
-        Anorm::connect(Anorm::DEFAULT, 'mysql:host=db;dbname=anorm_test', 'dev', 'dev');
+        $host = getenv('DB_HOST') ?: 'db';
+        $dbname = getenv('DB_NAME') ?: 'anorm_test';
+        $user = getenv('DB_USER') ?: 'dev';
+        $pass = getenv('DB_PASS') ?: 'dev';
+        $dsn = "mysql:host=$host;dbname=$dbname";
+        \Anorm\Anorm::connect(\Anorm\Anorm::DEFAULT, $dsn, $user, $pass);
     }
 
     public static function pdo() : \PDO
@@ -15,7 +21,7 @@ class TestEnvironment
         static $pdo = null;
         if (!$pdo) {
             self::connect();
-            $pdo = Anorm::pdo(Anorm::DEFAULT);
+            $pdo = TestDbConfig::getPdo();
         }
         return $pdo;
     }
