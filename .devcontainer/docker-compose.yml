@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  db:
+    image: mariadb:latest
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MYSQL_DATABASE: app
+      MYSQL_USER: dev
+      MYSQL_PASSWORD: dev
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    restart: always
+    environment:
+      PMA_HOST: db
+      PMA_USER: dev
+      PMA_PASSWORD: dev
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+
+  app:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - ..:/workspace:cached
+    depends_on:
+      - db
+    environment:
+      DATABASE_HOST: db
+      DATABASE_USER: dev
+      DATABASE_PASSWORD: dev
+      DATABASE_NAME: app
+    command: sleep infinity
+
+volumes:
+  db_data:

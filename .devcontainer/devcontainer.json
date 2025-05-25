@@ -1,0 +1,20 @@
+{
+  "name": "PHP Development Container",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "mhutchie.git-graph",
+        "xdebug.php-debug",
+        "bmewburn.vscode-intelephense-client"
+      ],
+      "settings": {
+        "php.validate.executablePath": "/usr/local/bin/php"
+      }
+    }
+  },
+  "postCreateCommand": "composer install",
+  "remoteUser": "vscode"
+}
