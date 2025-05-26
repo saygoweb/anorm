@@ -61,6 +61,18 @@ class TableMakerTest extends TestCase
         $this->assertEquals('VARCHAR(256)', $result);
     }
 
+    public function testColumnDefinition_Moment_OK()
+    {
+        if (!class_exists('Moment\\Moment')) {
+            eval('namespace Moment; class Moment {}');
+        }
+        /** @noinspection PhpUndefinedClassInspection */
+        $moment = new \Moment\Moment();
+
+        $result = TableMaker::columnDefinition('date', $moment);
+        $this->assertEquals('DATETIME NULL', $result);
+    }
+
     /**
      * @expectedException \Exception
      * @expectedExceptionMessage Anorm: Could not parse PDOException
