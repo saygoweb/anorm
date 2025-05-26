@@ -1,6 +1,6 @@
 # Anorm: Another ORM for PHP
 
-[![Build Status](https://travis-ci.com/saygoweb/anorm.svg?branch=master)](https://travis-ci.com/saygoweb/anorm)
+[![Build Status](https://github.com/saygoweb/anorm/actions/workflows/php.yml/badge.svg?branch=master)](https://github.com/saygoweb/anorm/actions/workflows/php.yml?query=branch%3Amaster)
 [![Coverage Status](https://coveralls.io/repos/github/saygoweb/anorm/badge.svg?branch=master)](https://coveralls.io/github/saygoweb/anorm?branch=master)
 [![MIT Licence](https://badges.frapsoft.com/os/mit/mit.svg?v=103)](https://opensource.org/licenses/mit-license.php)
 
