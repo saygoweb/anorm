@@ -6,7 +6,7 @@ use PHPUnit\Framework\TestCase;
 
 use Anorm\DataMapper;
 use Anorm\TableMaker;
-use Anorm\Test\TestDbConfig;
+use Anorm\Test\TestEnvironment;
 
 class TableMakerTestException extends \PDOException
 {
@@ -25,7 +25,7 @@ class TableMakerTest extends TestCase
     public function __construct()
     {
         parent::__construct();
-        $this->pdo = TestDbConfig::getPdo();
+        $this->pdo = TestEnvironment::pdo();
     }
     
 

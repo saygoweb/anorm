@@ -5,12 +5,14 @@ require_once(__DIR__ . '/../../vendor/autoload.php');
 use PHPUnit\Framework\TestCase;
 
 use Anorm\Anorm;
+use Anorm\Test\TestEnvironment;
 
 class AnormTest extends TestCase
 {
     public function testConnctionAndUse_OK()
     {
-        $anorm1 = Anorm::connect('testname', 'mysql:host=db;dbname=anorm_test', 'dev', 'dev');
+        TestEnvironment::connect('testname');
+        $anorm1 = Anorm::use('testname');
         $this->assertInstanceOf('Anorm\Anorm', $anorm1);
 
         $anorm2 = Anorm::use('testname');
@@ -41,7 +43,11 @@ class AnormTest extends TestCase
      */
     public function testConnction_Bogus_Fails()
     {
-        $result = Anorm::connect('bogusname', 'mysql:host=db;dbname=bogus', 'bogus', '');
+        TestEnvironment::connectCustom('bogusname', [
+            'dbname' => 'bogus',
+            'user' => 'bogus',
+            'pass' => ''
+        ]);
     }
 
 }
