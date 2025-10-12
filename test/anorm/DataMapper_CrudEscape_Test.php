@@ -12,11 +12,12 @@ class DataMapperCrudEscapeTest extends TestCase
     public function __construct()
     {
         parent::__construct();
-        TestEnvironment::connect();
+        // Database connection moved to setUpBeforeClass to avoid early connection
     }
     
     public static function setUpBeforeClass(): void
     {
+        TestEnvironment::connect(); // Connect to database
         $pdo = TestEnvironment::pdo();
         $pdo->query('DROP TABLE IF EXISTS `some_table`');
         $sql = file_get_contents(__DIR__ . '/TestSchema.sql');
