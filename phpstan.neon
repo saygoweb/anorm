@@ -13,5 +13,9 @@ parameters:
         - '#Access to an undefined property [a-zA-Z0-9\\_]+::\$[a-zA-Z0-9_]+#'
         # Allow undefined methods in test environment
         - '#Call to an undefined method [a-zA-Z0-9\\_]+::[a-zA-Z0-9_]+\(\)#'
-    checkMissingIterableValueType: false
-    checkGenericClassInNonGenericObjectType: false
+        # Ignore missing array typehints
+        -
+            identifier: missingType.iterableValue
+        # Ignore missing generic typehints
+        -
+            identifier: missingType.generics
