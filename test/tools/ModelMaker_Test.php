@@ -9,7 +9,7 @@ use Anorm\Tools\ModelInfo;
 
 class ModelMakerTest extends TestCase
 {
-    public static function tearDownAfterClass()
+    public static function tearDownAfterClass(): void
     {
         foreach (glob('/tmp/ModelMakerTest*') as $file)
         {

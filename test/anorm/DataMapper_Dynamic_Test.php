@@ -30,7 +30,7 @@ class NotYetModel extends Model {
 
 class DataMapperDynamicTest extends TestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         $pdo = TestEnvironment::pdo();
         $pdo->query('DROP TABLE IF EXISTS `not_yet`');

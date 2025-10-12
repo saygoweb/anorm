@@ -15,7 +15,7 @@ class DataMapperCrudEscapeTest extends TestCase
         TestEnvironment::connect();
     }
     
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $pdo = TestEnvironment::pdo();
         $pdo->query('DROP TABLE IF EXISTS `some_table`');
