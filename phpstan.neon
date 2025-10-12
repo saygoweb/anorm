@@ -1,0 +1,17 @@
+parameters:
+    level: 5
+    paths:
+        - src
+        - test
+    excludePaths:
+        - test/anorm/TestSchema.sql
+        - test/anorm/TestReplaceSchema.sql
+        - test/tools/ModelMakerSchema.sql
+        - vendor
+    ignoreErrors:
+        # Allow dynamic properties in test models
+        - '#Access to an undefined property [a-zA-Z0-9\\_]+::\$[a-zA-Z0-9_]+#'
+        # Allow undefined methods in test environment
+        - '#Call to an undefined method [a-zA-Z0-9\\_]+::[a-zA-Z0-9_]+\(\)#'
+    checkMissingIterableValueType: false
+    checkGenericClassInNonGenericObjectType: false

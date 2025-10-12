@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<ruleset name="Anorm Coding Standard">
+    <description>Coding standard for Anorm project</description>
+
+    <!-- Include the PSR-12 standard -->
+    <rule ref="PSR12"/>
+
+    <!-- Include source and test directories -->
+    <file>src</file>
+    <file>test</file>
+
+    <!-- Exclude vendor directory -->
+    <exclude-pattern>vendor/*</exclude-pattern>
+    
+    <!-- Exclude SQL files -->
+    <exclude-pattern>*.sql</exclude-pattern>
+    
+    <!-- Exclude build directory -->
+    <exclude-pattern>build/*</exclude-pattern>
+
+    <!-- Show progress -->
+    <arg value="p"/>
+    
+    <!-- Use colors -->
+    <arg name="colors"/>
+    
+    <!-- Show sniff codes in all reports -->
+    <arg value="s"/>
+
+    <!-- Additional rules -->
+    <rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
+    <rule ref="Generic.Commenting.Todo"/>
+    <rule ref="Generic.ControlStructures.InlineControlStructure"/>
+    <rule ref="Generic.Formatting.DisallowMultipleStatements"/>
+    <rule ref="Generic.Formatting.SpaceAfterCast"/>
+    <rule ref="Generic.Functions.CallTimePassByReference"/>
+    <rule ref="Generic.NamingConventions.UpperCaseConstantName"/>
+    <rule ref="Generic.PHP.LowerCaseConstant"/>
+    <rule ref="Generic.PHP.LowerCaseKeyword"/>
+    <rule ref="Generic.Strings.UnnecessaryStringConcat"/>
+    <rule ref="Generic.WhiteSpace.IncrementDecrementSpacing"/>
+    
+    <!-- Relaxed rules for test files -->
+    <rule ref="PSR1.Methods.CamelCapsMethodName">
+        <exclude-pattern>test/*</exclude-pattern>
+    </rule>
+</ruleset>
