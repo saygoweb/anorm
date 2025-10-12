@@ -74,28 +74,26 @@ EOD;
         $this->assertEquals($expected, $actual);
     }
 
-    /**
-     * @expectedException \Exception
-     * @expectedExceptionMessageRegExp /File '[^']+' exists, and force overwrite options not set./
-     */
     public function testWriteModelAsFile_FileExists_Throws()
     {
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessageMatches("/File '[^']+' exists, and force overwrite options not set./");
+
         $o = new ModelMaker(null, 'some_table');
         $this->assertEquals('some_table', $o->table);
         $o->modelInfo = new ModelInfo();
         $o->modelInfo->properties = array('fieldOne', 'fieldTwo');
         $tempFilePath = tempnam("/tmp", "ModelMakerTest");
         // It is already created and this will cause an exception to be thrown.
-        $actual = $o->writeModelAsFile($tempFilePath);
+        $o->writeModelAsFile($tempFilePath);
     }
     
-    /**
-     * @expectedException \Exception
-     */
     public function testWriteModelAsFile_BadPath_Throws()
     {
+        $this->expectException(\Exception::class);
+
         $o = new ModelMaker(null, 'some_table');
-        $actual = $o->writeModelAsFile('bogus_path/to_model');
+        $o->writeModelAsFile('bogus_path/to_model');
     }
 
     public function testWriteModelAsFile_OK()

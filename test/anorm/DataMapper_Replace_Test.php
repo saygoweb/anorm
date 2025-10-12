@@ -64,12 +64,11 @@ class DataMapperReplaceTest extends TestCase
 
     }
 
-    /** 
-     * @expectedException \Exception
-     * @expectedExceptionMessage Key 'replaceId' must be set when using replace mode
-     */
     public function testNoPrimaryKey_Throws()
     {
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage("Key 'replaceId' must be set when using replace mode");
+
         $model = new ReplaceTableModel();
         $model->write();
     }

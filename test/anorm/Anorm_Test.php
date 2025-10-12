@@ -20,29 +20,26 @@ class AnormTest extends TestCase
         $this->assertEquals($anorm1, $anorm2);
     }
 
-    /**
-     * @expectedException \Exception
-     * @expectedExceptionMessage Anorm: Connection 'bogusname' doesn't exist. Call Anorm::connect first.
-     */
     public function testUse_NotConnected_Fails()
     {
-        $result = Anorm::use('bogusname');
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage("Anorm: Connection 'bogusname' doesn't exist. Call Anorm::connect first.");
+
+        Anorm::use('bogusname');
     }
 
-    /**
-     * @expectedException \Exception
-     * @expectedExceptionMessage Anorm: Connection 'bogusname' doesn't exist. Call Anorm::connect first.
-     */
     public function testPdo_NotConnected_Fails()
     {
-        $result = Anorm::pdo('bogusname');
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage("Anorm: Connection 'bogusname' doesn't exist. Call Anorm::connect first.");
+
+        Anorm::pdo('bogusname');
     }
 
-    /**
-     * @expectedException \PDOException
-     */
     public function testConnction_Bogus_Fails()
     {
+        $this->expectException(\PDOException::class);
+
         TestEnvironment::connectCustom('bogusname', [
             'dbname' => 'bogus',
             'user' => 'bogus',

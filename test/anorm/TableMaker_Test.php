@@ -73,23 +73,21 @@ class TableMakerTest extends TestCase
         $this->assertEquals('DATETIME NULL', $result);
     }
 
-    /**
-     * @expectedException \Exception
-     * @expectedExceptionMessage Anorm: Could not parse PDOException
-     */
     public function testCreateTable_BadException_Throws()
     {
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage("Anorm: Could not parse PDOException");
+
         $e = new TableMakerTestException('42S02'); // Table does not exist
         $mapper = DataMapper::create($this->pdo, null, null);
         TableMaker::fix($e, $mapper);
     }
 
-    /**
-     * @expectedException \Exception
-     * @expectedExceptionMessage Anorm: Could not parse PDOException
-     */
     public function testCreateColumn_BadException_Throws()
     {
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage("Anorm: Could not parse PDOException");
+
         $e = new TableMakerTestException('42S22'); // Column does not exist
         $mapper = DataMapper::create($this->pdo, null, null);
         TableMaker::fix($e, $mapper);

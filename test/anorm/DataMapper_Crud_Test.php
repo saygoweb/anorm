@@ -124,25 +124,21 @@ class DataMapperCrudTest extends TestCase
         }
     }
 
-    /**
-     * @expectedException \PDOException
-     * @expectedExceptionMessage SQLSTATE[42S02]: Base table or view not found: 1146 Table 'anorm_test.bogus' doesn't exist
-     */
     function testBogusWrite_Fails()
     {
+        $this->expectException(\PDOException::class);
+        $this->expectExceptionMessage("SQLSTATE[42S02]: Base table or view not found: 1146 Table 'anorm_test.bogus' doesn't exist");
+
         $model = new BogusModel();
-        $result = $model->write();
-        $this->assertFalse($result);
+        $model->write();
     }
 
-    /**
-     * @expectedException \PDOException
-     * @expectedExceptionMessage SQLSTATE[42S02]: Base table or view not found: 1146 Table 'anorm_test.bogus' doesn't exist
-     */
     function testBogusDelete_Fails()
     {
+        $this->expectException(\PDOException::class);
+        $this->expectExceptionMessage("SQLSTATE[42S02]: Base table or view not found: 1146 Table 'anorm_test.bogus' doesn't exist");
+
         $model = new BogusModel();
-        $result = $model->_mapper->delete('bogus');
-        $this->assertFalse($result);
+        $model->_mapper->delete('bogus');
     }
 }

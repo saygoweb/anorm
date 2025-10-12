@@ -10,13 +10,12 @@ use Anorm\Test\TestEnvironment;
 
 class QueryBuilderTest extends TestCase
 {
-    /** 
-     * @expectedException \Exception
-     * @expectedExceptionMessage '$creatable' is not a class
-     */
     public function testConstruct_BogusClass_Throws()
     {
-        $o = new QueryBuilder('bogus', null);
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage("'\$creatable' is not a class");
+
+        new QueryBuilder('bogus', null);
     }
 
     public function testFunctions_ReturnThis()

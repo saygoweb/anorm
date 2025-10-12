@@ -89,14 +89,13 @@ class DataMapperFindTest extends TestCase
         $this->assertEquals(false, $model);
     }
 
-    /** 
-     * @expectedException \Exception
-     * @expectedExceptionMessage QueryBuilder: Expected one not found from 'SELECT * FROM `some_table` WHERE `name`=:name LIMIT 0, 1'
-     */
     public function testFindOneOrThrow_NotPresent_Throws()
     {
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage("QueryBuilder: Expected one not found from 'SELECT * FROM `some_table` WHERE `name`=:name LIMIT 0, 1'");
+
         /** @var SomeTableModel */
-        $model = DataMapper::find(SomeTableModel::class, $this->pdo)
+        DataMapper::find(SomeTableModel::class, $this->pdo)
             ->where("`name`=:name", [':name' => 'Bogus Name'])
             ->oneOrThrow();
     }
