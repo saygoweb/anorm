@@ -2,3 +2,5 @@
 /build/coverage/
 /build/code_coverage/
 /build/logs/
+
+*.cache
