@@ -35,10 +35,16 @@ services:
     depends_on:
       - db
     environment:
+      # Legacy environment variables (keep for compatibility)
       DATABASE_HOST: db
       DATABASE_USER: dev
       DATABASE_PASSWORD: dev
       DATABASE_NAME: anorm_test
+      # Test framework environment variables
+      DB_HOST: db
+      DB_USER: dev
+      DB_PASS: dev
+      DB_NAME: anorm_test
     command: sleep infinity
 
 volumes:

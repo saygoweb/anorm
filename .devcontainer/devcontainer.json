@@ -16,6 +16,6 @@
       }
     }
   },
-  "postCreateCommand": "composer install",
+  "postCreateCommand": "composer install && echo 'source /workspace/scripts/setup-devcontainer-env.sh' >> ~/.bashrc",
   "remoteUser": "vscode"
 }
