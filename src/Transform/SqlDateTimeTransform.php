@@ -1,4 +1,5 @@
 <?php
+
 namespace Anorm\Transform;
 
 use Anorm\TransformInterface;
@@ -23,5 +24,4 @@ class SqlDateTimeTransform implements TransformInterface
     {
         return $value !== null ? $value->format($this->format) : null;
     }
-
 }

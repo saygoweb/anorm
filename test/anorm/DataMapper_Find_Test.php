@@ -19,7 +19,7 @@ class DataMapperFindTest extends TestCase
         parent::__construct();
         $this->pdo = TestEnvironment::pdo();
     }
-    
+
     public static function setUpBeforeClass(): void
     {
         $pdo = TestEnvironment::pdo();
@@ -133,5 +133,4 @@ class DataMapperFindTest extends TestCase
             'max' => '10',
         ], $result[2]);
     }
-
 }

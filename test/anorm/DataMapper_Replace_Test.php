@@ -15,7 +15,7 @@ class DataMapperReplaceTest extends TestCase
         parent::__construct();
         // Database connection moved to setUpBeforeClass to avoid early connection
     }
-    
+
     public static function setUpBeforeClass(): void
     {
         TestEnvironment::connect(); // Connect to database
@@ -36,7 +36,7 @@ class DataMapperReplaceTest extends TestCase
         $model0->replaceId = 'bob_id';
         $model0->name = 'bob';
         $model0->write();
-        
+
         // Count current rows (n+1)
         $n1 = $model0->countRows();
         $this->assertEquals($n0 + 1, $n1);
@@ -61,7 +61,6 @@ class DataMapperReplaceTest extends TestCase
         // Count current rows (n)
         $n2 = $model0->countRows();
         $this->assertEquals($n0, $n2);
-
     }
 
     public function testNoPrimaryKey_Throws()

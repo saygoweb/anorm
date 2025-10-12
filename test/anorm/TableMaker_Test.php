@@ -27,7 +27,7 @@ class TableMakerTest extends TestCase
         parent::__construct();
         $this->pdo = TestEnvironment::pdo();
     }
-    
+
 
     public function testColumnDefinition_Integer_OK()
     {
@@ -92,6 +92,4 @@ class TableMakerTest extends TestCase
         $mapper = DataMapper::create($this->pdo, null, null);
         TableMaker::fix($e, $mapper);
     }
-
-
 }

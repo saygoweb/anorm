@@ -1,4 +1,5 @@
 <?php
+
 namespace Anorm\Test;
 
 use Anorm\Anorm;
@@ -6,7 +7,8 @@ use Anorm\DataMapper;
 use Anorm\Model;
 use Anorm\Transform\FunctionTransform;
 
-class ReplaceTableModel extends Model {
+class ReplaceTableModel extends Model
+{
     public function __construct()
     {
         $pdo = Anorm::pdo();
@@ -14,8 +16,12 @@ class ReplaceTableModel extends Model {
         $this->_mapper->modelPrimaryKey = 'replaceId';
         $this->_mapper->useReplace = true;
         $this->_mapper->transformers['name'] = new FunctionTransform(
-            function($value) { return strtolower($value); },
-            function($value) { return strtoupper($value); }
+            function ($value) {
+                return strtolower($value);
+            },
+            function ($value) {
+                return strtoupper($value);
+            }
         );
         $this->dtc = null;
     }
@@ -30,4 +36,3 @@ class ReplaceTableModel extends Model {
     public $name;
     public $dtc;
 }
-

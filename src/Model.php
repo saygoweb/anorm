@@ -1,4 +1,5 @@
 <?php
+
 namespace Anorm;
 
 class Model
@@ -28,7 +29,7 @@ class Model
     {
         return $this->_mapper->read($this, $id);
     }
-    
+
     /**
      * @param int $id The primary key id of the model to read.
      * @return bool Returns true if found, throws \Exception if not found.
@@ -48,5 +49,4 @@ class Model
         }
         return $result;
     }
-    
 }

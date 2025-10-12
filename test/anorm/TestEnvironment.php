@@ -1,4 +1,5 @@
 <?php
+
 namespace Anorm\Test;
 
 use Anorm\Anorm;
@@ -27,7 +28,7 @@ class TestEnvironment
      * @param array $overrides Optional overrides for host, dbname, user, pass
      * @return \PDO
      */
-    public static function pdo($name = null, $overrides = []) : \PDO
+    public static function pdo($name = null, $overrides = []): \PDO
     {
         $name = $name ?: Anorm::DEFAULT;
         static $pdoCache = [];

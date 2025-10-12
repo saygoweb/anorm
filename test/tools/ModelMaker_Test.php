@@ -11,10 +11,8 @@ class ModelMakerTest extends TestCase
 {
     public static function tearDownAfterClass(): void
     {
-        foreach (glob('/tmp/ModelMakerTest*') as $file)
-        {
-            if (is_file($file))
-            {
+        foreach (glob('/tmp/ModelMakerTest*') as $file) {
+            if (is_file($file)) {
                 unlink($file);
             }
         }
@@ -87,7 +85,7 @@ EOD;
         // It is already created and this will cause an exception to be thrown.
         $o->writeModelAsFile($tempFilePath);
     }
-    
+
     public function testWriteModelAsFile_BadPath_Throws()
     {
         $this->expectException(\Exception::class);
@@ -175,5 +173,4 @@ EOD;
         $this->assertEquals($expected, $actual);
         unlink($tempFilePath);
     }
-
 }

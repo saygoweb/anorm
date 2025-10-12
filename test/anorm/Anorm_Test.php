@@ -46,5 +46,4 @@ class AnormTest extends TestCase
             'pass' => ''
         ]);
     }
-
 }

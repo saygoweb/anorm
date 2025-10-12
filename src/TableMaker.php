@@ -1,9 +1,9 @@
 <?php
+
 namespace Anorm;
 
 class TableMaker
 {
-
     public static function fix(\Exception $exception, DataMapper $mapper, $model = null)
     {
         // TODO We could create this from an Anorm factory / container
@@ -72,7 +72,7 @@ class TableMaker
         // TODO Have a go at figuring out the type if the model is available.
         $sampleData = null;
         if ($this->model) {
-            // See if we can reverse map the 
+            // See if we can reverse map the
             $invertMap = array_flip($this->mapper->map);
             $property = $invertMap[$columnName];
             $sampleData = $this->model->$property;

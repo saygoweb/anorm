@@ -30,7 +30,7 @@ class ModelMakerDataTest extends TestCase
         $this->assertEquals('bogus_table', $o->table);
         $o->writeModelAsString();
     }
-    
+
     public function testWriteModelAsString_OK()
     {
         $o = new ModelMaker($this->pdo, 'model_test');
@@ -66,5 +66,4 @@ class ModelTestModel extends Model
 EOD;
         $this->assertEquals($expected, $actual);
     }
-
 }

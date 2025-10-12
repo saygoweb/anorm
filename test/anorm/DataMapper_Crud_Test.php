@@ -10,7 +10,8 @@ use Anorm\Model;
 use Anorm\Test\SomeTableModel;
 use Anorm\Test\TestEnvironment;
 
-class BogusModel extends Model {
+class BogusModel extends Model
+{
     public function __construct()
     {
         $pdo = Anorm::pdo();
@@ -25,13 +26,12 @@ class BogusModel extends Model {
 
 class DataMapperCrudTest extends TestCase
 {
-
     public function __construct()
     {
         parent::__construct();
         // Database connection moved to setUpBeforeClass to avoid early connection
     }
-    
+
     public static function setUpBeforeClass(): void
     {
         TestEnvironment::connect(); // Connect to database
@@ -54,7 +54,7 @@ class DataMapperCrudTest extends TestCase
         $this->assertNull($model0->someId);
         $model0->write();
         $this->assertNotNull($model0->someId);
-        
+
         // Count current rows (n+1)
         $n1 = $model0->countRows();
         $this->assertEquals($n0 + 1, $n1);
@@ -85,7 +85,6 @@ class DataMapperCrudTest extends TestCase
         // Count current rows (n)
         $n2 = $model0->countRows();
         $this->assertEquals($n0, $n2);
-
     }
 
     function testDateWrite_Null_Ok()
@@ -118,8 +117,7 @@ class DataMapperCrudTest extends TestCase
         $model = new SomeTableModel();
         try {
             $result = $model->readOrThrow('1');
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             $this->assertEquals("SomeTable id '1' not found", $e->getMessage());
         }
     }
