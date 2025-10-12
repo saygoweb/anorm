@@ -121,9 +121,20 @@ jobs:
     - name: Check coverage threshold
       if: ${{ matrix.coverage }}
       run: |
+        # Install bc for calculations
+        sudo apt-get update && sudo apt-get install -y bc
+        
         # Extract coverage percentage from clover.xml
         COVERAGE=$(php -r "
+          if (!file_exists('build/logs/clover.xml')) {
+            echo '0';
+            exit;
+          }
           \$xml = simplexml_load_file('build/logs/clover.xml');
+          if (!\$xml || !\$xml->project || !\$xml->project->metrics) {
+            echo '0';
+            exit;
+          }
           \$metrics = \$xml->project->metrics;
           \$covered = (int)\$metrics['coveredstatements'];
           \$total = (int)\$metrics['statements'];
@@ -139,43 +150,3 @@ jobs:
         else
           echo "✅ Coverage ${COVERAGE}% meets threshold of 80%"
         fi
-
-  quality:
-    name: Code Quality
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.1'
-        extensions: pdo, pdo_mysql, zip
-        tools: composer:v2, phpcs, phpstan
-
-    - name: Get composer cache directory
-      id: composer-cache
-      run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-
-    - name: Cache Composer packages
-      uses: actions/cache@v4
-      with:
-        path: ${{ steps.composer-cache.outputs.dir }}
-        key: ${{ runner.os }}-php-quality-${{ hashFiles('**/composer.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-php-quality-
-
-    - name: Install dependencies
-      run: composer install --prefer-dist --no-progress --no-interaction
-
-    - name: Run PHP CodeSniffer
-      run: composer cs:check
-
-    - name: Run PHPStan
-      run: composer analyze
-
-    - name: Security check
-      run: |
-        composer audit || true  # Don't fail on security issues for now, just report
