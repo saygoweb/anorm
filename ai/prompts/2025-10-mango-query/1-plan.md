@@ -382,7 +382,66 @@ The implementation will maintain full backward compatibility with the existing Q
 - ✅ **Error Handling Tests**: Validation for all invalid input scenarios
 - ✅ **Case Sensitivity Tests**: Operators work in any case combination
 
-### 🔄 Phase 3: Performance & Polish (PENDING)
+### 🔄 Phase 3: Aggregation Support (PENDING)
+
+**Planned Tasks:**
+1. ⏳ Add aggregation operations support
+   - `group_by` - Group results by field values
+   - `group_level` - Control grouping depth for array fields
+   - Basic aggregate functions: `_count`, `_sum`, `_avg`, `_min`, `_max`, `_stats`
+2. ⏳ Implement aggregation query structure
+   - New top-level `aggregate` property in Mango queries
+   - Support for multiple aggregation operations in single query
+   - Field aliasing for aggregated results
+3. ⏳ SQL translation for aggregation
+   - Generate appropriate GROUP BY clauses
+   - Map aggregate functions to SQL equivalents (COUNT, SUM, AVG, MIN, MAX)
+   - Handle complex grouping scenarios
+4. ⏳ Result handling for aggregated data
+   - Return aggregated results as associative arrays instead of model instances
+   - Support for mixed queries (both filtering and aggregation)
+   - Proper handling of grouped results
+5. ⏳ Enhanced error handling for aggregation
+   - Validation of aggregate function usage
+   - Type checking for numeric aggregations
+   - Proper error messages for invalid grouping fields
+
+**Example Aggregation Query Structure:**
+```json
+{
+  "selector": {
+    "status": "active",
+    "created_date": {"$gte": "2023-01-01"}
+  },
+  "group_by": ["category", "region"],
+  "aggregate": {
+    "total_count": "_count",
+    "total_sales": {"_sum": "amount"},
+    "avg_price": {"_avg": "price"},
+    "max_discount": {"_max": "discount_percent"}
+  },
+  "sort": [{"total_sales": "desc"}],
+  "limit": 10
+}
+```
+
+**Expected SQL Output:**
+```sql
+SELECT
+  category,
+  region,
+  COUNT(*) as total_count,
+  SUM(amount) as total_sales,
+  AVG(price) as avg_price,
+  MAX(discount_percent) as max_discount
+FROM products
+WHERE status = 'active' AND created_date >= '2023-01-01'
+GROUP BY category, region
+ORDER BY total_sales DESC
+LIMIT 10
+```
+
+### 🔄 Phase 4: Performance & Polish (PENDING)
 
 **Planned Tasks:**
 1. ⏳ Query optimization
@@ -396,6 +455,7 @@ The implementation will maintain full backward compatibility with the existing Q
 2. ✅ Complete implementation of advanced Mango Query operators
 3. ✅ 100% backward compatibility with existing QueryBuilder
 4. ✅ Comprehensive test coverage (>95%) - Currently: 42 tests, 109 assertions, all passing
-5. ⏳ Performance comparable to hand-written SQL
-6. ⏳ Clear documentation and examples
-7. ⏳ Security audit passing
+5. ⏳ Complete implementation of aggregation operations
+6. ⏳ Performance comparable to hand-written SQL
+7. ⏳ Clear documentation and examples
+8. ⏳ Security audit passing
