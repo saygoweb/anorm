@@ -586,4 +586,138 @@ class QueryBuilder_Mango_Test extends TestCase
 
         $this->assertEquals(2, $index);
     }
+
+    public function testQueryBuilder_MangoQueryWithSkipOnlyNoPagination()
+    {
+        // Test the edge case where skip is given but limit is not
+        // This should use PHP_INT_MAX as the limit internally
+        $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
+            ->fromMango([
+                'selector' => ['dtc' => ['$gte' => '2023-01-01']],
+                'sort' => [['dtc' => 'asc']],
+                'skip' => 1  // Skip first record (Alice), no limit specified
+            ])
+            ->some();
+
+        // Should get Bob and Charlie (skipping Alice who has earliest date)
+        $expectedNames = ['bob', 'charlie'];
+        $index = 0;
+        foreach ($generator as $model) {
+            $this->assertEquals($expectedNames[$index], $model->name);
+            $index++;
+        }
+
+        $this->assertEquals(2, $index);
+    }
+
+    public function testQueryBuilder_MangoQueryWithSkipOnlyLargePagination()
+    {
+        // Test skip-only with a larger dataset to ensure PHP_INT_MAX works correctly
+        // Add more test data
+        $extraModels = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $model = new SomeTableModel();
+            $model->name = "TestUser{$i}";
+            $model->dtc = "2023-01-" . str_pad($i + 10, 2, '0', STR_PAD_LEFT);
+            $model->write();
+            $extraModels[] = $model;
+        }
+
+        try {
+            // Test that skip without limit works with larger datasets
+            $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
+                ->fromMango([
+                    'selector' => ['name' => ['$regex' => '^TestUser.*']],
+                    'sort' => [['name' => 'asc']],
+                    'skip' => 2  // Skip first 2 TestUser records
+                ])
+                ->some();
+
+            $count = 0;
+            $actualNames = [];
+            foreach ($generator as $model) {
+                $actualNames[] = $model->name;
+                $count++;
+                if ($count >= 3) break; // Get 3 records to verify skip worked
+            }
+
+            // Should skip TestUser1, TestUser2 and get TestUser3, TestUser4, TestUser5
+            $this->assertEquals(3, count($actualNames));
+            $this->assertEquals('testuser3', $actualNames[0]);
+            $this->assertEquals('testuser4', $actualNames[1]);
+            $this->assertEquals('testuser5', $actualNames[2]);
+        } finally {
+            // Clean up extra test data
+            foreach ($extraModels as $model) {
+                $model->_mapper->delete($model->someId);
+            }
+        }
+    }
+
+    public function testQueryBuilder_MangoQuerySkipWithoutLimitInternalLogic()
+    {
+        // Test that the internal logic correctly handles skip-only scenarios
+        // by checking the generated SQL contains the expected LIMIT clause
+
+        $queryBuilder = DataMapper::find(SomeTableModel::class, $this->pdo)
+            ->fromMango([
+                'selector' => ['name' => 'Alice'],
+                'skip' => 5  // Only skip, no limit
+            ]);
+
+        // Access the internal SQL to verify PHP_INT_MAX is used
+        $reflection = new \ReflectionClass($queryBuilder);
+        $sqlProperty = $reflection->getProperty('sql');
+        $sqlProperty->setAccessible(true);
+        $sql = $sqlProperty->getValue($queryBuilder);
+
+        // MySQL uses "LIMIT offset, count" format, so should contain "LIMIT 5, PHP_INT_MAX"
+        $this->assertStringContainsString('LIMIT 5, ' . PHP_INT_MAX, $sql);
+    }
+
+    public function testQueryBuilder_MangoQueryHasPaginationLogic()
+    {
+        // Test MangoQuery::hasPagination() method for different scenarios
+
+        // Case 1: Only limit
+        $query1 = new \Anorm\MangoQuery(['limit' => 10]);
+        $this->assertTrue($query1->hasPagination());
+
+        // Case 2: Only skip
+        $query2 = new \Anorm\MangoQuery(['skip' => 5]);
+        $this->assertTrue($query2->hasPagination());
+
+        // Case 3: Both limit and skip
+        $query3 = new \Anorm\MangoQuery(['limit' => 10, 'skip' => 5]);
+        $this->assertTrue($query3->hasPagination());
+
+        // Case 4: Neither limit nor skip
+        $query4 = new \Anorm\MangoQuery(['selector' => ['name' => 'test']]);
+        $this->assertFalse($query4->hasPagination());
+
+        // Case 5: Skip is 0 (should still be considered pagination)
+        $query5 = new \Anorm\MangoQuery(['skip' => 0]);
+        $this->assertTrue($query5->hasPagination());
+    }
+
+    public function testQueryBuilder_MangoQuerySkipZeroWithoutLimit()
+    {
+        // Test edge case where skip is 0 but no limit is given
+        $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
+            ->fromMango([
+                'selector' => ['name' => ['$in' => ['Alice', 'Bob']]],
+                'sort' => [['name' => 'asc']],
+                'skip' => 0  // Skip 0 records, no limit
+            ])
+            ->some();
+
+        $expectedNames = ['alice', 'bob'];
+        $index = 0;
+        foreach ($generator as $model) {
+            $this->assertEquals($expectedNames[$index], $model->name);
+            $index++;
+        }
+
+        $this->assertEquals(2, $index);
+    }
 }
