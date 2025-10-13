@@ -20,7 +20,7 @@ class OneHasMany extends Relationship
 
     /**
      * Load the related models for a one-to-many relationship
-     * 
+     *
      * @param object $sourceModel The model instance that owns the relationship
      * @param \PDO $pdo The database connection
      * @return array Array of related model instances
@@ -29,7 +29,7 @@ class OneHasMany extends Relationship
     {
         $relatedClass = $this->relatedModelClass;
         $sourceValue = $sourceModel->{$this->primaryKey};
-        
+
         if ($sourceValue === null) {
             return [];
         }
@@ -37,20 +37,20 @@ class OneHasMany extends Relationship
         // Create an instance of the related model to get its mapper
         $relatedInstance = new $relatedClass($pdo);
         $mapper = $relatedInstance->_mapper;
-        
+
         // Build the query to find related models
         // The foreign key should be a database column name, not a property name
         $sql = "SELECT * FROM `{$mapper->table}` WHERE `{$this->foreignKey}` = ?";
 
         $result = $mapper->query($sql, [$sourceValue]);
         $relatedModels = [];
-        
+
         while ($data = $result->fetch(\PDO::FETCH_ASSOC)) {
             $relatedModel = new $relatedClass($pdo);
             $relatedModel->_mapper->readArray($relatedModel, $data);
             $relatedModels[] = $relatedModel;
         }
-        
+
         return $relatedModels;
     }
 
