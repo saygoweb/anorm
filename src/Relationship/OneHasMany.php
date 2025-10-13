@@ -93,12 +93,13 @@ class OneHasMany extends Relationship
      *
      * @param array $sourceModels Array of model instances that need relationships loaded
      * @param \PDO $pdo Database connection
+     * @param array|null $fieldSelection Optional field selection for optimization
      * @return array Associative array of loaded relationship data, keyed by source model identifier
      */
-    public function batchLoad(array $sourceModels, \PDO $pdo): array
+    public function batchLoad(array $sourceModels, \PDO $pdo, ?array $fieldSelection = null): array
     {
         $batchLoader = new OneHasManyBatchLoader();
-        return $batchLoader->batchLoad($sourceModels, $this->propertyName);
+        return $batchLoader->batchLoad($sourceModels, $this->propertyName, $fieldSelection);
     }
 
     /**

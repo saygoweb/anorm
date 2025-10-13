@@ -110,15 +110,15 @@ class BatchLoadingOrchestrator
         // Execute the selected strategy
         switch ($strategy) {
             case QueryStrategyInterface::STRATEGY_IN_CLAUSE_BATCH:
-                $this->executeBatchLoading($models, $relationship);
+                $this->executeBatchLoading($models, $relationship, $fieldSelection);
                 break;
-                
+
             case QueryStrategyInterface::STRATEGY_JOIN_WITH_SELECTION:
                 // TODO: Implement JOIN strategy in Phase 3
                 // For now, fallback to batch loading
-                $this->executeBatchLoading($models, $relationship);
+                $this->executeBatchLoading($models, $relationship, $fieldSelection);
                 break;
-                
+
             case QueryStrategyInterface::STRATEGY_INDIVIDUAL_LOADING:
             default:
                 $this->executeIndividualLoading($models, $relationship);
@@ -128,12 +128,13 @@ class BatchLoadingOrchestrator
 
     /**
      * Execute batch loading strategy
-     * 
+     *
      * @param array $models Array of model instances
      * @param object $relationship The relationship instance
+     * @param array|null $fieldSelection Optional field selection for optimization
      * @return void
      */
-    private function executeBatchLoading(array $models, $relationship): void
+    private function executeBatchLoading(array $models, $relationship, ?array $fieldSelection = null): void
     {
         try {
             // Get PDO connection from first model
@@ -141,7 +142,7 @@ class BatchLoadingOrchestrator
             $pdo = $firstModel->getPdo();
 
             // Load relationships in batch
-            $batchResults = $relationship->batchLoad($models, $pdo);
+            $batchResults = $relationship->batchLoad($models, $pdo, $fieldSelection);
 
             // Distribute results to models
             $relationship->distributeBatchResults($models, $batchResults);

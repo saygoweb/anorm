@@ -118,9 +118,10 @@ abstract class Relationship
      *
      * @param array $sourceModels Array of model instances that need relationships loaded
      * @param \PDO $pdo Database connection
+     * @param array|null $fieldSelection Optional field selection for optimization
      * @return array Associative array of loaded relationship data, keyed by source model identifier
      */
-    abstract public function batchLoad(array $sourceModels, \PDO $pdo): array;
+    abstract public function batchLoad(array $sourceModels, \PDO $pdo, ?array $fieldSelection = null): array;
 
     /**
      * Distribute batch-loaded results to their corresponding source models

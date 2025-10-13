@@ -12,12 +12,13 @@ class ManyHasManyBatchLoader implements BatchLoaderInterface
 {
     /**
      * Load many-to-many relationships for multiple source models in a single batch
-     * 
+     *
      * @param array $sourceModels Array of model instances that need relationships loaded
      * @param string $relationshipName Name of the relationship to load
+     * @param array|null $fieldSelection Optional field selection for optimization
      * @return array Associative array of loaded relationship data, keyed by source model primary key
      */
-    public function batchLoad(array $sourceModels, string $relationshipName): array
+    public function batchLoad(array $sourceModels, string $relationshipName, ?array $fieldSelection = null): array
     {
         if (empty($sourceModels)) {
             return [];
@@ -46,7 +47,7 @@ class ManyHasManyBatchLoader implements BatchLoaderInterface
         }
 
         // Remove duplicates and prepare for IN clause
-        $primaryKeys = array_unique($primaryKeys);
+        $primaryKeys = array_values(array_unique($primaryKeys));
         
         // Create an instance of the related model to get its mapper
         $relatedClass = $relationship->getRelatedModelClass();
@@ -55,7 +56,16 @@ class ManyHasManyBatchLoader implements BatchLoaderInterface
         
         // Build the complex JOIN query through the pivot table
         $placeholders = str_repeat('?,', count($primaryKeys) - 1) . '?';
-        $sql = "SELECT r.*, j.`{$relationship->getJoinForeignKey()}` as source_id 
+
+        // Handle field selection (basic implementation for now)
+        $selectClause = 'r.*';
+        if ($fieldSelection && !empty($fieldSelection)) {
+            // For now, still select all fields to avoid parameter binding issues
+            // Field selection optimization will be implemented in Phase 3
+            $selectClause = 'r.*';
+        }
+
+        $sql = "SELECT {$selectClause}, j.`{$relationship->getJoinForeignKey()}` as source_id
                 FROM `{$mapper->table}` r
                 INNER JOIN `{$relationship->getJoinTable()}` j ON r.`{$relationship->getPrimaryKey()}` = j.`{$relationship->getJoinRelatedKey()}`
                 WHERE j.`{$relationship->getJoinForeignKey()}` IN ({$placeholders})";

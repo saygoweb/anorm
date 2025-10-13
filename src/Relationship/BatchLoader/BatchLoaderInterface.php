@@ -12,16 +12,17 @@ interface BatchLoaderInterface
 {
     /**
      * Load relationships for multiple source models in a single batch operation
-     * 
+     *
      * This method should collect all necessary foreign keys from the source models,
      * execute a single optimized query (using IN clause or JOIN), and return
      * the results grouped appropriately for distribution.
-     * 
+     *
      * @param array $sourceModels Array of model instances that need relationships loaded
      * @param string $relationshipName Name of the relationship to load
+     * @param array|null $fieldSelection Optional field selection for optimization
      * @return array Associative array of loaded relationship data, keyed by source model identifier
      */
-    public function batchLoad(array $sourceModels, string $relationshipName): array;
+    public function batchLoad(array $sourceModels, string $relationshipName, ?array $fieldSelection = null): array;
 
     /**
      * Distribute batch-loaded results to their corresponding source models
