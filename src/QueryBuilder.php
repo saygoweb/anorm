@@ -1,4 +1,5 @@
 <?php
+
 namespace Anorm;
 
 class QueryBuilder
@@ -56,7 +57,7 @@ class QueryBuilder
         $this->sql .= ' ' . $sql; // Assume the type of join is included in $sql
         return $this;
     }
-    
+
     public function where($sql, $data)
     {
         $this->ensureFrom();

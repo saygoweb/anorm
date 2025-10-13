@@ -1,9 +1,9 @@
 <?php
+
 namespace Anorm;
 
 class DataMapper
 {
-
     const MODE_DYNAMIC = 'dynamic';
     const MODE_STATIC  = 'static';
 
@@ -11,7 +11,7 @@ class DataMapper
 
     /** @var \PDO  */
     public $pdo;
-    
+
     /** @var array<string, string> Map of property names to column names */
     public $map;
 
@@ -32,12 +32,12 @@ class DataMapper
         $mapper = new DataMapper($pdo, $table, $map);
         return $mapper;
     }
-    
+
     public static function createByClass(\PDO $pdo, $c, $tablePrefix = '')
     {
         return self::create($pdo, $tablePrefix . self::autoTable($c), self::autoMap($c));
     }
-    
+
     /**
      * Private constructor, use the public create methods instead.
      * @see createByClass
@@ -82,7 +82,7 @@ class DataMapper
         }
         return array();
     }
-    
+
     public static function propertyName($s)
     {
         $matches = array();
@@ -97,7 +97,7 @@ class DataMapper
         }
         return $propertyName;
     }
-    
+
     public static function autoMap($c)
     {
         $properties = get_object_vars($c);
@@ -106,7 +106,7 @@ class DataMapper
         }
         return $properties;
     }
-    
+
     public function write(&$c)
     {
         $key = $this->modelPrimaryKey;
@@ -184,7 +184,7 @@ class DataMapper
         }
         return $c->$key;
     }
-    
+
     public function read(&$c, $id)
     {
         $databasePrimaryKey = $this->map[$this->modelPrimaryKey];
@@ -195,7 +195,7 @@ class DataMapper
         }, $c);
         return $this->readRow($c, $result);
     }
-    
+
     private function dynamicWrapper(callable $fn, $model = null)
     {
         $lastException = '';
@@ -230,7 +230,7 @@ class DataMapper
             return $statement;
         });
     }
-    
+
     /**
      * @var $c A reference to the model
      * @var $result The result returned from a prior call to query
@@ -241,7 +241,7 @@ class DataMapper
         $data = $result->fetch(\PDO::FETCH_ASSOC);
         return $this->readArray($c, $data);
     }
-    
+
     public function readArray(&$c, $data, $exclude = array())
     {
         if (!$data) {
@@ -275,5 +275,4 @@ class DataMapper
     {
         return new QueryBuilder($creatable, $pdo);
     }
-
 }

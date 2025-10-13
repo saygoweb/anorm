@@ -21,17 +21,16 @@ class ModelMakerDataTest extends TestCase
         $this->pdo->query($sql);
     }
 
-    /**
-     * @expectedException \PDOException
-     * @expectedExceptionMessage SQLSTATE[42S02]: Base table or view not found: 1146 Table 'anorm_test.bogus_table' doesn't exist
-     */
     public function testWriteModelAsString_WithBogusTable_Throws()
     {
+        $this->expectException(\PDOException::class);
+        $this->expectExceptionMessage("SQLSTATE[42S02]: Base table or view not found: 1146 Table 'anorm_test.bogus_table' doesn't exist");
+
         $o = new ModelMaker($this->pdo, 'bogus_table');
         $this->assertEquals('bogus_table', $o->table);
-        $actual = $o->writeModelAsString();
+        $o->writeModelAsString();
     }
-    
+
     public function testWriteModelAsString_OK()
     {
         $o = new ModelMaker($this->pdo, 'model_test');
@@ -67,5 +66,4 @@ class ModelTestModel extends Model
 EOD;
         $this->assertEquals($expected, $actual);
     }
-
 }

@@ -1,0 +1,152 @@
+name: CI
+
+on:
+  push:
+    branches: [ "master", "main" ]
+  pull_request:
+    branches: [ "master", "main" ]
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  test:
+    name: Test PHP ${{ matrix.php-version }}
+    runs-on: ubuntu-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ['7.4', '8.0', '8.1', '8.2', '8.3']
+        include:
+          - php-version: '8.1'
+            coverage: true
+
+    services:
+      db:
+        image: mariadb:latest
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: anorm_test
+          MARIADB_USER: dev
+          MARIADB_PASSWORD: dev
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mariadb-admin ping --silent" 
+          --health-interval=10s 
+          --health-timeout=5s 
+          --health-retries=3
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up PHP ${{ matrix.php-version }}
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-version }}
+        extensions: pdo, pdo_mysql, zip, xdebug
+        coverage: ${{ matrix.coverage && 'xdebug' || 'none' }}
+        tools: composer:v2
+
+    - name: Validate composer.json and composer.lock
+      run: composer validate --strict
+
+    - name: Get composer cache directory
+      id: composer-cache
+      run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+    - name: Cache Composer packages
+      uses: actions/cache@v4
+      with:
+        path: ${{ steps.composer-cache.outputs.dir }}
+        key: ${{ runner.os }}-php-${{ matrix.php-version }}-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-${{ matrix.php-version }}-
+          ${{ runner.os }}-php-
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress --no-interaction
+
+    - name: Wait for MariaDB to be ready
+      run: |
+        for i in {1..30}; do
+          if mysql -h127.0.0.1 -udev -pdev -e 'SELECT 1' anorm_test; then
+            echo "Database is ready!"
+            break
+          fi
+          echo "Waiting for database..."
+          sleep 2
+        done
+
+    - name: Run tests without coverage
+      if: ${{ !matrix.coverage }}
+      run: composer test:quick
+      env:
+        DB_HOST: 127.0.0.1
+        DB_DATABASE: anorm_test
+        DB_USERNAME: dev
+        DB_PASSWORD: dev
+
+    - name: Run tests with coverage
+      if: ${{ matrix.coverage }}
+      run: composer test:ci
+      env:
+        DB_HOST: 127.0.0.1
+        DB_DATABASE: anorm_test
+        DB_USERNAME: dev
+        DB_PASSWORD: dev
+
+    - name: Upload coverage to Coveralls
+      if: ${{ matrix.coverage }}
+      env:
+        COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        composer global require php-coveralls/php-coveralls
+        php-coveralls --coverage_clover=build/logs/clover.xml -v
+
+    - name: Upload coverage artifacts
+      if: ${{ matrix.coverage }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-reports
+        path: |
+          build/coverage/
+          build/logs/
+        retention-days: 30
+
+    - name: Check coverage threshold
+      if: ${{ matrix.coverage }}
+      run: |
+        # Install bc for calculations
+        sudo apt-get update && sudo apt-get install -y bc
+        
+        # Extract coverage percentage from clover.xml
+        COVERAGE=$(php -r "
+          if (!file_exists('build/logs/clover.xml')) {
+            echo '0';
+            exit;
+          }
+          \$xml = simplexml_load_file('build/logs/clover.xml');
+          if (!\$xml || !\$xml->project || !\$xml->project->metrics) {
+            echo '0';
+            exit;
+          }
+          \$metrics = \$xml->project->metrics;
+          \$covered = (int)\$metrics['coveredstatements'];
+          \$total = (int)\$metrics['statements'];
+          \$percentage = \$total > 0 ? (\$covered / \$total) * 100 : 0;
+          echo number_format(\$percentage, 2);
+        ")
+        echo "Coverage: ${COVERAGE}%"
+        
+        # Check if coverage meets threshold (80%)
+        if (( $(echo "$COVERAGE < 80" | bc -l) )); then
+          echo "❌ Coverage ${COVERAGE}% is below threshold of 80%"
+          exit 1
+        else
+          echo "✅ Coverage ${COVERAGE}% meets threshold of 80%"
+        fi

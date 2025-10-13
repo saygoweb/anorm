@@ -9,7 +9,8 @@ use Anorm\DataMapper;
 use Anorm\Model;
 use Anorm\Test\TestEnvironment;
 
-class NotYetModel extends Model {
+class NotYetModel extends Model
+{
     public function __construct()
     {
         $pdo = Anorm::pdo();
@@ -30,7 +31,7 @@ class NotYetModel extends Model {
 
 class DataMapperDynamicTest extends TestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         $pdo = TestEnvironment::pdo();
         $pdo->query('DROP TABLE IF EXISTS `not_yet`');
@@ -58,7 +59,7 @@ class DataMapperDynamicTest extends TestCase
         $this->assertNull($model0->id);
         $model0->write();
         $this->assertNotNull($model0->id);
-        
+
         // Count current rows (n+1)
         $n1 = $model0->countRows();
         $this->assertEquals($n0 + 1, $n1);
@@ -84,10 +85,5 @@ class DataMapperDynamicTest extends TestCase
         // Count current rows (n)
         $n2 = $model0->countRows();
         $this->assertEquals($n0, $n2);
-
     }
-
-
-
-
 }

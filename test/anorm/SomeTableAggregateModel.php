@@ -1,4 +1,5 @@
 <?php
+
 namespace Anorm\Test;
 
 use Anorm\Anorm;
@@ -6,7 +7,8 @@ use Anorm\DataMapper;
 use Anorm\Model;
 use Anorm\Transformer;
 
-class SomeTableAggregateModel extends Model {
+class SomeTableAggregateModel extends Model
+{
     public function __construct()
     {
         $pdo = Anorm::pdo();
@@ -18,4 +20,3 @@ class SomeTableAggregateModel extends Model {
     public $idMin;
     public $idMax;
 }
-

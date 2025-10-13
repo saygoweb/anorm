@@ -1,9 +1,9 @@
 <?php
+
 namespace Anorm;
 
 class Anorm
 {
-
     const DEFAULT = 'default';
 
     private static $connections = array();
@@ -35,7 +35,7 @@ class Anorm
      * Returns the Anorm connection of the given $name.
      * Note that the connection must have been previously opened
      * with a call to connect.
-     * @param string $name Name of the connection to use. 
+     * @param string $name Name of the connection to use.
      * @return Anorm
      * @see connect
      */

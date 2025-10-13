@@ -1,11 +1,11 @@
 <?php
+
 namespace Anorm\Transform;
 
 use Anorm\TransformInterface;
 
 class FunctionTransform implements TransformInterface
 {
-
     /** @var callable */
     private $databaseToModel;
 
@@ -27,5 +27,4 @@ class FunctionTransform implements TransformInterface
     {
         return ($this->modelToDatabase)($value);
     }
-
 }

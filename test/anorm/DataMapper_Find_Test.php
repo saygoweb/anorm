@@ -19,8 +19,8 @@ class DataMapperFindTest extends TestCase
         parent::__construct();
         $this->pdo = TestEnvironment::pdo();
     }
-    
-    public static function setUpBeforeClass()
+
+    public static function setUpBeforeClass(): void
     {
         $pdo = TestEnvironment::pdo();
         $pdo->query('DROP TABLE IF EXISTS `some_table`');
@@ -89,14 +89,13 @@ class DataMapperFindTest extends TestCase
         $this->assertEquals(false, $model);
     }
 
-    /** 
-     * @expectedException \Exception
-     * @expectedExceptionMessage QueryBuilder: Expected one not found from 'SELECT * FROM `some_table` WHERE `name`=:name LIMIT 0, 1'
-     */
     public function testFindOneOrThrow_NotPresent_Throws()
     {
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage("QueryBuilder: Expected one not found from 'SELECT * FROM `some_table` WHERE `name`=:name LIMIT 0, 1'");
+
         /** @var SomeTableModel */
-        $model = DataMapper::find(SomeTableModel::class, $this->pdo)
+        DataMapper::find(SomeTableModel::class, $this->pdo)
             ->where("`name`=:name", [':name' => 'Bogus Name'])
             ->oneOrThrow();
     }
@@ -134,5 +133,4 @@ class DataMapperFindTest extends TestCase
             'max' => '10',
         ], $result[2]);
     }
-
 }

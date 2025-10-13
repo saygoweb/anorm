@@ -15,8 +15,12 @@ class TransformerTest extends TestCase
     public function testNullFunctionTransform_Ok()
     {
         $o = new FunctionTransform(
-            function($value) { return $value; },
-            function($value) { return $value; }
+            function ($value) {
+                return $value;
+            },
+            function ($value) {
+                return $value;
+            }
         );
         $result = $o->txDatabaseToModel('test');
         $this->assertEquals('test', $result);
@@ -43,6 +47,4 @@ class TransformerTest extends TestCase
         $result2 = $t->txModelToDatabase($result1);
         $this->assertEquals($testString, $result2);
     }
-
-
 }

@@ -13,11 +13,12 @@ class DataMapperReplaceTest extends TestCase
     public function __construct()
     {
         parent::__construct();
-        TestEnvironment::connect();
+        // Database connection moved to setUpBeforeClass to avoid early connection
     }
-    
-    public static function setUpBeforeClass()
+
+    public static function setUpBeforeClass(): void
     {
+        TestEnvironment::connect(); // Connect to database
         $pdo = TestEnvironment::pdo();
         $pdo->query('DROP TABLE IF EXISTS `replace_table`');
         $sql = file_get_contents(__DIR__ . '/TestReplaceSchema.sql');
@@ -35,7 +36,7 @@ class DataMapperReplaceTest extends TestCase
         $model0->replaceId = 'bob_id';
         $model0->name = 'bob';
         $model0->write();
-        
+
         // Count current rows (n+1)
         $n1 = $model0->countRows();
         $this->assertEquals($n0 + 1, $n1);
@@ -60,15 +61,13 @@ class DataMapperReplaceTest extends TestCase
         // Count current rows (n)
         $n2 = $model0->countRows();
         $this->assertEquals($n0, $n2);
-
     }
 
-    /** 
-     * @expectedException \Exception
-     * @expectedExceptionMessage Key 'replaceId' must be set when using replace mode
-     */
     public function testNoPrimaryKey_Throws()
     {
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage("Key 'replaceId' must be set when using replace mode");
+
         $model = new ReplaceTableModel();
         $model->write();
     }

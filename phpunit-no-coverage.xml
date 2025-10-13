@@ -1,6 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <phpunit
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/4.3/phpunit.xsd"
+    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.6/phpunit.xsd"
+    bootstrap="vendor/autoload.php"
+    cacheResultFile=".phpunit.result.cache"
+    executionOrder="depends,defects"
+    forceCoversAnnotation="false"
+    beStrictAboutCoversAnnotation="false"
+    beStrictAboutOutputDuringTests="false"
+    beStrictAboutTodoAnnotatedTests="false"
+    convertDeprecationsToExceptions="false"
+    failOnRisky="false"
+    failOnWarning="false"
+    verbose="true"
 >
     <testsuites>
         <testsuite name="Anorm Test Suite">
@@ -8,5 +20,4 @@
             <directory>./test/tools</directory>
         </testsuite>
     </testsuites>
-
 </phpunit>

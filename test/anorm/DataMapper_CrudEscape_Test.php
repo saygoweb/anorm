@@ -12,11 +12,12 @@ class DataMapperCrudEscapeTest extends TestCase
     public function __construct()
     {
         parent::__construct();
-        TestEnvironment::connect();
+        // Database connection moved to setUpBeforeClass to avoid early connection
     }
-    
-    public static function setUpBeforeClass()
+
+    public static function setUpBeforeClass(): void
     {
+        TestEnvironment::connect(); // Connect to database
         $pdo = TestEnvironment::pdo();
         $pdo->query('DROP TABLE IF EXISTS `some_table`');
         $sql = file_get_contents(__DIR__ . '/TestSchema.sql');
@@ -36,7 +37,7 @@ class DataMapperCrudEscapeTest extends TestCase
         $this->assertNull($model0->someId);
         $model0->write();
         $this->assertNotNull($model0->someId);
-        
+
         // Count current rows (n+1)
         $n1 = $model0->countRows();
         $this->assertEquals($n0 + 1, $n1);
@@ -62,7 +63,5 @@ class DataMapperCrudEscapeTest extends TestCase
         // Count current rows (n)
         $n2 = $model0->countRows();
         $this->assertEquals($n0, $n2);
-
     }
-
 }
