@@ -4,6 +4,9 @@ namespace Anorm\Relationship;
 
 use Anorm\DataMapper;
 use Anorm\Relationship\BatchLoader\OneHasManyBatchLoader;
+use Anorm\Relationship\Strategy\QueryStrategySelector;
+use Anorm\Relationship\Strategy\QueryStrategyInterface;
+use Anorm\Relationship\Strategy\JoinWithSelectionLoader;
 
 /**
  * One-to-Many relationship
@@ -98,8 +101,50 @@ class OneHasMany extends Relationship
      */
     public function batchLoad(array $sourceModels, \PDO $pdo, ?array $fieldSelection = null): array
     {
-        $batchLoader = new OneHasManyBatchLoader();
-        return $batchLoader->batchLoad($sourceModels, $this->propertyName, $fieldSelection);
+        // Select optimal strategy based on data characteristics
+        $strategySelector = new QueryStrategySelector();
+        $strategy = $strategySelector->selectStrategy($this, count($sourceModels), $fieldSelection);
+
+        switch ($strategy) {
+            case QueryStrategyInterface::STRATEGY_JOIN_WITH_SELECTION:
+                $loader = new JoinWithSelectionLoader();
+                $relationshipSpec = $fieldSelection ? $this->propertyName . ':' . implode(',', $fieldSelection) : $this->propertyName;
+                return $loader->batchLoad($sourceModels, $relationshipSpec);
+
+            case QueryStrategyInterface::STRATEGY_INDIVIDUAL_LOADING:
+                return $this->loadIndividually($sourceModels, $pdo);
+
+            case QueryStrategyInterface::STRATEGY_IN_CLAUSE_BATCH:
+            default:
+                $batchLoader = new OneHasManyBatchLoader();
+                return $batchLoader->batchLoad($sourceModels, $this->propertyName, $fieldSelection);
+        }
+    }
+
+    /**
+     * Load relationships individually for each source model
+     *
+     * @param array $sourceModels Array of model instances
+     * @param \PDO $pdo Database connection
+     * @return array Associative array of loaded data
+     */
+    private function loadIndividually(array $sourceModels, \PDO $pdo): array
+    {
+        $results = [];
+
+        foreach ($sourceModels as $model) {
+            $primaryKeyValue = $model->{$this->primaryKey};
+            if ($primaryKeyValue !== null) {
+                // Load related models for this specific source model
+                $relatedModels = DataMapper::find($this->relatedModelClass, $pdo)
+                    ->where($this->foreignKey . ' = ?', [$primaryKeyValue])
+                    ->some();
+
+                $results[$primaryKeyValue] = iterator_to_array($relatedModels);
+            }
+        }
+
+        return $results;
     }
 
     /**

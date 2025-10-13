@@ -15,6 +15,9 @@ class Model
     /** @var \PDO */
     protected $_pdo;
 
+    /** @var array|null Fields that have been loaded (for partial loading) */
+    private $_loadedFields = null;
+
     public function __construct(\PDO $pdo, DataMapper $mapper)
     {
         $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
@@ -30,6 +33,49 @@ class Model
     public function getPdo(): \PDO
     {
         return $this->_pdo;
+    }
+
+    /**
+     * Set which fields have been loaded (for partial loading)
+     * @param array|null $fields Array of field names that were loaded, or null to reset
+     * @return void
+     */
+    public function setLoadedFields(?array $fields): void
+    {
+        $this->_loadedFields = $fields;
+    }
+
+    /**
+     * Check if a specific field has been loaded
+     * @param mixed $fieldName Name of the field to check
+     * @return bool True if field is loaded, false otherwise
+     */
+    public function isFieldLoaded($fieldName): bool
+    {
+        // If no partial loading is active, all fields are considered loaded
+        if ($this->_loadedFields === null) {
+            return true;
+        }
+
+        return in_array($fieldName, $this->_loadedFields, true);
+    }
+
+    /**
+     * Get the list of loaded fields
+     * @return array|null Array of loaded field names, or null if all fields are loaded
+     */
+    public function getLoadedFields(): ?array
+    {
+        return $this->_loadedFields;
+    }
+
+    /**
+     * Check if this model is partially loaded
+     * @return bool True if only specific fields were loaded
+     */
+    public function isPartiallyLoaded(): bool
+    {
+        return $this->_loadedFields !== null;
     }
 
     /**

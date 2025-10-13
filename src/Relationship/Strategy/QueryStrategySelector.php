@@ -38,6 +38,17 @@ class QueryStrategySelector implements QueryStrategyInterface
             return self::STRATEGY_JOIN_WITH_SELECTION;
         }
 
+        // For large datasets, consider data size implications
+        if ($sourceCount > $this->config['large_dataset_threshold']) {
+            $estimatedDataSize = $this->dataEstimator->estimateInClauseDataSize($relationship, $sourceCount);
+            $joinDataSize = $this->dataEstimator->estimateJoinDataSize($relationship, $sourceCount, $fieldSelection);
+
+            // If JOIN would transfer significantly less data, prefer it
+            if ($fieldSelection && $joinDataSize < $estimatedDataSize * 0.7) {
+                return self::STRATEGY_JOIN_WITH_SELECTION;
+            }
+        }
+
         // Default to IN clause batch loading
         return self::STRATEGY_IN_CLAUSE_BATCH;
     }
@@ -178,6 +189,7 @@ class QueryStrategySelector implements QueryStrategyInterface
     {
         return [
             'individual_loading_threshold' => 10, // Use individual loading for <= 10 models
+            'large_dataset_threshold' => 100,     // Consider data size optimization for > 100 models
             'join_strategy_threshold' => 0.5,     // Use JOIN if it reduces data by 50%+
             'max_in_clause_size' => 1000,         // Maximum items in IN clause
             'enable_join_strategy' => true,       // Enable JOIN optimization

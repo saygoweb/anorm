@@ -3,6 +3,8 @@
 namespace Anorm;
 
 use Anorm\Relationship\BatchLoadingOrchestrator;
+use Anorm\Relationship\Strategy\NestedRelationshipParser;
+use Anorm\Relationship\Performance\PerformanceMonitor;
 
 class QueryBuilder
 {
@@ -22,6 +24,9 @@ class QueryBuilder
 
     /** @var bool Enable batch loading optimization */
     private $enableBatchLoading = true;
+
+    /** @var PerformanceMonitor|null Performance monitoring */
+    private $performanceMonitor = null;
 
 
     public function __construct($creatable, \PDO $pdo = null)
@@ -73,9 +78,11 @@ class QueryBuilder
     /**
      * Specify relationships to eager load
      *
-     * Supports both simple relationship names and field selection syntax:
+     * Supports multiple syntaxes:
      * - Simple: with(['posts', 'company'])
      * - Field selection: with(['posts:id,title', 'company:name'])
+     * - Nested: with(['posts.comments', 'posts.comments.author'])
+     * - Mixed: with(['posts:id,title.comments:id,content', 'company:name'])
      *
      * @param array|string $relationships Array of relationship names/specs to load
      * @return self
@@ -90,6 +97,21 @@ class QueryBuilder
         foreach ($relationships as $spec) {
             if (!is_string($spec) || empty(trim($spec))) {
                 throw new \InvalidArgumentException("Relationship specification must be a non-empty string");
+            }
+
+            // Validate nested relationship syntax
+            $parser = new NestedRelationshipParser();
+            $validation = $parser->validateNestedSpec($spec);
+
+            if (!$validation['valid']) {
+                throw new \InvalidArgumentException("Invalid relationship specification '{$spec}': " . implode(', ', $validation['errors']));
+            }
+
+            // Log warnings for deep nesting
+            if (!empty($validation['warnings']) && $this->performanceMonitor) {
+                foreach ($validation['warnings'] as $warning) {
+                    error_log("QueryBuilder Warning: {$warning}");
+                }
             }
         }
 
@@ -195,9 +217,34 @@ class QueryBuilder
             $models[] = $model;
         }
 
-        // Batch load relationships for all models
+        // Batch load relationships for all models (including nested)
         if (!empty($models) && !empty($this->eagerLoadRelationships)) {
-            $this->batchOrchestrator->loadRelationshipsForModels($models, $this->eagerLoadRelationships);
+            $operationId = 'batch_load_' . uniqid();
+
+            // Start performance monitoring if enabled
+            if ($this->performanceMonitor) {
+                $this->performanceMonitor->startOperation($operationId, [
+                    'model_count' => count($models),
+                    'relationships' => $this->eagerLoadRelationships,
+                    'model_class' => get_class($this->instance)
+                ]);
+            }
+
+            // Check for nested relationships
+            $hasNestedRelationships = $this->hasNestedRelationships($this->eagerLoadRelationships);
+
+            if ($hasNestedRelationships) {
+                $this->loadNestedRelationships($models, $this->eagerLoadRelationships);
+            } else {
+                $this->batchOrchestrator->loadRelationshipsForModels($models, $this->eagerLoadRelationships);
+            }
+
+            // End performance monitoring
+            if ($this->performanceMonitor) {
+                $this->performanceMonitor->endOperation($operationId, [
+                    'loaded_models' => count($models)
+                ]);
+            }
         }
 
         // Yield the models
@@ -390,5 +437,47 @@ class QueryBuilder
     {
         $this->batchOrchestrator->setConfig($config);
         return $this;
+    }
+
+    /**
+     * Set performance monitor
+     *
+     * @param PerformanceMonitor $monitor Performance monitor instance
+     * @return self
+     */
+    public function setPerformanceMonitor(PerformanceMonitor $monitor): self
+    {
+        $this->performanceMonitor = $monitor;
+        return $this;
+    }
+
+    /**
+     * Check if any relationships are nested
+     *
+     * @param array $relationships Relationship specifications
+     * @return bool True if nested relationships are present
+     */
+    private function hasNestedRelationships(array $relationships): bool
+    {
+        foreach ($relationships as $spec) {
+            if (strpos($spec, '.') !== false) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Load nested relationships for models
+     *
+     * @param array $models Models to load relationships for
+     * @param array $relationshipSpecs Relationship specifications
+     * @return void
+     */
+    private function loadNestedRelationships(array $models, array $relationshipSpecs): void
+    {
+        $parser = new NestedRelationshipParser();
+        $nestedSpecs = $parser->parseNestedSpecs($relationshipSpecs);
+        $parser->loadNestedRelationships($models, $nestedSpecs);
     }
 }

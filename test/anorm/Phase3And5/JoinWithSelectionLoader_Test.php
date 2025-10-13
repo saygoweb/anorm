@@ -1,0 +1,201 @@
+<?php
+
+namespace Anorm\Test;
+
+use Anorm\DataMapper;
+use Anorm\Relationship\Strategy\JoinWithSelectionLoader;
+use Anorm\Relationship\Strategy\FieldSelectionParser;
+use PHPUnit\Framework\TestCase;
+
+class JoinWithSelectionLoader_Test extends TestCase
+{
+    private $pdo;
+    private $loader;
+
+    protected function setUp(): void
+    {
+        $this->pdo = new \PDO('mysql:host=localhost;dbname=anorm_test', 'dev', 'dev');
+        $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        $this->loader = new JoinWithSelectionLoader();
+    }
+
+    public function testBatchLoadWithEmptyModels()
+    {
+        $result = $this->loader->batchLoad([], 'posts');
+        $this->assertEquals([], $result);
+    }
+
+    public function testBatchLoadWithFieldSelection()
+    {
+        $users = DataMapper::find(UserModel::class, $this->pdo)->some();
+        $userArray = iterator_to_array($users);
+        
+        if (count($userArray) > 0) {
+            // Test with field selection
+            $fieldSelection = ['id', 'title'];
+            $result = $this->loader->batchLoad($userArray, 'posts', $fieldSelection);
+            
+            $this->assertIsArray($result);
+            // Results should be keyed by source model IDs
+            foreach ($result as $sourceId => $relatedModels) {
+                $this->assertIsInt($sourceId);
+                $this->assertIsArray($relatedModels);
+            }
+        } else {
+            $this->markTestSkipped('No test data available');
+        }
+    }
+
+    public function testBuildSelectClause()
+    {
+        $relationship = $this->createMockRelationship();
+        
+        // Test with field selection
+        $selectClause = $this->loader->buildSelectClause(['id', 'title'], 'users', 'posts', $relationship);
+        
+        $this->assertStringContainsString('source_id', $selectClause);
+        $this->assertStringContainsString('r.`id`', $selectClause);
+        $this->assertStringContainsString('r.`title`', $selectClause);
+        
+        // Test without field selection (all fields)
+        $selectClauseAll = $this->loader->buildSelectClause(null, 'users', 'posts', $relationship);
+        $this->assertStringContainsString('r.*', $selectClauseAll);
+    }
+
+    public function testCreatePartialModel()
+    {
+        $data = ['id' => 1, 'title' => 'Test Post', 'content' => 'Test content'];
+        $fieldSelection = ['id', 'title'];
+        
+        $model = $this->loader->createPartialModel(PostModel::class, $data, $fieldSelection);
+        
+        $this->assertInstanceOf(PostModel::class, $model);
+        $this->assertEquals(1, $model->id);
+        $this->assertEquals('Test Post', $model->title);
+        
+        // Check if partial loading is tracked
+        if (method_exists($model, 'isPartiallyLoaded')) {
+            $this->assertTrue($model->isPartiallyLoaded());
+            $this->assertEquals($fieldSelection, $model->getLoadedFields());
+        }
+    }
+
+    public function testDistributeBatchResults()
+    {
+        $users = DataMapper::find(UserModel::class, $this->pdo)->some();
+        $userArray = iterator_to_array($users);
+        
+        if (count($userArray) > 0) {
+            // Create mock batch results
+            $batchResults = [];
+            foreach ($userArray as $user) {
+                $posts = [];
+                for ($i = 1; $i <= 2; $i++) {
+                    $post = new PostModel($this->pdo);
+                    $post->id = $user->id * 10 + $i;
+                    $post->title = "Test Post {$i}";
+                    $posts[] = $post;
+                }
+                $batchResults[$user->id] = $posts;
+            }
+            
+            $this->loader->distributeBatchResults($userArray, $batchResults, 'posts');
+            
+            // Verify distribution
+            foreach ($userArray as $user) {
+                if (isset($batchResults[$user->id])) {
+                    $this->assertIsArray($user->posts);
+                    $this->assertCount(2, $user->posts);
+                }
+            }
+        } else {
+            $this->markTestSkipped('No test data available');
+        }
+    }
+
+    public function testCanHandle()
+    {
+        // JoinWithSelectionLoader should be able to handle any relationship type
+        $relationship = $this->createMockRelationship();
+        
+        // Since it implements BatchLoaderInterface, it should handle all types
+        $this->assertTrue($this->loader->canHandle($relationship));
+    }
+
+    public function testEstimateQueryCount()
+    {
+        // JOIN strategy should always use 1 query regardless of model count
+        $this->assertEquals(0, $this->loader->estimateQueryCount(0));
+        $this->assertEquals(1, $this->loader->estimateQueryCount(5));
+        $this->assertEquals(1, $this->loader->estimateQueryCount(100));
+        $this->assertEquals(1, $this->loader->estimateQueryCount(1000));
+    }
+
+    public function testGetMaxBatchSize()
+    {
+        // JOIN strategy can handle large batches efficiently
+        $maxSize = $this->loader->getMaxBatchSize();
+        $this->assertIsInt($maxSize);
+        $this->assertGreaterThan(1000, $maxSize); // Should be larger than other strategies
+    }
+
+    public function testBuildJoinQueryStructure()
+    {
+        $users = DataMapper::find(UserModel::class, $this->pdo)->some();
+        $userArray = iterator_to_array($users);
+        
+        if (count($userArray) > 0) {
+            $relationship = $this->createMockRelationship();
+            $fieldSelection = ['id', 'title'];
+            
+            $query = $this->loader->buildJoinQuery($relationship, $fieldSelection, $userArray);
+            
+            $this->assertIsString($query);
+            $this->assertStringContainsString('SELECT', $query);
+            $this->assertStringContainsString('FROM', $query);
+            $this->assertStringContainsString('WHERE', $query);
+            $this->assertStringContainsString('IN', $query);
+        } else {
+            $this->markTestSkipped('No test data available');
+        }
+    }
+
+    public function testProcessJoinResultsWithNullData()
+    {
+        // Test handling of LEFT JOIN results with null related data
+        $users = DataMapper::find(UserModel::class, $this->pdo)->some();
+        $userArray = iterator_to_array($users);
+        
+        if (count($userArray) > 0) {
+            // Create mock PDO statement with null data
+            $mockStatement = $this->createMock(\PDOStatement::class);
+            $mockStatement->method('fetch')
+                ->willReturnOnConsecutiveCalls(
+                    ['source_id' => 1, 'id' => null, 'title' => null], // NULL related data
+                    ['source_id' => 2, 'id' => 10, 'title' => 'Valid Post'], // Valid related data
+                    false // End of results
+                );
+            
+            $relationship = $this->createMockRelationship();
+            $result = $this->loader->processJoinResults($mockStatement, $userArray, $relationship, ['id', 'title']);
+            
+            $this->assertIsArray($result);
+            // Should skip null results but include valid ones
+            $this->assertArrayNotHasKey(1, $result); // Null data should be skipped
+            $this->assertArrayHasKey(2, $result); // Valid data should be included
+        } else {
+            $this->markTestSkipped('No test data available');
+        }
+    }
+
+    private function createMockRelationship()
+    {
+        $relationship = $this->createMock(\Anorm\Relationship\OneHasMany::class);
+        $relationship->method('getCardinality')->willReturn('one-to-many');
+        $relationship->method('getRelatedModelClass')->willReturn('PostModel');
+        $relationship->method('getPrimaryKey')->willReturn('id');
+        $relationship->method('generateJoinClause')->willReturn('LEFT JOIN `posts` r ON s.`id` = r.`user_id`');
+        
+        return $relationship;
+    }
+}
