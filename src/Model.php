@@ -85,6 +85,7 @@ class Model
         if ($propertyName === null) {
             $propertyName = $this->getPropertyNameFromClass($relatedModelClass);
         }
+
         $this->_relationshipManager->hasMany($relatedModelClass, $propertyName, $foreignKey, $primaryKey, $options);
     }
 

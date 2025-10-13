@@ -95,11 +95,11 @@ class RelationshipManager
     }
 
     /**
-     * Get all relationship objects (values only)
+     * Get all relationship objects with their property names as keys
      */
     public function getRelationships()
     {
-        return array_values($this->relationships);
+        return $this->relationships;
     }
 
     /**
