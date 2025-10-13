@@ -58,11 +58,20 @@ class QueryBuilder
         return $this;
     }
 
-    public function where($sql, $data)
+    public function where($sql, $data = null)
     {
         $this->ensureFrom();
-        $this->sql .= ' WHERE ' . $sql;
-        $this->boundData = $data;
+
+        if ($sql instanceof SqlCondition) {
+            // Handle SqlCondition objects from Mango queries
+            $this->sql .= ' WHERE ' . $sql->getSql();
+            $this->boundData = array_merge($this->boundData ?? [], $sql->getBindings());
+        } else {
+            // Handle traditional string SQL
+            $this->sql .= ' WHERE ' . $sql;
+            $this->boundData = $data;
+        }
+
         return $this;
     }
 
@@ -127,5 +136,73 @@ class QueryBuilder
             throw new \Exception(sprintf("QueryBuilder: Expected one not found from '%s'", $this->sql));
         }
         return $result;
+    }
+
+    /**
+     * Apply a Mango Query to this QueryBuilder
+     *
+     * @param array $mangoQuery The Mango Query object
+     * @return self
+     */
+    public function fromMango(array $mangoQuery): self
+    {
+        $query = new MangoQuery($mangoQuery);
+        $this->applyMangoQuery($query);
+        return $this;
+    }
+
+    /**
+     * Alias for fromMango()
+     */
+    public function mango(array $mangoQuery): self
+    {
+        return $this->fromMango($mangoQuery);
+    }
+
+    /**
+     * Apply a parsed MangoQuery to this QueryBuilder
+     */
+    private function applyMangoQuery(MangoQuery $query): void
+    {
+        /** @var DataMapper */
+        $mapper = $this->instance->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        // Apply fields (SELECT clause)
+        if ($query->hasFields()) {
+            $fieldsClause = $parser->parseFields($query->getFields());
+            $this->select($fieldsClause);
+        }
+
+        // Apply selector (WHERE clause)
+        if ($query->hasConditions()) {
+            $condition = $parser->parseSelector($query->getSelector());
+            if (!$condition->isEmpty()) {
+                $this->where($condition);
+            }
+        }
+
+        // Apply sort (ORDER BY clause)
+        if ($query->hasSort()) {
+            $sortClause = $parser->parseSort($query->getSort());
+            if (!empty($sortClause)) {
+                $this->orderBy($sortClause);
+            }
+        }
+
+        // Apply pagination (LIMIT and OFFSET)
+        if ($query->hasPagination()) {
+            $limit = $query->getLimit();
+            $skip = $query->getSkip() ?? 0;
+
+            if ($limit !== null) {
+                $this->limit($limit, $skip);
+            } elseif ($skip > 0) {
+                // If only skip is specified, use a large limit
+                $this->limit(PHP_INT_MAX, $skip);
+            }
+        }
+
+        // TODO: Handle use_index hint in future versions
     }
 }
