@@ -5,7 +5,7 @@ namespace Anorm\Test;
 use Anorm\DataMapper;
 use PHPUnit\Framework\TestCase;
 
-class PartialModelSupport_Test extends TestCase
+class Model_PartialLoading_Test extends TestCase
 {
     private $pdo;
 

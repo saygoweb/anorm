@@ -215,4 +215,19 @@ class DataSizeEstimator_Test extends TestCase
         $size = $this->estimator->calculateSelectedFieldSize([]);
         $this->assertEquals(0, $size);
     }
+
+    public function testEstimateFieldSizeEdgeCases()
+    {
+        // Test field size estimation with various field names using reflection
+        $reflection = new \ReflectionClass($this->estimator);
+        $method = $reflection->getMethod('estimateFieldSize');
+        $method->setAccessible(true);
+
+        // Test edge cases
+        $this->assertEquals(50, $method->invoke($this->estimator, '')); // Empty field name
+        $this->assertEquals(8, $method->invoke($this->estimator, 'ID')); // Uppercase
+        $this->assertEquals(50, $method->invoke($this->estimator, 'created_at')); // Regular field (doesn't contain exact 'date')
+        $this->assertEquals(20, $method->invoke($this->estimator, 'timestamp')); // Contains 'time'
+        $this->assertEquals(500, $method->invoke($this->estimator, 'description')); // Description field (longer text)
+    }
 }

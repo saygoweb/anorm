@@ -214,4 +214,21 @@ class QueryStrategySelector_Test extends TestCase
         }
         $this->assertTrue($hasFieldSelectionFactor);
     }
+
+    public function testSelectStrategyWithEdgeCases()
+    {
+        $relationship = $this->createMockRelationship('one-to-many');
+
+        // Test with zero models
+        $strategy = $this->selector->selectStrategy($relationship, 0, null);
+        $this->assertEquals(QueryStrategyInterface::STRATEGY_INDIVIDUAL_LOADING, $strategy);
+
+        // Test with very large model count
+        $strategy = $this->selector->selectStrategy($relationship, 10000, null);
+        $this->assertEquals(QueryStrategyInterface::STRATEGY_IN_CLAUSE_BATCH, $strategy);
+
+        // Test with field selection and small count - actual implementation may choose individual loading for very small counts
+        $strategy = $this->selector->selectStrategy($relationship, 2, ['id', 'name']);
+        $this->assertContains($strategy, [QueryStrategyInterface::STRATEGY_INDIVIDUAL_LOADING, QueryStrategyInterface::STRATEGY_JOIN_WITH_SELECTION]);
+    }
 }

@@ -202,4 +202,23 @@ class JoinWithSelectionLoader_Test extends TestCase
 
         return $relationship;
     }
+
+    public function testIsEmptyRelatedRow()
+    {
+        // Use reflection to test private method
+        $reflection = new \ReflectionClass($this->loader);
+        $method = $reflection->getMethod('isEmptyRelatedRow');
+        $method->setAccessible(true);
+
+        // Test with all null values
+        $emptyRow = ['id' => null, 'name' => null, 'email' => null];
+        $this->assertTrue($method->invoke($this->loader, $emptyRow));
+
+        // Test with some non-null values
+        $nonEmptyRow = ['id' => 1, 'name' => null, 'email' => null];
+        $this->assertFalse($method->invoke($this->loader, $nonEmptyRow));
+
+        // Test with empty array
+        $this->assertTrue($method->invoke($this->loader, []));
+    }
 }

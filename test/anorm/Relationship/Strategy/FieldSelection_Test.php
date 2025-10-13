@@ -165,4 +165,28 @@ class FieldSelection_Test extends TestCase
         $this->assertEquals(['id', 'content'], $parsed['comments']['fields']);
         $this->assertNull($parsed['tags']['fields']); // Wildcard means all fields
     }
+
+    public function testFieldSelectionParserEdgeCases()
+    {
+        $parser = new FieldSelectionParser();
+
+        // Test with whitespace-only field
+        $result = $parser->parseFieldSelection('posts:  ,  title  ,  ');
+        $this->assertEquals('posts', $result['relationship']);
+        $this->assertEquals([1 => 'title'], $result['fields']); // Empty fields should be filtered out, preserving keys
+
+        // Test isAllFields method
+        $this->assertTrue($parser->isAllFields(null));
+        $this->assertTrue($parser->isAllFields([]));
+        $this->assertFalse($parser->isAllFields(['id', 'title']));
+
+        // Test generateSelectClause with empty fields
+        $selectClause = $parser->generateSelectClause([], 'p', 'post');
+        $this->assertEquals('`p`.*', $selectClause);
+
+        // Test extractPrefixedFields with no matching prefix
+        $row = ['user_id' => 1, 'user_name' => 'John'];
+        $extracted = $parser->extractPrefixedFields($row, 'post');
+        $this->assertEquals([], $extracted);
+    }
 }
