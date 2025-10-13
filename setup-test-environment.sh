@@ -282,7 +282,12 @@ set -e
 
 # Load environment variables
 if [ -f .env ]; then
-    export $(cat .env | grep -v '^#' | xargs)
+    set -a
+    source .env
+    set +a
+    echo "Environment variables loaded from .env"
+else
+    echo "Warning: .env file not found"
 fi
 
 # Run tests
@@ -315,7 +320,9 @@ EOF
 # Load environment variables
 
 if [ -f .env ]; then
-    export $(cat .env | grep -v '^#' | xargs)
+    set -a
+    source .env
+    set +a
     echo "Environment variables loaded from .env"
     echo "DB_HOST=$DB_HOST"
     echo "DB_NAME=$DB_NAME"
@@ -361,11 +368,12 @@ verify_environment() {
 
     # Test PHP and required extensions
     print_info "Testing PHP configuration..."
-    local required_extensions=("pdo" "pdo_mysql" "zip" "xml" "mbstring" "curl" "json")
+    local required_extensions=("PDO" "pdo_mysql" "zip" "xml" "mbstring" "curl" "json")
     local missing_extensions=()
 
     for ext in "${required_extensions[@]}"; do
-        if ! php -m | grep -q "^$ext$"; then
+        # Use case-insensitive grep and check for both exact match and partial match
+        if ! php -m | grep -qi "$ext"; then
             missing_extensions+=("$ext")
         fi
     done
@@ -385,20 +393,30 @@ verify_environment() {
         print_success "Composer is available"
     fi
 
+    # Export environment variables for the current session
+    print_info "Exporting environment variables for tests..."
+    export DB_HOST="$DB_HOST"
+    export DB_NAME="$DB_NAME"
+    export DB_USER="$DB_USER"
+    export DB_PASS="$DB_PASS"
+    export DB_DATABASE="$DB_NAME"
+    export DB_USERNAME="$DB_USER"
+    export DB_PASSWORD="$DB_PASS"
+
     # Run a quick test to verify everything works
     print_info "Running quick test verification..."
 
     if [ -n "$SUDO_USER" ]; then
         # Run as the original user with environment loaded
-        if sudo -u "$SUDO_USER" bash -c "source .env && composer test:quick" >/dev/null 2>&1; then
+        if sudo -u "$SUDO_USER" -E bash -c "composer test:quick" >/dev/null 2>&1; then
             print_success "Test verification passed!"
         else
             print_warning "Test verification had issues, but environment setup is complete"
             print_info "You can run 'composer test' manually to see detailed results"
         fi
     else
-        # Load environment and run tests
-        if bash -c "source .env && composer test:quick" >/dev/null 2>&1; then
+        # Run tests with exported environment
+        if composer test:quick >/dev/null 2>&1; then
             print_success "Test verification passed!"
         else
             print_warning "Test verification had issues, but environment setup is complete"
@@ -424,8 +442,8 @@ show_usage() {
     echo
     echo -e "${CYAN}  # Run tests:${NC}"
     echo "  ./run-tests.sh [quick|coverage|ci|full]"
-    echo "  source load-env.sh && composer test"
-    echo "  composer test                # Full test suite"
+    echo "  source .env && composer test"
+    echo "  export \$(cat .env | grep -v '^#' | xargs) && composer test"
     echo
     echo -e "${CYAN}  # Code quality:${NC}"
     echo "  composer cs:check            # Check coding standards"
