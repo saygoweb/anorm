@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# Anorm Test Environment Setup Script (Idempotent)
-# This script installs all necessary dependencies for running composer test
+# Remote Agent Environment Setup Script for Anorm
+# This script sets up a complete development environment for remote agents
+# Installs all necessary dependencies for running composer test and development
 # Excludes Docker and SQLite - uses local PHP and MariaDB only
 # Can be run multiple times safely - will only install what's missing
 
@@ -410,13 +411,13 @@ show_usage() {
     echo
     echo -e "${CYAN}  # Environment:${NC}"
     echo "  cat .env                     # View environment configuration"
-    echo "  sudo ./setup-test-environment.sh  # Re-run setup (idempotent)"
+    echo "  sudo ./setup-remote-agent.sh    # Re-run setup (idempotent)"
 }
 
 # Main execution
 main() {
-    echo -e "${PURPLE}🚀 Anorm Test Environment Setup (Idempotent)${NC}"
-    echo -e "${PURPLE}=============================================${NC}"
+    echo -e "${PURPLE}🚀 Anorm Remote Agent Environment Setup${NC}"
+    echo -e "${PURPLE}=======================================${NC}"
     echo
 
     # Check if running as root
@@ -441,7 +442,7 @@ main() {
     show_usage
 
     echo
-    print_success "🎉 Test environment setup completed successfully!"
+    print_success "🎉 Remote agent environment setup completed successfully!"
     echo
     print_info "📋 You can now run tests directly:"
     echo -e "${CYAN}  composer test${NC}"
@@ -457,8 +458,9 @@ case "${1:-}" in
     --help|-h)
         echo "Usage: sudo $0 [options]"
         echo
-        echo "This script installs all necessary dependencies for running"
-        echo "composer test in the Anorm project."
+        echo "This script sets up a complete development environment for remote agents"
+        echo "working on the Anorm project. Installs all necessary dependencies for"
+        echo "running composer test and development tasks."
         echo
         echo "Features:"
         echo "  - Idempotent: Can be run multiple times safely"
