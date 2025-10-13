@@ -55,6 +55,52 @@ class MangoQuery_Test extends TestCase
         new MangoQuery(['fields' => 'invalid']);
     }
 
+    public function testMangoQuery_InvalidSkip_ThrowsException()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Mango query skip must be a non-negative integer');
+
+        new MangoQuery(['skip' => -5]);
+    }
+
+    public function testMangoQuery_InvalidSort_ThrowsException()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Mango query sort must be an array');
+
+        new MangoQuery(['sort' => 'invalid']);
+    }
+
+    public function testMangoQuery_InvalidSelector_ThrowsException()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Mango query selector must be an array');
+
+        new MangoQuery(['selector' => 'invalid']);
+    }
+
+    public function testMangoQuery_AllProperties()
+    {
+        $query = new MangoQuery([
+            'selector' => ['name' => 'John'],
+            'fields' => ['id', 'name'],
+            'sort' => [['name' => 'asc']],
+            'limit' => 10,
+            'skip' => 5,
+            'use_index' => 'name_index'
+        ]);
+
+        $this->assertEquals(['name' => 'John'], $query->getSelector());
+        $this->assertEquals(['id', 'name'], $query->getFields());
+        $this->assertEquals([['name' => 'asc']], $query->getSort());
+        $this->assertEquals(10, $query->getLimit());
+        $this->assertEquals(5, $query->getSkip());
+        $this->assertEquals('name_index', $query->getUseIndex());
+        $this->assertTrue($query->hasConditions());
+        $this->assertTrue($query->hasFields());
+        $this->assertTrue($query->hasSort());
+    }
+
     public function testSqlCondition_BasicUsage()
     {
         $condition = new SqlCondition('name = :name', [':name' => 'John']);
@@ -80,6 +126,34 @@ class MangoQuery_Test extends TestCase
         $empty = SqlCondition::empty();
         $this->assertTrue($empty->isEmpty());
         $this->assertEquals('1=1', $empty->getSql());
+    }
+
+    public function testSqlCondition_Never()
+    {
+        $never = SqlCondition::never();
+        $this->assertFalse($never->isEmpty());
+        $this->assertEquals('1=0', $never->getSql());
+        $this->assertEquals([], $never->getBindings());
+    }
+
+    public function testSqlCondition_Wrap()
+    {
+        $condition = new SqlCondition('name = :name', [':name' => 'John']);
+        $wrapped = $condition->wrap();
+
+        $this->assertEquals('(name = :name)', $wrapped->getSql());
+        $this->assertEquals([':name' => 'John'], $wrapped->getBindings());
+    }
+
+    public function testSqlCondition_CombineWithOr()
+    {
+        $condition1 = new SqlCondition('name = :name', [':name' => 'John']);
+        $condition2 = new SqlCondition('age > :age', [':age' => 21]);
+
+        $combined = $condition1->combine($condition2, 'OR');
+
+        $this->assertEquals('(name = :name) OR (age > :age)', $combined->getSql());
+        $this->assertEquals([':name' => 'John', ':age' => 21], $combined->getBindings());
     }
 
     public function testMangoQueryParser_SimpleEquality()
@@ -372,5 +446,232 @@ class MangoQuery_Test extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('$elemMatch operator requires an array/object value');
         $parser->parseSelector(['items' => ['$elemMatch' => 'not-array']]);
+    }
+
+    public function testMangoQueryParser_EmptySelector()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        $condition = $parser->parseSelector([]);
+        $this->assertTrue($condition->isEmpty());
+        $this->assertEquals('1=1', $condition->getSql());
+    }
+
+    public function testMangoQueryParser_EmptyFields()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        $fieldsClause = $parser->parseFields([]);
+        $this->assertEquals('*', $fieldsClause);
+    }
+
+    public function testMangoQueryParser_EmptySort()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        $sortClause = $parser->parseSort([]);
+        $this->assertEquals('', $sortClause);
+    }
+
+    public function testMangoQueryParser_NullValueComparisons()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        // Test null equality
+        $condition = $parser->parseSelector(['name' => null]);
+        $this->assertStringContainsString('IS NULL', $condition->getSql());
+
+        // Test null with $ne operator
+        $condition = $parser->parseSelector(['name' => ['$ne' => null]]);
+        $this->assertStringContainsString('IS NOT NULL', $condition->getSql());
+    }
+
+    public function testMangoQueryParser_EmptyInArray()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        // Empty $in array should return never condition
+        $condition = $parser->parseSelector(['name' => ['$in' => []]]);
+        $this->assertEquals('1=0', $condition->getSql());
+    }
+
+    public function testMangoQueryParser_EmptyNotInArray()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        // Empty $nin array should return empty condition (always true)
+        $condition = $parser->parseSelector(['name' => ['$nin' => []]]);
+        $this->assertTrue($condition->isEmpty());
+    }
+
+    public function testMangoQueryParser_ExistsOperator()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        // Test $exists: true
+        $condition = $parser->parseSelector(['name' => ['$exists' => true]]);
+        $this->assertStringContainsString('IS NOT NULL', $condition->getSql());
+
+        // Test $exists: false
+        $condition = $parser->parseSelector(['name' => ['$exists' => false]]);
+        $this->assertStringContainsString('IS NULL', $condition->getSql());
+    }
+
+    public function testMangoQueryParser_InvalidAndOperator()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('$and operator requires an array of conditions');
+        $parser->parseSelector(['$and' => 'not-array']);
+    }
+
+    public function testMangoQueryParser_InvalidOrOperator()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('$or operator requires an array of conditions');
+        $parser->parseSelector(['$or' => 'not-array']);
+    }
+
+    public function testMangoQueryParser_InvalidNotOperator()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('$not operator requires an array condition');
+        $parser->parseSelector(['$not' => 'not-array']);
+    }
+
+    public function testMangoQueryParser_InvalidNorOperator()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('$nor operator requires an array of conditions');
+        $parser->parseSelector(['$nor' => 'not-array']);
+    }
+
+    public function testMangoQueryParser_UnsupportedOperator()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unsupported operator: $unknown');
+        $parser->parseSelector(['$unknown' => ['test']]);
+    }
+
+    public function testMangoQueryParser_UnsupportedFieldOperator()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unsupported field operator: unknown');
+        $parser->parseSelector(['name' => ['$unknown' => 'value']]);
+    }
+
+    public function testMangoQueryParser_InvalidInValue()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        // Non-array value for $in should return never condition
+        $condition = $parser->parseSelector(['name' => ['$in' => 'not-array']]);
+        $this->assertEquals('1=0', $condition->getSql());
+    }
+
+    public function testMangoQueryParser_InvalidNinValue()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        // Non-array value for $nin should return empty condition
+        $condition = $parser->parseSelector(['name' => ['$nin' => 'not-array']]);
+        $this->assertTrue($condition->isEmpty());
+    }
+
+    public function testMangoQueryParser_ComplexElemMatch()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        // Test complex elemMatch with multiple conditions
+        $condition = $parser->parseSelector([
+            'items' => ['$elemMatch' => ['price' => 100, 'category' => 'electronics']]
+        ]);
+
+        $sql = $condition->getSql();
+        $this->assertStringContainsString('JSON_CONTAINS(`items`, :mango_param_1)', $sql);
+    }
+
+    public function testMangoQueryParser_SortStringFormat()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        // Test string format for sort
+        $sortClause = $parser->parseSort(['name', 'someId']);
+        $this->assertStringContainsString('`name` ASC', $sortClause);
+        $this->assertStringContainsString('`some_id` ASC', $sortClause); // someId maps to some_id
+    }
+
+    public function testMangoQueryParser_FieldMapping()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        // Test field that doesn't exist in mapping
+        $condition = $parser->parseSelector(['unmapped_field' => 'value']);
+        $this->assertStringContainsString('`unmapped_field`', $condition->getSql());
     }
 }

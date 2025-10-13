@@ -370,4 +370,220 @@ class QueryBuilder_Mango_Test extends TestCase
 
         $this->assertEquals(1, $count);
     }
+
+    public function testQueryBuilder_MangoQueryWithNullValues()
+    {
+        // Add a record with null dtc
+        $model = new SomeTableModel();
+        $model->name = 'David';
+        $model->dtc = null;
+        $model->write();
+
+        $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
+            ->fromMango([
+                'selector' => [
+                    'dtc' => null  // Find records with null dtc
+                ]
+            ])
+            ->some();
+
+        $count = 0;
+        foreach ($generator as $model) {
+            $this->assertEquals('david', $model->name);
+            $this->assertNull($model->dtc);
+            $count++;
+        }
+
+        $this->assertEquals(1, $count);
+    }
+
+    public function testQueryBuilder_MangoQueryWithExistsOperator()
+    {
+        $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
+            ->fromMango([
+                'selector' => [
+                    'dtc' => ['$exists' => true]  // Find records where dtc is not null
+                ]
+            ])
+            ->some();
+
+        $count = 0;
+        foreach ($generator as $model) {
+            $this->assertNotNull($model->dtc);
+            $count++;
+        }
+
+        $this->assertEquals(3, $count); // Alice, Bob, Charlie all have dtc values
+    }
+
+    public function testQueryBuilder_MangoQueryWithNotExistsOperator()
+    {
+        $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
+            ->fromMango([
+                'selector' => [
+                    'category' => ['$exists' => false]  // Find records where category is null
+                ]
+            ])
+            ->some();
+
+        $count = 0;
+        foreach ($generator as $model) {
+            $this->assertNull($model->category);
+            $count++;
+        }
+
+        $this->assertGreaterThan(0, $count); // Should find records with null category
+    }
+
+    public function testQueryBuilder_MangoQueryWithNotEqualOperator()
+    {
+        $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
+            ->fromMango([
+                'selector' => [
+                    'name' => ['$ne' => 'Alice']
+                ],
+                'sort' => [['name' => 'asc']]
+            ])
+            ->some();
+
+        $expectedNames = ['bob', 'charlie'];
+        $index = 0;
+        foreach ($generator as $model) {
+            $this->assertEquals($expectedNames[$index], $model->name);
+            $index++;
+        }
+
+        $this->assertEquals(2, $index);
+    }
+
+    public function testQueryBuilder_MangoQueryWithNotInOperator()
+    {
+        $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
+            ->fromMango([
+                'selector' => [
+                    'name' => ['$nin' => ['Alice', 'Bob']]
+                ]
+            ])
+            ->some();
+
+        $count = 0;
+        foreach ($generator as $model) {
+            $this->assertEquals('charlie', $model->name);
+            $count++;
+        }
+
+        $this->assertEquals(1, $count);
+    }
+
+    public function testQueryBuilder_MangoQueryWithComplexAndOr()
+    {
+        $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
+            ->fromMango([
+                'selector' => [
+                    '$or' => [
+                        [
+                            '$and' => [
+                                ['name' => 'Alice'],
+                                ['dtc' => ['$gte' => '2023-01-01']]
+                            ]
+                        ],
+                        ['name' => 'Charlie']
+                    ]
+                ],
+                'sort' => [['name' => 'asc']]
+            ])
+            ->some();
+
+        $expectedNames = ['alice', 'charlie'];
+        $index = 0;
+        foreach ($generator as $model) {
+            $this->assertEquals($expectedNames[$index], $model->name);
+            $index++;
+        }
+
+        $this->assertEquals(2, $index);
+    }
+
+    public function testQueryBuilder_MangoQueryWithNotOperator()
+    {
+        $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
+            ->fromMango([
+                'selector' => [
+                    '$not' => [
+                        'name' => ['$in' => ['Alice', 'Bob']]
+                    ]
+                ]
+            ])
+            ->some();
+
+        $count = 0;
+        foreach ($generator as $model) {
+            $this->assertEquals('charlie', $model->name);
+            $count++;
+        }
+
+        $this->assertEquals(1, $count);
+    }
+
+    public function testQueryBuilder_MangoQueryEmptySelector()
+    {
+        $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
+            ->fromMango([
+                'selector' => [],  // Empty selector should return all records
+                'limit' => 2
+            ])
+            ->some();
+
+        $count = 0;
+        foreach ($generator as $model) {
+            $this->assertNotNull($model->name);
+            $count++;
+        }
+
+        $this->assertEquals(2, $count);
+    }
+
+    public function testQueryBuilder_MangoQueryWithUseIndex()
+    {
+        // Test that use_index doesn't break the query (even though it's not implemented)
+        $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
+            ->fromMango([
+                'selector' => ['name' => 'Alice'],
+                'use_index' => 'name_index'  // This should be ignored for now
+            ])
+            ->some();
+
+        $count = 0;
+        foreach ($generator as $model) {
+            $this->assertEquals('alice', $model->name);
+            $count++;
+        }
+
+        $this->assertEquals(1, $count);
+    }
+
+    public function testQueryBuilder_MangoQueryWithAllProperties()
+    {
+        $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
+            ->fromMango([
+                'selector' => ['dtc' => ['$gte' => '2023-01-01']],
+                'fields' => ['name', 'dtc'],
+                'sort' => [['dtc' => 'desc']],
+                'limit' => 2,
+                'skip' => 1,
+                'use_index' => 'dtc_index'
+            ])
+            ->some();
+
+        $expectedNames = ['bob', 'alice']; // Charlie (2023-03-01), Bob (2023-02-01), skip Charlie, get Bob and Alice
+        $index = 0;
+        foreach ($generator as $model) {
+            $this->assertEquals($expectedNames[$index], $model->name);
+            $this->assertNotNull($model->dtc);
+            $this->assertNull($model->category); // Should be null due to field restriction
+            $index++;
+        }
+
+        $this->assertEquals(2, $index);
+    }
 }
