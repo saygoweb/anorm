@@ -638,9 +638,7 @@ class QueryBuilder_Mango_Test extends TestCase
             foreach ($generator as $model) {
                 $actualNames[] = $model->name;
                 $count++;
-                if ($count >= 3) {
-                    break; // Get 3 records to verify skip worked
-                }
+                if ($count >= 3) break; // Get 3 records to verify skip worked
             }
 
             // Should skip TestUser1, TestUser2 and get TestUser3, TestUser4, TestUser5

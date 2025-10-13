@@ -18,11 +18,11 @@ class CompanyModel extends Model
         // Define relationships with explicit property names
         $this->hasMany('Anorm\Test\UserModel', 'company_id', 'id', 'users');
     }
-
+    
     public $id;
     public $name;
     public $address;
-
+    
     /** @var UserModel[] */
     public $users;
 }

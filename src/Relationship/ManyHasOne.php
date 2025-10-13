@@ -20,7 +20,7 @@ class ManyHasOne extends Relationship
 
     /**
      * Load the related model for a many-to-one relationship
-     *
+     * 
      * @param object $sourceModel The model instance that owns the relationship
      * @param \PDO $pdo The database connection
      * @return object|null The related model instance or null if not found
@@ -29,7 +29,7 @@ class ManyHasOne extends Relationship
     {
         $relatedClass = $this->relatedModelClass;
         $foreignValue = $sourceModel->{$this->foreignKey};
-
+        
         if ($foreignValue === null) {
             return null;
         }
@@ -37,21 +37,21 @@ class ManyHasOne extends Relationship
         // Create an instance of the related model to get its mapper
         $relatedInstance = new $relatedClass($pdo);
         $mapper = $relatedInstance->_mapper;
-
+        
         // Build the query to find the related model
         // The primary key should be a database column name, not a property name
         $sql = "SELECT * FROM `{$mapper->table}` WHERE `{$this->primaryKey}` = ?";
 
         $result = $mapper->query($sql, [$foreignValue]);
         $data = $result->fetch(\PDO::FETCH_ASSOC);
-
+        
         if (!$data) {
             return null;
         }
-
+        
         $relatedModel = new $relatedClass($pdo);
         $relatedModel->_mapper->readArray($relatedModel, $data);
-
+        
         return $relatedModel;
     }
 

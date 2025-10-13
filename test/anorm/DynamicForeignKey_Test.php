@@ -26,7 +26,7 @@ class DynamicForeignKey_Test extends TestCase
     public function setUp(): void
     {
         $this->pdo = TestEnvironment::pdo();
-
+        
         // Clean up any existing test tables
         $this->pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
         $this->pdo->exec('DROP TABLE IF EXISTS dynamic_posts');
@@ -66,10 +66,10 @@ class DynamicForeignKey_Test extends TestCase
         // 1. Creation of dynamic_users table
         // 2. Creation of foreign key constraint from dynamic_users.company_id to dynamic_companies.id
         $user->write();
-
+        
         // Verify the foreign key constraint was created
         $this->assertTrue($this->foreignKeyExists('dynamic_users', 'fk_dynamic_users_company_id'));
-
+        
         // Verify we can query the constraint information
         $constraints = $this->getForeignKeyConstraints('dynamic_users');
         $this->assertCount(1, $constraints);
@@ -84,28 +84,28 @@ class DynamicForeignKey_Test extends TestCase
         $company = new DynamicCompanyModel($this->pdo);
         $company->name = 'Tech Corp';
         $company->write();
-
+        
         // Create a user that belongs to the company
         $user = new DynamicUserModel($this->pdo);
         $user->name = 'Jane Smith';
         $user->email = 'jane@example.com';
         $user->company_id = $company->id;
         $user->write();
-
+        
         // Create a post that belongs to the user
         $post = new DynamicPostModel($this->pdo);
         $post->title = 'Test Post';
         $post->content = 'This is a test post';
         $post->user_id = $user->id; // This should trigger foreign key creation
-
+        
         // This write operation should trigger:
         // 1. Creation of dynamic_posts table
         // 2. Creation of foreign key constraint from dynamic_posts.user_id to dynamic_users.id
         $post->write();
-
+        
         // Verify the foreign key constraint was created
         $this->assertTrue($this->foreignKeyExists('dynamic_posts', 'fk_dynamic_posts_user_id'));
-
+        
         // Test the relationship works
         $post->loadRelated('user');
         $this->assertInstanceOf(DynamicUserModel::class, $post->user);
@@ -125,7 +125,7 @@ class DynamicForeignKey_Test extends TestCase
         $user->email = 'test@example.com';
         $user->company_id = $company->id;
         $user->write();
-
+        
         // Verify the foreign key was created with CASCADE delete
         $constraints = $this->getForeignKeyConstraints('dynamic_users_cascade');
         $this->assertCount(1, $constraints);
@@ -151,18 +151,18 @@ class DynamicForeignKey_Test extends TestCase
         $post->content = 'This post has tags';
         $post->user_id = $user->id;
         $post->write();
-
+        
         // Create a tag
         $tag = new DynamicTagModel($this->pdo);
         $tag->name = 'technology';
         $tag->write();
-
+        
         // Load the many-to-many relationship, which should trigger join table creation
         $post->loadRelated('tags');
-
+        
         // Verify the join table was created
         $this->assertTrue($this->tableExists('dynamic_post_tags'));
-
+        
         // Verify foreign keys on join table were created
         $this->assertTrue($this->foreignKeyExists('dynamic_post_tags', 'fk_dynamic_post_tags_post_id'));
         $this->assertTrue($this->foreignKeyExists('dynamic_post_tags', 'fk_dynamic_post_tags_tag_id'));
@@ -179,11 +179,11 @@ class DynamicForeignKey_Test extends TestCase
                 AND TABLE_NAME = ? 
                 AND CONSTRAINT_NAME = ? 
                 AND CONSTRAINT_TYPE = 'FOREIGN KEY'";
-
+        
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([$tableName, $constraintName]);
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
-
+        
         return $result['count'] > 0;
     }
 
@@ -204,10 +204,10 @@ class DynamicForeignKey_Test extends TestCase
                 WHERE kcu.TABLE_SCHEMA = DATABASE() 
                 AND kcu.TABLE_NAME = ?
                 AND kcu.REFERENCED_TABLE_NAME IS NOT NULL";
-
+        
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([$tableName]);
-
+        
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
@@ -220,11 +220,11 @@ class DynamicForeignKey_Test extends TestCase
                 FROM information_schema.TABLES 
                 WHERE TABLE_SCHEMA = DATABASE() 
                 AND TABLE_NAME = ?";
-
+        
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([$tableName]);
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
-
+        
         return $result['count'] > 0;
     }
 }

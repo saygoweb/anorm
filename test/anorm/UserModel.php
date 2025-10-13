@@ -29,18 +29,18 @@ class UserModel extends Model
         $this->hasMany('Anorm\Test\CommentModel', 'user_id', 'id', 'comments');
         $this->belongsTo('Anorm\Test\CompanyModel', 'company_id', 'id', 'company');
     }
-
+    
     public $id;
     public $name;
     public $email;
     public $company_id;
-
+    
     /** @var PostModel[] */
     public $posts;
-
+    
     /** @var CommentModel[] */
     public $comments;
-
+    
     /** @var CompanyModel */
     public $company;
 }

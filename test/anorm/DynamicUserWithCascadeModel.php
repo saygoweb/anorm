@@ -17,7 +17,7 @@ class DynamicUserWithCascadeModel extends Model
         $mapper = DataMapper::createByClass($pdo, $this);
         $mapper->table = 'dynamic_users_cascade';
         $mapper->mode = DataMapper::MODE_DYNAMIC; // Enable dynamic schema creation
-
+        
         // Set up column mapping
         $mapper->map = [
             'id' => 'id',
@@ -25,14 +25,14 @@ class DynamicUserWithCascadeModel extends Model
             'email' => 'email',
             'company_id' => 'company_id'
         ];
-
+        
         parent::__construct($pdo, $mapper);
-
+        
         // Define relationship with CASCADE delete constraint
         $this->belongsTo(
-            'Anorm\Test\DynamicCompanyModel',
-            'company_id',
-            'id',
+            'Anorm\Test\DynamicCompanyModel', 
+            'company_id', 
+            'id', 
             'company',
             $this->cascadeDelete() // Use CASCADE delete constraint
         );

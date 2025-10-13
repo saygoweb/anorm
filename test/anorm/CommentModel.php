@@ -28,15 +28,15 @@ class CommentModel extends Model
         $this->belongsTo('Anorm\Test\UserModel', 'user_id', 'id', 'user');
         $this->belongsTo('Anorm\Test\PostModel', 'post_id', 'id', 'post');
     }
-
+    
     public $id;
     public $content;
     public $user_id;
     public $post_id;
-
+    
     /** @var UserModel */
     public $user;
-
+    
     /** @var PostModel */
     public $post;
 }

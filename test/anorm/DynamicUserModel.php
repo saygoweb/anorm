@@ -17,7 +17,7 @@ class DynamicUserModel extends Model
         $mapper = DataMapper::createByClass($pdo, $this);
         $mapper->table = 'dynamic_users';
         $mapper->mode = DataMapper::MODE_DYNAMIC; // Enable dynamic schema creation
-
+        
         // Set up column mapping
         $mapper->map = [
             'id' => 'id',
@@ -25,9 +25,9 @@ class DynamicUserModel extends Model
             'email' => 'email',
             'company_id' => 'company_id'
         ];
-
+        
         parent::__construct($pdo, $mapper);
-
+        
         // Define relationships - these will trigger foreign key creation
         $this->belongsTo('Anorm\Test\DynamicCompanyModel', 'company_id', 'id', 'company');
         $this->hasMany('Anorm\Test\DynamicPostModel', 'user_id', 'id', 'posts');
@@ -42,7 +42,7 @@ class DynamicUserModel extends Model
     // Relationship properties
     /** @var DynamicCompanyModel */
     public $company;
-
+    
     /** @var DynamicPostModel[] */
     public $posts;
 }

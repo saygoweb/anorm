@@ -30,19 +30,19 @@ class PostModel extends Model
         $this->hasMany('Anorm\Test\CommentModel', 'post_id', 'id', 'comments');
         $this->hasManyThrough('Anorm\Test\TagModel', 'post_id', 'tag_id', 'post_tags', 'id', 'tags');
     }
-
+    
     public $id;
     public $title;
     public $content;
     public $user_id;
     public $status;
-
+    
     /** @var UserModel */
     public $user;
-
+    
     /** @var CommentModel[] */
     public $comments;
-
+    
     /** @var TagModel[] */
     public $tags;
 }

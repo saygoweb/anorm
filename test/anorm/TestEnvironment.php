@@ -13,7 +13,7 @@ class TestEnvironment
      */
     public static function connect($name = null, $overrides = [])
     {
-        $host = $overrides['host'] ?? getenv('DB_HOST') ?: 'localhost';
+        $host = $overrides['host'] ?? getenv('DB_HOST') ?: 'db';
         $dbname = $overrides['dbname'] ?? getenv('DB_DATABASE') ?: getenv('DB_NAME') ?: 'anorm_test';
         $user = $overrides['user'] ?? getenv('DB_USERNAME') ?: getenv('DB_USER') ?: 'dev';
         $pass = $overrides['pass'] ?? getenv('DB_PASSWORD') ?: getenv('DB_PASS') ?: 'dev';

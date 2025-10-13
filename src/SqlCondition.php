@@ -34,7 +34,7 @@ class SqlCondition
     {
         $combinedSql = "({$this->sql}) {$operator} ({$other->getSql()})";
         $combinedBindings = array_merge($this->bindings, $other->getBindings());
-
+        
         return new SqlCondition($combinedSql, $combinedBindings);
     }
 

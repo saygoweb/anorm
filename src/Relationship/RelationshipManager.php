@@ -10,10 +10,10 @@ class RelationshipManager
 {
     /** @var array Registered relationships */
     private $relationships = [];
-
+    
     /** @var object The model instance this manager belongs to */
     private $model;
-
+    
     /** @var \PDO The database connection */
     private $pdo;
 
@@ -61,10 +61,10 @@ class RelationshipManager
 
         $relationship = $this->relationships[$relationshipName];
         $relatedData = $relationship->load($this->model, $this->pdo);
-
+        
         // Assign the loaded data directly to the model property
         $this->model->{$relationshipName} = $relatedData;
-
+        
         return $relatedData;
     }
 
