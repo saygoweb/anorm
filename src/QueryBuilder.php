@@ -2,6 +2,8 @@
 
 namespace Anorm;
 
+use Anorm\Relationship\BatchLoadingOrchestrator;
+
 class QueryBuilder
 {
     public $boundData = null;
@@ -15,6 +17,12 @@ class QueryBuilder
     /** @var array Relationships to eager load */
     private $eagerLoadRelationships = [];
 
+    /** @var BatchLoadingOrchestrator */
+    private $batchOrchestrator;
+
+    /** @var bool Enable batch loading optimization */
+    private $enableBatchLoading = true;
+
 
     public function __construct($creatable, \PDO $pdo = null)
     {
@@ -25,6 +33,7 @@ class QueryBuilder
             throw new \Exception("'\$creatable' is not a class");
         }
         $this->sql = '';
+        $this->batchOrchestrator = new BatchLoadingOrchestrator();
     }
 
     public function select($sql)
@@ -143,6 +152,51 @@ class QueryBuilder
     }
 
     public function some()
+    {
+        if ($this->enableBatchLoading && !empty($this->eagerLoadRelationships)) {
+            // Use batch loading for better performance
+            yield from $this->someWithBatchLoading();
+        } else {
+            // Use traditional individual loading
+            yield from $this->someWithIndividualLoading();
+        }
+    }
+
+    /**
+     * Fetch models with batch loading optimization
+     */
+    private function someWithBatchLoading()
+    {
+        $this->ensureFrom();
+        /** @var DataMapper */
+        $mapper = $this->instance->_mapper;
+        $result = $mapper->query($this->sql, $this->boundData);
+
+        // Collect all models first
+        $models = [];
+        while ($data = $result->fetch(\PDO::FETCH_ASSOC)) {
+            // Create a new instance for each row
+            $modelClass = get_class($this->instance);
+            $model = new $modelClass($mapper->pdo);
+            $model->_mapper->readArray($model, $data);
+            $models[] = $model;
+        }
+
+        // Batch load relationships for all models
+        if (!empty($models) && !empty($this->eagerLoadRelationships)) {
+            $this->batchOrchestrator->loadRelationshipsForModels($models, $this->eagerLoadRelationships);
+        }
+
+        // Yield the models
+        foreach ($models as $model) {
+            yield $model;
+        }
+    }
+
+    /**
+     * Fetch models with traditional individual loading (fallback)
+     */
+    private function someWithIndividualLoading()
     {
         $this->ensureFrom();
         /** @var DataMapper */
@@ -278,5 +332,50 @@ class QueryBuilder
         foreach ($this->eagerLoadRelationships as $relationshipName) {
             $model->loadRelated($relationshipName);
         }
+    }
+
+    /**
+     * Enable or disable batch loading optimization
+     *
+     * @param bool $enabled Whether to enable batch loading
+     * @return self
+     */
+    public function enableBatchLoading(bool $enabled = true): self
+    {
+        $this->enableBatchLoading = $enabled;
+        return $this;
+    }
+
+    /**
+     * Disable batch loading optimization
+     *
+     * @return self
+     */
+    public function disableBatchLoading(): self
+    {
+        $this->enableBatchLoading = false;
+        return $this;
+    }
+
+    /**
+     * Check if batch loading is enabled
+     *
+     * @return bool
+     */
+    public function isBatchLoadingEnabled(): bool
+    {
+        return $this->enableBatchLoading;
+    }
+
+    /**
+     * Set batch loading configuration
+     *
+     * @param array $config Configuration options
+     * @return self
+     */
+    public function setBatchLoadingConfig(array $config): self
+    {
+        $this->batchOrchestrator->setConfig($config);
+        return $this;
     }
 }

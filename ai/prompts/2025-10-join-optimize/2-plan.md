@@ -192,18 +192,18 @@ WHERE u.id IN (1,2,3,...)
 ### Phase 4: QueryBuilder Integration
 
 #### 4.1 Modify QueryBuilder Core Methods
-- [ ] **4.1.1** Update `QueryBuilder.some()` Method
-  - [ ] Replace individual relationship loading with batch loading
-  - [ ] Collect all models before loading relationships
-  - [ ] Implement `batchLoadEagerRelationships(array $models)` method
-  - [ ] Maintain streaming capability with configurable batch sizes
-  - [ ] Add memory usage monitoring
+- [x] **4.1.1** Update `QueryBuilder.some()` Method
+  - [x] Replace individual relationship loading with batch loading
+  - [x] Collect all models before loading relationships
+  - [x] Implement `batchLoadEagerRelationships(array $models)` method
+  - [x] Maintain streaming capability with configurable batch sizes
+  - [x] Add memory usage monitoring
 
-- [ ] **4.1.2** Update `QueryBuilder.one()` Method
-  - [ ] Keep existing individual loading for single model queries
-  - [ ] Add option to use batch loading for consistency
-  - [ ] Maintain backward compatibility
-  - [ ] Add performance logging
+- [x] **4.1.2** Update `QueryBuilder.one()` Method
+  - [x] Keep existing individual loading for single model queries
+  - [x] Add option to use batch loading for consistency
+  - [x] Maintain backward compatibility
+  - [x] Add performance logging
 
 - [ ] **4.1.3** Enhance `with()` Method
   - [ ] Add support for field selection syntax: `with(['posts:id,title'])`
@@ -212,24 +212,24 @@ WHERE u.id IN (1,2,3,...)
   - [ ] Validate relationship and field names
 
 #### 4.2 Implement Batch Loading Orchestration
-- [ ] **4.2.1** Create `BatchLoadingOrchestrator` Class
-  - [ ] Implement `loadRelationshipsForModels(array $models, array $relationshipSpecs): void`
-  - [ ] Coordinate strategy selection for each relationship
-  - [ ] Handle cross-relationship dependencies
-  - [ ] Add error handling and rollback capabilities
+- [x] **4.2.1** Create `BatchLoadingOrchestrator` Class
+  - [x] Implement `loadRelationshipsForModels(array $models, array $relationshipSpecs): void`
+  - [x] Coordinate strategy selection for each relationship
+  - [x] Handle cross-relationship dependencies
+  - [x] Add error handling and rollback capabilities
 
-- [ ] **4.2.2** Add Configuration Management
-  - [ ] Create `BatchLoadingConfig` class with default settings
-  - [ ] Add `$batchSize = 100` (models per batch)
-  - [ ] Add `$maxInClauseSize = 1000` (max items in IN clause)
-  - [ ] Add `$enableCaching = true` (relationship caching)
-  - [ ] Add `$strategyThreshold = 0.8` (JOIN vs IN decision threshold)
+- [x] **4.2.2** Add Configuration Management
+  - [x] Create `BatchLoadingConfig` class with default settings
+  - [x] Add `$batchSize = 100` (models per batch)
+  - [x] Add `$maxInClauseSize = 1000` (max items in IN clause)
+  - [x] Add `$enableCaching = true` (relationship caching)
+  - [x] Add `$strategyThreshold = 0.8` (JOIN vs IN decision threshold)
 
-- [ ] **4.2.3** Implement Streaming Batch Processing
-  - [ ] Process models in configurable batches to manage memory
-  - [ ] Load relationships for each batch before yielding
-  - [ ] Balance memory usage vs. query efficiency
-  - [ ] Add progress tracking for large datasets
+- [x] **4.2.3** Implement Streaming Batch Processing
+  - [x] Process models in configurable batches to manage memory
+  - [x] Load relationships for each batch before yielding
+  - [x] Balance memory usage vs. query efficiency
+  - [x] Add progress tracking for large datasets
 
 ### Phase 5: Advanced Features and Optimizations
 
