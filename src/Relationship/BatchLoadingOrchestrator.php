@@ -102,10 +102,7 @@ class BatchLoadingOrchestrator
         // Select optimal strategy
         $strategy = $this->strategySelector->selectStrategy($relationship, $sourceCount, $fieldSelection);
 
-        // Log strategy selection if debugging is enabled
-        if ($this->config['debug_mode']) {
-            $this->logStrategySelection($relationship, $strategy, $sourceCount, $fieldSelection);
-        }
+
 
         // Execute the selected strategy
         switch ($strategy) {
@@ -200,33 +197,7 @@ class BatchLoadingOrchestrator
         return $grouped;
     }
 
-    /**
-     * Log strategy selection for debugging
-     * 
-     * @param object $relationship The relationship instance
-     * @param string $strategy Selected strategy
-     * @param int $sourceCount Number of source models
-     * @param array|null $fieldSelection Field selection
-     * @return void
-     */
-    private function logStrategySelection($relationship, string $strategy, int $sourceCount, ?array $fieldSelection): void
-    {
-        $metadata = $this->strategySelector->getStrategyMetadata($strategy, $relationship, $sourceCount, $fieldSelection);
-        
-        $logMessage = sprintf(
-            "Batch Loading Strategy: %s for %s (%d models, cardinality: %s)",
-            $strategy,
-            $relationship->getPropertyName(),
-            $sourceCount,
-            $relationship->getCardinality()
-        );
-        
-        if ($fieldSelection) {
-            $logMessage .= sprintf(", fields: %s", implode(',', $fieldSelection));
-        }
-        
-        error_log($logMessage);
-    }
+
 
     /**
      * Get default configuration options
