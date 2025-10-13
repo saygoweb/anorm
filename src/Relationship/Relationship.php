@@ -113,6 +113,44 @@ abstract class Relationship
     abstract public function load($sourceModel, \PDO $pdo);
 
     /**
+     * Load relationships for multiple source models in a single batch operation
+     * This method must be implemented by each relationship type for optimization
+     *
+     * @param array $sourceModels Array of model instances that need relationships loaded
+     * @param \PDO $pdo Database connection
+     * @return array Associative array of loaded relationship data, keyed by source model identifier
+     */
+    abstract public function batchLoad(array $sourceModels, \PDO $pdo): array;
+
+    /**
+     * Distribute batch-loaded results to their corresponding source models
+     * This method must be implemented by each relationship type
+     *
+     * @param array $sourceModels Array of model instances to receive the loaded data
+     * @param array $batchResults Results from batchLoad(), keyed by source model identifier
+     * @return void
+     */
+    abstract public function distributeBatchResults(array $sourceModels, array $batchResults): void;
+
+    /**
+     * Estimate the data size for this relationship with given parameters
+     * Used by strategy selection to choose optimal loading approach
+     *
+     * @param int $sourceCount Number of source models
+     * @param array|null $fieldSelection Specific fields to load, or null for all fields
+     * @return int Estimated data size in bytes
+     */
+    abstract public function estimateDataSize(int $sourceCount, ?array $fieldSelection = null): int;
+
+    /**
+     * Get the cardinality type of this relationship
+     * Used by strategy selection for optimization decisions
+     *
+     * @return string One of: 'one-to-one', 'one-to-many', 'many-to-one', 'many-to-many'
+     */
+    abstract public function getCardinality(): string;
+
+    /**
      * Generate the appropriate JOIN clause for this relationship
      * Used by QueryBuilder for relationship-based queries
      */
