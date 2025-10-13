@@ -11,8 +11,7 @@ class BatchLoadingPerformance_Test extends TestCase
 
     protected function setUp(): void
     {
-        $this->pdo = new \PDO('mysql:host=localhost;dbname=anorm_test', 'dev', 'dev');
-        $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        $this->pdo = TestEnvironment::pdo();
     }
 
     public function testBatchLoadingVsIndividualLoading()
@@ -47,10 +46,7 @@ class BatchLoadingPerformance_Test extends TestCase
         // Verify both approaches return the same data
         $this->assertCount(count($userArray), $userArray2);
         
-        // Log the performance comparison
-        echo "\n";
-        echo "Batch Loading: {$batchQueryCount} queries in " . number_format($batchTime * 1000, 2) . "ms\n";
-        echo "Individual Loading: {$individualQueryCount} queries in " . number_format($individualTime * 1000, 2) . "ms\n";
+        // Performance comparison (removed debug output for cleaner test runs)
         
         // With our current test data (3 users), we expect:
         // - Batch loading: ~3 queries (1 for users, 1 for posts, 1 for companies)
@@ -87,15 +83,8 @@ class BatchLoadingPerformance_Test extends TestCase
         $userArray2 = iterator_to_array($users);
         $individualTime = microtime(true) - $startTime;
         
-        echo "\n";
-        echo "Larger Dataset ({$this->countUsers()} users):\n";
-        echo "Batch Loading: " . number_format($batchTime * 1000, 2) . "ms\n";
-        echo "Individual Loading: " . number_format($individualTime * 1000, 2) . "ms\n";
-        
-        if ($batchTime > 0 && $individualTime > 0) {
-            $improvement = (($individualTime - $batchTime) / $individualTime) * 100;
-            echo "Performance improvement: " . number_format($improvement, 1) . "%\n";
-        }
+        // Performance comparison (removed debug output for cleaner test runs)
+        // Both approaches should work and return the same data
         
         $this->assertGreaterThan(3, count($userArray)); // Should have more than the original 3 users
         $this->assertEquals(count($userArray), count($userArray2));

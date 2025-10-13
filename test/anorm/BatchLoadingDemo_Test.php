@@ -11,8 +11,7 @@ class BatchLoadingDemo_Test extends TestCase
 
     protected function setUp(): void
     {
-        $this->pdo = new \PDO('mysql:host=localhost;dbname=anorm_test', 'dev', 'dev');
-        $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        $this->pdo = TestEnvironment::pdo();
     }
 
     public function testForceBatchLoadingStrategy()
@@ -179,6 +178,6 @@ class BatchLoadingDemo_Test extends TestCase
         $this->assertCount(3, $userArray);
         $this->assertLessThan(1024 * 1024, $memoryUsed); // Should use less than 1MB for this small dataset
         
-        echo "\nMemory used for batch loading 3 users with relationships: " . number_format($memoryUsed / 1024, 2) . " KB\n";
+        // Memory usage should be reasonable for small datasets
     }
 }
