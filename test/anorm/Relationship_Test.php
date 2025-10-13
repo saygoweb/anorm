@@ -21,17 +21,7 @@ class Relationship_Test extends TestCase
         TestEnvironment::connect(); // Connect to database
         $pdo = TestEnvironment::pdo();
 
-        // First, clean up any existing data
-        $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
-        $pdo->exec('TRUNCATE TABLE post_tags');
-        $pdo->exec('TRUNCATE TABLE comments');
-        $pdo->exec('TRUNCATE TABLE posts');
-        $pdo->exec('TRUNCATE TABLE users');
-        $pdo->exec('TRUNCATE TABLE companies');
-        $pdo->exec('TRUNCATE TABLE tags');
-        $pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
-
-        // Create relationship test tables
+        // Create relationship test tables (schema file handles cleanup)
         $sql = file_get_contents(__DIR__ . '/RelationshipTestSchema.sql');
 
         // Remove comments and split by semicolon
