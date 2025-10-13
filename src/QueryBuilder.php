@@ -12,6 +12,9 @@ class QueryBuilder
 
     private $sql;
 
+    /** @var array Relationships to eager load */
+    private $eagerLoadRelationships = [];
+
 
     public function __construct($creatable, \PDO $pdo = null)
     {
@@ -55,6 +58,49 @@ class QueryBuilder
     {
         $this->ensureFrom();
         $this->sql .= ' ' . $sql; // Assume the type of join is included in $sql
+        return $this;
+    }
+
+    /**
+     * Specify relationships to eager load
+     * @param array $relationships Array of relationship names to load
+     * @return self
+     */
+    public function with($relationships)
+    {
+        if (is_string($relationships)) {
+            $relationships = [$relationships];
+        }
+        $this->eagerLoadRelationships = array_merge($this->eagerLoadRelationships, $relationships);
+        return $this;
+    }
+
+    /**
+     * Join based on a relationship definition
+     * @param string $relationshipName The name of the relationship
+     * @param string $joinType The type of join (LEFT, INNER, RIGHT)
+     * @return self
+     */
+    public function joinRelationship($relationshipName, $joinType = 'LEFT')
+    {
+        $relationshipManager = $this->instance->getRelationshipManager();
+        $relationship = $relationshipManager->getRelationship($relationshipName);
+
+        if (!$relationship) {
+            throw new \Exception("Relationship '{$relationshipName}' not defined");
+        }
+
+        // Get the related model to determine its table name
+        $relatedClass = $relationship->getRelatedModelClass();
+        $relatedInstance = new $relatedClass($this->instance->_mapper->pdo);
+        $relatedTable = $relatedInstance->_mapper->table;
+        $sourceTable = $this->instance->_mapper->table;
+
+        // Generate the join clause
+        $joinClause = $relationship->generateJoinClause($sourceTable, $relatedTable);
+        $joinClause = str_replace('LEFT JOIN', $joinType . ' JOIN', $joinClause);
+
+        $this->join($joinClause);
         return $this;
     }
 
@@ -102,8 +148,17 @@ class QueryBuilder
         /** @var DataMapper */
         $mapper = $this->instance->_mapper;
         $result = $mapper->query($this->sql, $this->boundData);
-        while ($mapper->readRow($this->instance, $result)) {
-            yield $this->instance;
+
+        while ($data = $result->fetch(\PDO::FETCH_ASSOC)) {
+            // Create a new instance for each row
+            $modelClass = get_class($this->instance);
+            $model = new $modelClass($mapper->pdo);
+            $model->_mapper->readArray($model, $data);
+
+            // Load eager relationships if specified
+            $this->loadEagerRelationships($model);
+
+            yield $model;
         }
     }
 
@@ -126,6 +181,10 @@ class QueryBuilder
         if ($couldRead === false) {
             return false;
         }
+
+        // Load eager relationships if specified
+        $this->loadEagerRelationships($this->instance);
+
         return $this->instance;
     }
 
@@ -204,5 +263,20 @@ class QueryBuilder
         }
 
         // TODO: Handle use_index hint in future versions
+    }
+
+    /**
+     * Load eager relationships for a model instance
+     * @param object $model The model instance to load relationships for
+     */
+    private function loadEagerRelationships($model)
+    {
+        if (empty($this->eagerLoadRelationships)) {
+            return;
+        }
+
+        foreach ($this->eagerLoadRelationships as $relationshipName) {
+            $model->loadRelated($relationshipName);
+        }
     }
 }

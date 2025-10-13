@@ -12,13 +12,17 @@ class ModelMakerDataTest extends TestCase
     /** @var \PDO */
     private $pdo;
 
-    public function __construct()
+    public static function setUpBeforeClass(): void
     {
-        parent::__construct();
-        $this->pdo = TestEnvironment::pdo();
-        $this->pdo->query('DROP TABLE IF EXISTS `model_test`');
+        $pdo = TestEnvironment::pdo();
+        $pdo->query('DROP TABLE IF EXISTS `model_test`');
         $sql = file_get_contents(__DIR__ . '/ModelMakerSchema.sql');
-        $this->pdo->query($sql);
+        $pdo->query($sql);
+    }
+
+    public function setUp(): void
+    {
+        $this->pdo = TestEnvironment::pdo();
     }
 
     public function testWriteModelAsString_WithBogusTable_Throws()
