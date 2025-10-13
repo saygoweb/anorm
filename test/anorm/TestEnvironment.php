@@ -6,17 +6,84 @@ use Anorm\Anorm;
 
 class TestEnvironment
 {
+    private static $envConfig = null;
+
     /**
-     * Connects using environment variables or provided overrides.
+     * Load configuration from .env file
+     * @return array
+     */
+    private static function loadEnvConfig(): array
+    {
+        if (self::$envConfig !== null) {
+            return self::$envConfig;
+        }
+
+        self::$envConfig = [];
+
+        // Look for .env file in project root (up from test/anorm/)
+        $envPath = __DIR__ . '/../../.env';
+
+        if (file_exists($envPath)) {
+            $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
+            foreach ($lines as $line) {
+                // Skip comments and empty lines
+                $line = trim($line);
+                if (empty($line) || $line[0] === '#') {
+                    continue;
+                }
+
+                // Parse KEY=VALUE format
+                if (strpos($line, '=') !== false) {
+                    list($key, $value) = explode('=', $line, 2);
+                    $key = trim($key);
+                    $value = trim($value);
+
+                    // Remove quotes if present
+                    if (($value[0] === '"' && $value[-1] === '"') ||
+                        ($value[0] === "'" && $value[-1] === "'")) {
+                        $value = substr($value, 1, -1);
+                    }
+
+                    self::$envConfig[$key] = $value;
+                }
+            }
+        }
+
+        return self::$envConfig;
+    }
+    /**
+     * Connects using .env file configuration, environment variables, or provided overrides.
+     * Priority: overrides > environment variables > .env file > defaults
      * @param string $name Connection name
      * @param array $overrides Optional overrides for host, dbname, user, pass
      */
     public static function connect($name = null, $overrides = [])
     {
-        $host = $overrides['host'] ?? getenv('DB_HOST') ?: 'db';
-        $dbname = $overrides['dbname'] ?? getenv('DB_DATABASE') ?: getenv('DB_NAME') ?: 'anorm_test';
-        $user = $overrides['user'] ?? getenv('DB_USERNAME') ?: getenv('DB_USER') ?: 'dev';
-        $pass = $overrides['pass'] ?? getenv('DB_PASSWORD') ?: getenv('DB_PASS') ?: 'dev';
+        // Load configuration from .env file
+        $envConfig = self::loadEnvConfig();
+
+        // Get configuration with priority: overrides > env vars > .env file > defaults
+        $host = $overrides['host'] ??
+                getenv('DB_HOST') ?:
+                $envConfig['DB_HOST'] ??
+                'localhost';
+
+        $dbname = $overrides['dbname'] ??
+                  getenv('DB_DATABASE') ?: getenv('DB_NAME') ?:
+                  $envConfig['DB_DATABASE'] ?? $envConfig['DB_NAME'] ??
+                  'anorm_test';
+
+        $user = $overrides['user'] ??
+                getenv('DB_USERNAME') ?: getenv('DB_USER') ?:
+                $envConfig['DB_USERNAME'] ?? $envConfig['DB_USER'] ??
+                'dev';
+
+        $pass = $overrides['pass'] ??
+                getenv('DB_PASSWORD') ?: getenv('DB_PASS') ?:
+                $envConfig['DB_PASSWORD'] ?? $envConfig['DB_PASS'] ??
+                'dev';
+
         $dsn = "mysql:host=$host;dbname=$dbname";
         $name = $name ?: Anorm::DEFAULT;
         return Anorm::connect($name, $dsn, $user, $pass);
