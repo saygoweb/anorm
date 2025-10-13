@@ -11,7 +11,6 @@ use Anorm\Test\CommentModel;
 use Anorm\Test\CompanyModel;
 use Anorm\Test\TagModel;
 use Anorm\Test\TestEnvironment;
-use PDOException;
 
 class Relationship_Test extends TestCase
 {
