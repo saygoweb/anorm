@@ -14,9 +14,8 @@ class DataMapperFindTest extends TestCase
     /** @var \PDO */
     private $pdo;
 
-    public function __construct()
+    public function setUp(): void
     {
-        parent::__construct();
         $this->pdo = TestEnvironment::pdo();
     }
 
