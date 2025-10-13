@@ -106,21 +106,22 @@ class MangoQueryParser
         }
 
         // Check for operators without $ prefix (for GraphQL compatibility)
+        // Use lowercase for case-insensitive comparison
         $operatorsWithoutDollar = [
             'and', 'or', 'not', 'nor', 'eq', 'ne', 'gt', 'gte', 'lt', 'lte',
-            'in', 'nin', 'exists', 'type', 'regex', 'beginsWith', 'all',
-            'elemMatch', 'allMatch', 'size'
+            'in', 'nin', 'exists', 'type', 'regex', 'beginswith', 'all',
+            'elemmatch', 'allmatch', 'size'
         ];
 
-        return in_array($key, $operatorsWithoutDollar);
+        return in_array(strtolower($key), $operatorsWithoutDollar);
     }
 
     /**
-     * Normalize operator name (remove $ if present)
+     * Normalize operator name (remove $ if present and convert to lowercase)
      */
     private function normalizeOperator(string $operator): string
     {
-        return ltrim($operator, '$');
+        return strtolower(ltrim($operator, '$'));
     }
 
     /**
@@ -203,6 +204,16 @@ class MangoQueryParser
                 return $this->createNotInCondition($columnName, $value);
             case 'exists':
                 return $this->createExistsCondition($columnName, $value);
+            case 'regex':
+                return $this->createRegexCondition($columnName, $value);
+            case 'beginswith':
+                return $this->createBeginsWithCondition($columnName, $value);
+            case 'all':
+                return $this->createAllCondition($columnName, $value);
+            case 'elemmatch':
+                return $this->createElemMatchCondition($columnName, $value);
+            case 'size':
+                return $this->createSizeCondition($columnName, $value);
             default:
                 throw new \InvalidArgumentException("Unsupported field operator: {$operator}");
         }
@@ -409,5 +420,93 @@ class MangoQueryParser
         }
 
         return $result;
+    }
+
+    /**
+     * Create a regex condition
+     */
+    private function createRegexCondition(string $columnName, $value): SqlCondition
+    {
+        if (!is_string($value)) {
+            throw new \InvalidArgumentException('$regex operator requires a string value');
+        }
+
+        $paramName = $this->generateParamName();
+        return new SqlCondition("{$columnName} REGEXP {$paramName}", [$paramName => $value]);
+    }
+
+    /**
+     * Create a begins with condition
+     */
+    private function createBeginsWithCondition(string $columnName, $value): SqlCondition
+    {
+        if (!is_string($value)) {
+            throw new \InvalidArgumentException('$beginsWith operator requires a string value');
+        }
+
+        $paramName = $this->generateParamName();
+        return new SqlCondition("{$columnName} LIKE {$paramName}", [$paramName => $value . '%']);
+    }
+
+    /**
+     * Create an all condition (for JSON arrays)
+     */
+    private function createAllCondition(string $columnName, $value): SqlCondition
+    {
+        if (!is_array($value)) {
+            throw new \InvalidArgumentException('$all operator requires an array value');
+        }
+
+        $conditions = [];
+        foreach ($value as $item) {
+            $paramName = $this->generateParamName();
+            $conditions[] = new SqlCondition("JSON_CONTAINS({$columnName}, {$paramName})", [$paramName => json_encode($item)]);
+        }
+
+        return $this->combineConditions($conditions, 'AND');
+    }
+
+    /**
+     * Create an elemMatch condition (for JSON arrays)
+     */
+    private function createElemMatchCondition(string $columnName, $value): SqlCondition
+    {
+        if (!is_array($value)) {
+            throw new \InvalidArgumentException('$elemMatch operator requires an array/object value');
+        }
+
+        // For elemMatch, we need to check if any element in the array matches the condition
+        // This is complex in SQL, so we'll use a simplified approach with JSON_EXTRACT
+        $paramName = $this->generateParamName();
+
+        // Convert the condition to a JSON path query
+        // This is a simplified implementation - a full implementation would need more complex JSON path handling
+        if (count($value) === 1) {
+            $key = array_keys($value)[0];
+            $val = array_values($value)[0];
+            $jsonPath = "$.*.{$key}";
+
+            $valueParam = $this->generateParamName();
+            return new SqlCondition("JSON_EXTRACT({$columnName}, {$paramName}) = {$valueParam}", [
+                $paramName => $jsonPath,
+                $valueParam => $val
+            ]);
+        }
+
+        // For more complex conditions, fall back to JSON_CONTAINS
+        return new SqlCondition("JSON_CONTAINS({$columnName}, {$paramName})", [$paramName => json_encode($value)]);
+    }
+
+    /**
+     * Create a size condition (for JSON arrays)
+     */
+    private function createSizeCondition(string $columnName, $value): SqlCondition
+    {
+        if (!is_int($value) && !is_numeric($value)) {
+            throw new \InvalidArgumentException('$size operator requires a numeric value');
+        }
+
+        $paramName = $this->generateParamName();
+        return new SqlCondition("JSON_LENGTH({$columnName}) = {$paramName}", [$paramName => (int)$value]);
     }
 }

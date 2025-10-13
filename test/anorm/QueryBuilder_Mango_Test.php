@@ -289,4 +289,85 @@ class QueryBuilder_Mango_Test extends TestCase
 
         $this->assertEquals(1, $count);
     }
+
+    // Phase 2 Advanced Operators Integration Tests
+
+    public function testQueryBuilder_MangoQueryWithRegexOperator()
+    {
+        $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
+            ->fromMango([
+                'selector' => [
+                    'name' => ['$regex' => '^[Aa].*']  // Names starting with A or a
+                ]
+            ])
+            ->some();
+
+        $count = 0;
+        foreach ($generator as $model) {
+            $this->assertEquals('alice', $model->name);
+            $count++;
+        }
+
+        $this->assertEquals(1, $count);
+    }
+
+    public function testQueryBuilder_MangoQueryWithBeginsWithOperator()
+    {
+        $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
+            ->fromMango([
+                'selector' => [
+                    'name' => ['$beginsWith' => 'B']  // Names starting with B
+                ]
+            ])
+            ->some();
+
+        $count = 0;
+        foreach ($generator as $model) {
+            $this->assertEquals('bob', $model->name);
+            $count++;
+        }
+
+        $this->assertEquals(1, $count);
+    }
+
+    public function testQueryBuilder_MangoQueryWithNorOperator()
+    {
+        $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
+            ->fromMango([
+                'selector' => [
+                    '$nor' => [
+                        ['name' => 'Alice'],
+                        ['name' => 'Bob']
+                    ]
+                ]
+            ])
+            ->some();
+
+        $count = 0;
+        foreach ($generator as $model) {
+            $this->assertEquals('charlie', $model->name);
+            $count++;
+        }
+
+        $this->assertEquals(1, $count);
+    }
+
+    public function testQueryBuilder_MangoQueryWithPhase2OperatorsWithoutDollarPrefix()
+    {
+        $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
+            ->fromMango([
+                'selector' => [
+                    'name' => ['beginswith' => 'C']  // Names starting with C (without $ prefix)
+                ]
+            ])
+            ->some();
+
+        $count = 0;
+        foreach ($generator as $model) {
+            $this->assertEquals('charlie', $model->name);
+            $count++;
+        }
+
+        $this->assertEquals(1, $count);
+    }
 }

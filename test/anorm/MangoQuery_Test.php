@@ -190,4 +190,187 @@ class MangoQuery_Test extends TestCase
         $this->assertStringContainsString('`name` DESC', $sortClause);
         $this->assertStringContainsString('`some_id` ASC', $sortClause);
     }
+
+    // Phase 2 Advanced Operators Tests
+
+    public function testMangoQueryParser_RegexOperator()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        $condition = $parser->parseSelector([
+            'name' => ['$regex' => '^John.*']
+        ]);
+
+        $this->assertStringContainsString('`name` REGEXP :mango_param_1', $condition->getSql());
+        $this->assertEquals('^John.*', $condition->getBindings()[':mango_param_1']);
+    }
+
+    public function testMangoQueryParser_BeginsWithOperator()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        $condition = $parser->parseSelector([
+            'name' => ['$beginsWith' => 'John']
+        ]);
+
+        $this->assertStringContainsString('`name` LIKE :mango_param_1', $condition->getSql());
+        $this->assertEquals('John%', $condition->getBindings()[':mango_param_1']);
+    }
+
+    public function testMangoQueryParser_AllOperator()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        $condition = $parser->parseSelector([
+            'tags' => ['$all' => ['php', 'mysql']]
+        ]);
+
+        $sql = $condition->getSql();
+        $this->assertStringContainsString('JSON_CONTAINS(`tags`, :mango_param_1)', $sql);
+        $this->assertStringContainsString('JSON_CONTAINS(`tags`, :mango_param_2)', $sql);
+        $this->assertStringContainsString('AND', $sql);
+        $this->assertEquals('"php"', $condition->getBindings()[':mango_param_1']);
+        $this->assertEquals('"mysql"', $condition->getBindings()[':mango_param_2']);
+    }
+
+    public function testMangoQueryParser_SizeOperator()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        $condition = $parser->parseSelector([
+            'tags' => ['$size' => 3]
+        ]);
+
+        $this->assertStringContainsString('JSON_LENGTH(`tags`) = :mango_param_1', $condition->getSql());
+        $this->assertEquals(3, $condition->getBindings()[':mango_param_1']);
+    }
+
+    public function testMangoQueryParser_NorOperator()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        $condition = $parser->parseSelector([
+            '$nor' => [
+                ['name' => 'John'],
+                ['age' => ['$gt' => 65]]
+            ]
+        ]);
+
+        $sql = $condition->getSql();
+        $this->assertStringContainsString('NOT (', $sql);
+        $this->assertStringContainsString('`name` = :mango_param_1', $sql);
+        $this->assertStringContainsString('OR', $sql);
+        $this->assertEquals('John', $condition->getBindings()[':mango_param_1']);
+    }
+
+    public function testMangoQueryParser_ElemMatchOperator()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        $condition = $parser->parseSelector([
+            'items' => ['$elemMatch' => ['price' => 100]]
+        ]);
+
+        $sql = $condition->getSql();
+        $this->assertStringContainsString('JSON_EXTRACT(`items`, :mango_param_1)', $sql);
+        $this->assertEquals('$.*.price', $condition->getBindings()[':mango_param_1']);
+        $this->assertEquals(100, $condition->getBindings()[':mango_param_2']);
+    }
+
+    public function testMangoQueryParser_Phase2OperatorsWithoutDollarPrefix()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        $condition = $parser->parseSelector([
+            'name' => ['regex' => '^John.*'],
+            'description' => ['beginswith' => 'Hello'],
+            'tags' => ['size' => 2]
+        ]);
+
+        $sql = $condition->getSql();
+        $this->assertStringContainsString('`name` REGEXP', $sql);
+        $this->assertStringContainsString('`description` LIKE', $sql);
+        $this->assertStringContainsString('JSON_LENGTH(`tags`)', $sql);
+    }
+
+    public function testMangoQueryParser_InvalidRegexValue()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('$regex operator requires a string value');
+        $parser->parseSelector(['name' => ['$regex' => 123]]);
+    }
+
+    public function testMangoQueryParser_InvalidBeginsWithValue()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('$beginsWith operator requires a string value');
+        $parser->parseSelector(['name' => ['$beginsWith' => 123]]);
+    }
+
+    public function testMangoQueryParser_InvalidAllValue()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('$all operator requires an array value');
+        $parser->parseSelector(['tags' => ['$all' => 'not-array']]);
+    }
+
+    public function testMangoQueryParser_InvalidSizeValue()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('$size operator requires a numeric value');
+        $parser->parseSelector(['tags' => ['$size' => 'not-numeric']]);
+    }
+
+    public function testMangoQueryParser_InvalidElemMatchValue()
+    {
+        $pdo = TestEnvironment::pdo();
+        $model = new SomeTableModel($pdo);
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('$elemMatch operator requires an array/object value');
+        $parser->parseSelector(['items' => ['$elemMatch' => 'not-array']]);
+    }
 }
