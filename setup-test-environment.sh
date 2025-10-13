@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# MariaDB Environment Setup Script for Anorm
-# This script installs MariaDB server locally and sets up the test environment
+# Anorm Test Environment Setup Script
+# This script installs all necessary dependencies for running composer test
+# Excludes Docker and SQLite - uses local PHP and MariaDB only
 
 set -e
 
@@ -16,7 +17,7 @@ NC='\033[0m' # No Color
 
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+PROJECT_ROOT="$SCRIPT_DIR"
 DB_ROOT_PASSWORD="root"
 DB_NAME="anorm_test"
 DB_USER="dev"
@@ -222,33 +223,6 @@ EOF
     print_info "Configuration saved to .env file"
 }
 
-# Function to run tests
-run_tests() {
-    print_status "Running test verification..."
-    
-    cd "$PROJECT_ROOT"
-    
-    # Export environment variables
-    export DB_HOST=localhost
-    export DB_NAME="$DB_NAME"
-    export DB_USER="$DB_USER"
-    export DB_PASS="$DB_PASSWORD"
-    export DB_DATABASE="$DB_NAME"
-    export DB_USERNAME="$DB_USER"
-    export DB_PASSWORD="$DB_PASSWORD"
-    
-    print_info "Running quick test suite..."
-    
-    if [ -n "$SUDO_USER" ]; then
-        # Run as the original user
-        sudo -u "$SUDO_USER" -E composer test:quick
-    else
-        composer test:quick
-    fi
-    
-    print_success "Test verification completed successfully!"
-}
-
 # Function to create helper scripts
 create_helper_scripts() {
     print_status "Creating helper scripts..."
@@ -311,9 +285,36 @@ EOF
     print_success "Helper scripts created"
 }
 
+# Function to run test verification
+run_test_verification() {
+    print_status "Running test verification..."
+    
+    cd "$PROJECT_ROOT"
+    
+    # Export environment variables
+    export DB_HOST=localhost
+    export DB_NAME="$DB_NAME"
+    export DB_USER="$DB_USER"
+    export DB_PASS="$DB_PASSWORD"
+    export DB_DATABASE="$DB_NAME"
+    export DB_USERNAME="$DB_USER"
+    export DB_PASSWORD="$DB_PASSWORD"
+    
+    print_info "Running quick test suite..."
+    
+    if [ -n "$SUDO_USER" ]; then
+        # Run as the original user
+        sudo -u "$SUDO_USER" -E composer test:quick
+    else
+        composer test:quick
+    fi
+    
+    print_success "Test verification completed successfully!"
+}
+
 # Function to display usage information
 show_usage() {
-    print_status "MariaDB environment setup completed successfully!"
+    print_status "Test environment setup completed successfully!"
     echo
     print_info "Database Information:"
     echo "  Host: localhost"
@@ -347,16 +348,16 @@ show_usage() {
 
 # Main execution
 main() {
-    echo -e "${PURPLE}🚀 Anorm MariaDB Environment Setup${NC}"
-    echo -e "${PURPLE}===================================${NC}"
+    echo -e "${PURPLE}🚀 Anorm Test Environment Setup${NC}"
+    echo -e "${PURPLE}================================${NC}"
     echo
-    
+
     # Check if running as root
     check_root
-    
+
     # Change to project root
     cd "$PROJECT_ROOT"
-    
+
     # Run setup steps
     install_system_deps
     install_composer
@@ -365,14 +366,14 @@ main() {
     install_php_dependencies
     setup_environment
     create_helper_scripts
-    run_tests
-    
+    run_test_verification
+
     echo
     show_usage
-    
+
     echo
-    print_success "🎉 MariaDB environment setup completed successfully!"
-    print_info "You can now run tests and start developing!"
+    print_success "🎉 Test environment setup completed successfully!"
+    print_info "You can now run 'composer test' and start developing!"
 }
 
 # Handle command line arguments
@@ -380,8 +381,8 @@ case "${1:-}" in
     --help|-h)
         echo "Usage: sudo $0 [options]"
         echo
-        echo "This script installs MariaDB server locally and sets up the"
-        echo "complete development environment for Anorm."
+        echo "This script installs all necessary dependencies for running"
+        echo "composer test in the Anorm project."
         echo
         echo "Requirements:"
         echo "  - Must be run as root (use sudo)"
