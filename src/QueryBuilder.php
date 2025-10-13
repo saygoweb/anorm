@@ -72,7 +72,12 @@ class QueryBuilder
 
     /**
      * Specify relationships to eager load
-     * @param array $relationships Array of relationship names to load
+     *
+     * Supports both simple relationship names and field selection syntax:
+     * - Simple: with(['posts', 'company'])
+     * - Field selection: with(['posts:id,title', 'company:name'])
+     *
+     * @param array|string $relationships Array of relationship names/specs to load
      * @return self
      */
     public function with($relationships)
@@ -80,6 +85,14 @@ class QueryBuilder
         if (is_string($relationships)) {
             $relationships = [$relationships];
         }
+
+        // Validate and normalize relationship specifications
+        foreach ($relationships as $spec) {
+            if (!is_string($spec) || empty(trim($spec))) {
+                throw new \InvalidArgumentException("Relationship specification must be a non-empty string");
+            }
+        }
+
         $this->eagerLoadRelationships = array_merge($this->eagerLoadRelationships, $relationships);
         return $this;
     }

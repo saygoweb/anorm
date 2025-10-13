@@ -50,7 +50,7 @@ class OneHasManyBatchLoader implements BatchLoaderInterface
         
         // Create an instance of the related model to get its mapper
         $relatedClass = $relationship->getRelatedModelClass();
-        $relatedInstance = new $relatedClass($firstModel->_pdo);
+        $relatedInstance = new $relatedClass($firstModel->getPdo());
         $mapper = $relatedInstance->_mapper;
         
         // Build the batch query using IN clause
@@ -66,7 +66,7 @@ class OneHasManyBatchLoader implements BatchLoaderInterface
             $foreignKeyValue = $data[$relationship->getForeignKey()];
             
             // Create related model instance
-            $relatedModel = new $relatedClass($firstModel->_pdo);
+            $relatedModel = new $relatedClass($firstModel->getPdo());
             $relatedModel->_mapper->readArray($relatedModel, $data);
             
             // Group by foreign key (which corresponds to source model primary key)

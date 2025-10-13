@@ -50,7 +50,7 @@ class ManyHasManyBatchLoader implements BatchLoaderInterface
         
         // Create an instance of the related model to get its mapper
         $relatedClass = $relationship->getRelatedModelClass();
-        $relatedInstance = new $relatedClass($firstModel->_pdo);
+        $relatedInstance = new $relatedClass($firstModel->getPdo());
         $mapper = $relatedInstance->_mapper;
         
         // Build the complex JOIN query through the pivot table
@@ -72,7 +72,7 @@ class ManyHasManyBatchLoader implements BatchLoaderInterface
             unset($data['source_id']);
             
             // Create related model instance
-            $relatedModel = new $relatedClass($firstModel->_pdo);
+            $relatedModel = new $relatedClass($firstModel->getPdo());
             $relatedModel->_mapper->readArray($relatedModel, $data);
             
             // Group by source primary key

@@ -24,6 +24,15 @@ class Model
     }
 
     /**
+     * Get the PDO connection
+     * @return \PDO
+     */
+    public function getPdo(): \PDO
+    {
+        return $this->_pdo;
+    }
+
+    /**
      * @return int The primary key id of the model.
      */
     public function write()

@@ -138,7 +138,7 @@ class BatchLoadingOrchestrator
         try {
             // Get PDO connection from first model
             $firstModel = reset($models);
-            $pdo = $firstModel->_pdo;
+            $pdo = $firstModel->getPdo();
 
             // Load relationships in batch
             $batchResults = $relationship->batchLoad($models, $pdo);

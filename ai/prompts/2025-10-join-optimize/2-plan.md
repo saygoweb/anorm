@@ -205,11 +205,11 @@ WHERE u.id IN (1,2,3,...)
   - [x] Maintain backward compatibility
   - [x] Add performance logging
 
-- [ ] **4.1.3** Enhance `with()` Method
-  - [ ] Add support for field selection syntax: `with(['posts:id,title'])`
-  - [ ] Parse relationship specifications using `FieldSelectionParser`
-  - [ ] Store field selection metadata for strategy selection
-  - [ ] Validate relationship and field names
+- [x] **4.1.3** Enhance `with()` Method
+  - [x] Add support for field selection syntax: `with(['posts:id,title'])`
+  - [x] Parse relationship specifications using `FieldSelectionParser`
+  - [x] Store field selection metadata for strategy selection
+  - [x] Validate relationship and field names
 
 #### 4.2 Implement Batch Loading Orchestration
 - [x] **4.2.1** Create `BatchLoadingOrchestrator` Class
