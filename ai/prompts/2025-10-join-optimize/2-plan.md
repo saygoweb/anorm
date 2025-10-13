@@ -95,45 +95,45 @@ WHERE u.id IN (1,2,3,...)
 ### Phase 2: IN Clause Batch Loading Implementation
 
 #### 2.1 Implement IN Clause Batch Loaders
-- [ ] **2.1.1** Create `OneHasManyBatchLoader` Class
-  - [ ] Implement `batchLoad(array $sourceModels, string $relationshipName): array` method
-  - [ ] Collect all primary keys from source models
-  - [ ] Execute: `SELECT * FROM related_table WHERE foreign_key IN (?)`
-  - [ ] Group results by foreign key value
-  - [ ] Implement `distributeBatchResults()` to assign arrays to source models
+- [x] **2.1.1** Create `OneHasManyBatchLoader` Class
+  - [x] Implement `batchLoad(array $sourceModels, string $relationshipName): array` method
+  - [x] Collect all primary keys from source models
+  - [x] Execute: `SELECT * FROM related_table WHERE foreign_key IN (?)`
+  - [x] Group results by foreign key value
+  - [x] Implement `distributeBatchResults()` to assign arrays to source models
 
-- [ ] **2.1.2** Create `ManyHasOneBatchLoader` Class
-  - [ ] Implement `batchLoad()` method for belongsTo relationships
-  - [ ] Collect all foreign key values from source models
-  - [ ] Execute: `SELECT * FROM related_table WHERE primary_key IN (?)`
-  - [ ] Create lookup map by primary key
-  - [ ] Implement `distributeBatchResults()` to assign single models to source models
+- [x] **2.1.2** Create `ManyHasOneBatchLoader` Class
+  - [x] Implement `batchLoad()` method for belongsTo relationships
+  - [x] Collect all foreign key values from source models
+  - [x] Execute: `SELECT * FROM related_table WHERE primary_key IN (?)`
+  - [x] Create lookup map by primary key
+  - [x] Implement `distributeBatchResults()` to assign single models to source models
 
-- [ ] **2.1.3** Create `ManyHasManyBatchLoader` Class
-  - [ ] Implement `batchLoad()` method for hasManyThrough relationships
-  - [ ] Collect all primary keys from source models
-  - [ ] Execute complex JOIN query through pivot table
-  - [ ] Group results by source primary key
-  - [ ] Implement `distributeBatchResults()` to assign arrays to source models
+- [x] **2.1.3** Create `ManyHasManyBatchLoader` Class
+  - [x] Implement `batchLoad()` method for hasManyThrough relationships
+  - [x] Collect all primary keys from source models
+  - [x] Execute complex JOIN query through pivot table
+  - [x] Group results by source primary key
+  - [x] Implement `distributeBatchResults()` to assign arrays to source models
 
 #### 2.2 Extend Existing Relationship Classes
-- [ ] **2.2.1** Extend `OneHasMany` Class
-  - [ ] Implement `batchLoad()` method using `OneHasManyBatchLoader`
-  - [ ] Implement `distributeBatchResults()` method
-  - [ ] Add `estimateDataSize()` method
-  - [ ] Add `getCardinality()` method returning 'one-to-many'
+- [x] **2.2.1** Extend `OneHasMany` Class
+  - [x] Implement `batchLoad()` method using `OneHasManyBatchLoader`
+  - [x] Implement `distributeBatchResults()` method
+  - [x] Add `estimateDataSize()` method
+  - [x] Add `getCardinality()` method returning 'one-to-many'
 
-- [ ] **2.2.2** Extend `ManyHasOne` Class
-  - [ ] Implement `batchLoad()` method using `ManyHasOneBatchLoader`
-  - [ ] Implement `distributeBatchResults()` method
-  - [ ] Add `estimateDataSize()` method
-  - [ ] Add `getCardinality()` method returning 'many-to-one'
+- [x] **2.2.2** Extend `ManyHasOne` Class
+  - [x] Implement `batchLoad()` method using `ManyHasOneBatchLoader`
+  - [x] Implement `distributeBatchResults()` method
+  - [x] Add `estimateDataSize()` method
+  - [x] Add `getCardinality()` method returning 'many-to-one'
 
-- [ ] **2.2.3** Extend `ManyHasMany` Class
-  - [ ] Implement `batchLoad()` method using `ManyHasManyBatchLoader`
-  - [ ] Implement `distributeBatchResults()` method
-  - [ ] Add `estimateDataSize()` method
-  - [ ] Add `getCardinality()` method returning 'many-to-many'
+- [x] **2.2.3** Extend `ManyHasMany` Class
+  - [x] Implement `batchLoad()` method using `ManyHasManyBatchLoader`
+  - [x] Implement `distributeBatchResults()` method
+  - [x] Add `estimateDataSize()` method
+  - [x] Add `getCardinality()` method returning 'many-to-many'
 
 ### Phase 3: JOIN with Field Selection Implementation
 

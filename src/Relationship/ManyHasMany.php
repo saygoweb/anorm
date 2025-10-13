@@ -3,6 +3,7 @@
 namespace Anorm\Relationship;
 
 use Anorm\DataMapper;
+use Anorm\Relationship\BatchLoader\ManyHasManyBatchLoader;
 
 /**
  * Many-to-Many relationship
@@ -160,5 +161,62 @@ class ManyHasMany extends Relationship
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
 
         return $sql;
+    }
+
+    /**
+     * Load relationships for multiple source models in a single batch operation
+     *
+     * @param array $sourceModels Array of model instances that need relationships loaded
+     * @param \PDO $pdo Database connection
+     * @return array Associative array of loaded relationship data, keyed by source model identifier
+     */
+    public function batchLoad(array $sourceModels, \PDO $pdo): array
+    {
+        $batchLoader = new ManyHasManyBatchLoader();
+        return $batchLoader->batchLoad($sourceModels, $this->propertyName);
+    }
+
+    /**
+     * Distribute batch-loaded results to their corresponding source models
+     *
+     * @param array $sourceModels Array of model instances to receive the loaded data
+     * @param array $batchResults Results from batchLoad(), keyed by source model identifier
+     * @return void
+     */
+    public function distributeBatchResults(array $sourceModels, array $batchResults): void
+    {
+        $batchLoader = new ManyHasManyBatchLoader();
+        $batchLoader->distributeBatchResults($sourceModels, $batchResults, $this->propertyName);
+    }
+
+    /**
+     * Estimate the data size for this relationship with given parameters
+     *
+     * @param int $sourceCount Number of source models
+     * @param array|null $fieldSelection Specific fields to load, or null for all fields
+     * @return int Estimated data size in bytes
+     */
+    public function estimateDataSize(int $sourceCount, ?array $fieldSelection = null): int
+    {
+        // Estimate based on many-to-many cardinality
+        $avgRelatedRecords = 3; // Conservative estimate for many-to-many
+        $avgRecordSize = 1024; // 1KB per record estimate
+
+        if ($fieldSelection !== null && !empty($fieldSelection)) {
+            // Estimate size for selected fields only
+            $avgRecordSize = count($fieldSelection) * 50; // 50 bytes per field estimate
+        }
+
+        return (int)($sourceCount * $avgRelatedRecords * $avgRecordSize);
+    }
+
+    /**
+     * Get the cardinality type of this relationship
+     *
+     * @return string One of: 'one-to-one', 'one-to-many', 'many-to-one', 'many-to-many'
+     */
+    public function getCardinality(): string
+    {
+        return 'many-to-many';
     }
 }
