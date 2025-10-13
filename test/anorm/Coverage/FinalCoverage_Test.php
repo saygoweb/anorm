@@ -15,8 +15,7 @@ class FinalCoverage_Test extends TestCase
 
     protected function setUp(): void
     {
-        $this->pdo = new \PDO('mysql:host=localhost;dbname=anorm_test', 'dev', 'dev');
-        $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        $this->pdo = TestEnvironment::pdo();
     }
 
     public function testQueryBuilderOneMethodWithBatchLoading()
