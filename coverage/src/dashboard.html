@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <title>Dashboard for /mnt/persist/workspace/src</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="../_css/bootstrap.min.css?v=9.2.32" rel="stylesheet" type="text/css">
+  <link href="../_css/nv.d3.min.css?v=9.2.32" rel="stylesheet" type="text/css">
+  <link href="../_css/style.css?v=9.2.32" rel="stylesheet" type="text/css">
+  <link href="../_css/custom.css" rel="stylesheet" type="text/css">
+ </head>
+ <body>
+  <header>
+   <div class="container-fluid">
+    <div class="row">
+     <div class="col-md-12">
+      <nav aria-label="breadcrumb">
+       <ol class="breadcrumb">
+         <li class="breadcrumb-item"><a href="../index.html">/mnt/persist/workspace</a></li>
+         <li class="breadcrumb-item"><a href="index.html">src</a></li>
+         <li class="breadcrumb-item active">(Dashboard)</li>
+
+       </ol>
+      </nav>
+     </div>
+    </div>
+   </div>
+  </header>
+  <div class="container-fluid">
+   <div class="row">
+    <div class="col-md-12">
+     <h2>Classes</h2>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3>Coverage Distribution</h3>
+     <div id="classCoverageDistribution" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3>Complexity</h3>
+     <div id="classComplexity" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3>Insufficient Coverage</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Class</th>
+         <th class="text-right">Coverage</th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="Relationship/BatchLoader/ManyHasManyBatchLoader.php.html#11">Anorm\Relationship\BatchLoader\ManyHasManyBatchLoader</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/Strategy/QueryStrategySelector.php.html#12">Anorm\Relationship\Strategy\QueryStrategySelector</a></td><td class="text-right">36%</td></tr>
+       <tr><td><a href="TableMaker.php.html#5">Anorm\TableMaker</a></td><td class="text-right">37%</td></tr>
+       <tr><td><a href="Relationship/ManyHasMany.php.html#12">Anorm\Relationship\ManyHasMany</a></td><td class="text-right">53%</td></tr>
+       <tr><td><a href="Relationship/OneHasMany.php.html#12">Anorm\Relationship\OneHasMany</a></td><td class="text-right">54%</td></tr>
+       <tr><td><a href="Relationship/ManyHasOne.php.html#12">Anorm\Relationship\ManyHasOne</a></td><td class="text-right">55%</td></tr>
+       <tr><td><a href="Relationship/BatchLoader/ManyHasOneBatchLoader.php.html#11">Anorm\Relationship\BatchLoader\ManyHasOneBatchLoader</a></td><td class="text-right">61%</td></tr>
+       <tr><td><a href="Relationship/BatchLoadingOrchestrator.php.html#15">Anorm\Relationship\BatchLoadingOrchestrator</a></td><td class="text-right">69%</td></tr>
+       <tr><td><a href="Relationship/Strategy/DataSizeEstimator.php.html#12">Anorm\Relationship\Strategy\DataSizeEstimator</a></td><td class="text-right">76%</td></tr>
+       <tr><td><a href="Relationship/Relationship.php.html#9">Anorm\Relationship\Relationship</a></td><td class="text-right">78%</td></tr>
+       <tr><td><a href="Model.php.html#7">Anorm\Model</a></td><td class="text-right">78%</td></tr>
+       <tr><td><a href="Relationship/BatchLoader/OneHasManyBatchLoader.php.html#11">Anorm\Relationship\BatchLoader\OneHasManyBatchLoader</a></td><td class="text-right">84%</td></tr>
+       <tr><td><a href="QueryBuilder.php.html#7">Anorm\QueryBuilder</a></td><td class="text-right">89%</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3>Project Risks</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Class</th>
+         <th class="text-right"><abbr title="Change Risk Anti-Patterns (CRAP) Index">CRAP</abbr></th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="TableMaker.php.html#5">Anorm\TableMaker</a></td><td class="text-right">627</td></tr>
+       <tr><td><a href="Relationship/BatchLoader/ManyHasManyBatchLoader.php.html#11">Anorm\Relationship\BatchLoader\ManyHasManyBatchLoader</a></td><td class="text-right">380</td></tr>
+       <tr><td><a href="Relationship/Strategy/QueryStrategySelector.php.html#12">Anorm\Relationship\Strategy\QueryStrategySelector</a></td><td class="text-right">310</td></tr>
+       <tr><td><a href="Model.php.html#7">Anorm\Model</a></td><td class="text-right">62</td></tr>
+       <tr><td><a href="QueryBuilder.php.html#7">Anorm\QueryBuilder</a></td><td class="text-right">59</td></tr>
+       <tr><td><a href="Relationship/BatchLoadingOrchestrator.php.html#15">Anorm\Relationship\BatchLoadingOrchestrator</a></td><td class="text-right">55</td></tr>
+       <tr><td><a href="Relationship/BatchLoader/ManyHasOneBatchLoader.php.html#11">Anorm\Relationship\BatchLoader\ManyHasOneBatchLoader</a></td><td class="text-right">54</td></tr>
+       <tr><td><a href="Relationship/ManyHasMany.php.html#12">Anorm\Relationship\ManyHasMany</a></td><td class="text-right">46</td></tr>
+       <tr><td><a href="Relationship/Strategy/DataSizeEstimator.php.html#12">Anorm\Relationship\Strategy\DataSizeEstimator</a></td><td class="text-right">40</td></tr>
+       <tr><td><a href="Relationship/OneHasMany.php.html#12">Anorm\Relationship\OneHasMany</a></td><td class="text-right">25</td></tr>
+       <tr><td><a href="Relationship/ManyHasOne.php.html#12">Anorm\Relationship\ManyHasOne</a></td><td class="text-right">24</td></tr>
+       <tr><td><a href="Relationship/BatchLoader/OneHasManyBatchLoader.php.html#11">Anorm\Relationship\BatchLoader\OneHasManyBatchLoader</a></td><td class="text-right">19</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-12">
+     <h2>Methods</h2>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3>Coverage Distribution</h3>
+     <div id="methodCoverageDistribution" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3>Complexity</h3>
+     <div id="methodComplexity" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3>Insufficient Coverage</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Method</th>
+         <th class="text-right">Coverage</th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="Model.php.html#179"><abbr title="Anorm\Model::getPropertyNameFromClass">getPropertyNameFromClass</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Model.php.html#215"><abbr title="Anorm\Model::setNullDelete">setNullDelete</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Model.php.html#229"><abbr title="Anorm\Model::restrictDelete">restrictDelete</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Model.php.html#246"><abbr title="Anorm\Model::constraintOptions">constraintOptions</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="QueryBuilder.php.html#106"><abbr title="Anorm\QueryBuilder::joinRelationship">joinRelationship</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/BatchLoader/ManyHasManyBatchLoader.php.html#21"><abbr title="Anorm\Relationship\BatchLoader\ManyHasManyBatchLoader::batchLoad">batchLoad</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/BatchLoader/ManyHasManyBatchLoader.php.html#106"><abbr title="Anorm\Relationship\BatchLoader\ManyHasManyBatchLoader::distributeBatchResults">distributeBatchResults</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/BatchLoader/ManyHasManyBatchLoader.php.html#136"><abbr title="Anorm\Relationship\BatchLoader\ManyHasManyBatchLoader::estimateQueryCount">estimateQueryCount</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/BatchLoader/ManyHasManyBatchLoader.php.html#147"><abbr title="Anorm\Relationship\BatchLoader\ManyHasManyBatchLoader::canHandle">canHandle</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/BatchLoader/ManyHasManyBatchLoader.php.html#157"><abbr title="Anorm\Relationship\BatchLoader\ManyHasManyBatchLoader::getMaxBatchSize">getMaxBatchSize</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/BatchLoader/ManyHasManyBatchLoader.php.html#170"><abbr title="Anorm\Relationship\BatchLoader\ManyHasManyBatchLoader::estimateComplexity">estimateComplexity</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/BatchLoader/ManyHasOneBatchLoader.php.html#129"><abbr title="Anorm\Relationship\BatchLoader\ManyHasOneBatchLoader::estimateQueryCount">estimateQueryCount</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/BatchLoader/ManyHasOneBatchLoader.php.html#140"><abbr title="Anorm\Relationship\BatchLoader\ManyHasOneBatchLoader::canHandle">canHandle</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/BatchLoader/ManyHasOneBatchLoader.php.html#150"><abbr title="Anorm\Relationship\BatchLoader\ManyHasOneBatchLoader::getMaxBatchSize">getMaxBatchSize</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/BatchLoader/ManyHasOneBatchLoader.php.html#163"><abbr title="Anorm\Relationship\BatchLoader\ManyHasOneBatchLoader::getBatchStatistics">getBatchStatistics</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/BatchLoader/OneHasManyBatchLoader.php.html#130"><abbr title="Anorm\Relationship\BatchLoader\OneHasManyBatchLoader::estimateQueryCount">estimateQueryCount</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/BatchLoader/OneHasManyBatchLoader.php.html#141"><abbr title="Anorm\Relationship\BatchLoader\OneHasManyBatchLoader::canHandle">canHandle</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/BatchLoader/OneHasManyBatchLoader.php.html#151"><abbr title="Anorm\Relationship\BatchLoader\OneHasManyBatchLoader::getMaxBatchSize">getMaxBatchSize</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/BatchLoadingOrchestrator.php.html#233"><abbr title="Anorm\Relationship\BatchLoadingOrchestrator::getConfig">getConfig</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/BatchLoadingOrchestrator.php.html#243"><abbr title="Anorm\Relationship\BatchLoadingOrchestrator::getPerformanceStats">getPerformanceStats</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/ManyHasMany.php.html#118"><abbr title="Anorm\Relationship\ManyHasMany::generateForeignKeyConstraints">generateForeignKeyConstraints</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/ManyHasMany.php.html#174"><abbr title="Anorm\Relationship\ManyHasMany::batchLoad">batchLoad</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/ManyHasMany.php.html#187"><abbr title="Anorm\Relationship\ManyHasMany::distributeBatchResults">distributeBatchResults</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/ManyHasMany.php.html#200"><abbr title="Anorm\Relationship\ManyHasMany::estimateDataSize">estimateDataSize</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/ManyHasMany.php.html#219"><abbr title="Anorm\Relationship\ManyHasMany::getCardinality">getCardinality</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/ManyHasOne.php.html#75"><abbr title="Anorm\Relationship\ManyHasOne::generateForeignKeyConstraints">generateForeignKeyConstraints</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/ManyHasOne.php.html#126"><abbr title="Anorm\Relationship\ManyHasOne::estimateDataSize">estimateDataSize</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/OneHasMany.php.html#74"><abbr title="Anorm\Relationship\OneHasMany::generateForeignKeyConstraints">generateForeignKeyConstraints</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/OneHasMany.php.html#125"><abbr title="Anorm\Relationship\OneHasMany::estimateDataSize">estimateDataSize</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/Relationship.php.html#83"><abbr title="Anorm\Relationship\Relationship::getOptions">getOptions</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/Relationship.php.html#91"><abbr title="Anorm\Relationship\Relationship::getOption">getOption</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/Relationship.php.html#169"><abbr title="Anorm\Relationship\Relationship::getConstraintName">getConstraintName</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/RelationshipManager.php.html#92"><abbr title="Anorm\Relationship\RelationshipManager::getAllRelationships">getAllRelationships</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/RelationshipManager.php.html#108"><abbr title="Anorm\Relationship\RelationshipManager::hasRelationship">hasRelationship</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/Strategy/DataSizeEstimator.php.html#199"><abbr title="Anorm\Relationship\Strategy\DataSizeEstimator::clearCache">clearCache</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/Strategy/DataSizeEstimator.php.html#210"><abbr title="Anorm\Relationship\Strategy\DataSizeEstimator::setCacheValue">setCacheValue</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/Strategy/FieldSelectionParser.php.html#174"><abbr title="Anorm\Relationship\Strategy\FieldSelectionParser::isAllFields">isAllFields</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/Strategy/QueryStrategySelector.php.html#91"><abbr title="Anorm\Relationship\Strategy\QueryStrategySelector::getStrategyMetadata">getStrategyMetadata</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/Strategy/QueryStrategySelector.php.html#117"><abbr title="Anorm\Relationship\Strategy\QueryStrategySelector::estimateQueryCount">estimateQueryCount</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/Strategy/QueryStrategySelector.php.html#134"><abbr title="Anorm\Relationship\Strategy\QueryStrategySelector::getDecisionFactors">getDecisionFactors</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/Strategy/QueryStrategySelector.php.html#163"><abbr title="Anorm\Relationship\Strategy\QueryStrategySelector::isStrategySupported">isStrategySupported</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/Strategy/QueryStrategySelector.php.html#191"><abbr title="Anorm\Relationship\Strategy\QueryStrategySelector::setConfig">setConfig</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Relationship/Strategy/QueryStrategySelector.php.html#199"><abbr title="Anorm\Relationship\Strategy\QueryStrategySelector::getConfig">getConfig</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="TableMaker.php.html#103"><abbr title="Anorm\TableMaker::handleForeignKeyConstraint">handleForeignKeyConstraint</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="TableMaker.php.html#117"><abbr title="Anorm\TableMaker::createMissingForeignKeyConstraints">createMissingForeignKeyConstraints</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="TableMaker.php.html#161"><abbr title="Anorm\TableMaker::createForeignKeyFromRelationship">createForeignKeyFromRelationship</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="TableMaker.php.html#191"><abbr title="Anorm\TableMaker::createForeignKey">createForeignKey</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="TableMaker.php.html#230"><abbr title="Anorm\TableMaker::foreignKeyExists">foreignKeyExists</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="TableMaker.php.html#249"><abbr title="Anorm\TableMaker::ensureTableExists">ensureTableExists</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="TableMaker.php.html#260"><abbr title="Anorm\TableMaker::ensureColumnExists">ensureColumnExists</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="TableMaker.php.html#284"><abbr title="Anorm\TableMaker::getColumnDefinitionForForeignKey">getColumnDefinitionForForeignKey</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="TableMaker.php.html#293"><abbr title="Anorm\TableMaker::getTableNameFromModelClass">getTableNameFromModelClass</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="TableMaker.php.html#139"><abbr title="Anorm\TableMaker::createForeignKeyConstraintsFromModel">createForeignKeyConstraintsFromModel</abbr></a></td><td class="text-right">25%</td></tr>
+       <tr><td><a href="Relationship/Strategy/DataSizeEstimator.php.html#152"><abbr title="Anorm\Relationship\Strategy\DataSizeEstimator::estimateFieldSize">estimateFieldSize</abbr></a></td><td class="text-right">41%</td></tr>
+       <tr><td><a href="TableMaker.php.html#30"><abbr title="Anorm\TableMaker::_fix">_fix</abbr></a></td><td class="text-right">46%</td></tr>
+       <tr><td><a href="Relationship/BatchLoadingOrchestrator.php.html#134"><abbr title="Anorm\Relationship\BatchLoadingOrchestrator::executeBatchLoading">executeBatchLoading</abbr></a></td><td class="text-right">50%</td></tr>
+       <tr><td><a href="Relationship/BatchLoadingOrchestrator.php.html#163"><abbr title="Anorm\Relationship\BatchLoadingOrchestrator::executeIndividualLoading">executeIndividualLoading</abbr></a></td><td class="text-right">50%</td></tr>
+       <tr><td><a href="Relationship/Strategy/QueryStrategySelector.php.html#73"><abbr title="Anorm\Relationship\Strategy\QueryStrategySelector::isJoinOptimalForCardinality">isJoinOptimalForCardinality</abbr></a></td><td class="text-right">62%</td></tr>
+       <tr><td><a href="Model.php.html#91"><abbr title="Anorm\Model::hasMany">hasMany</abbr></a></td><td class="text-right">66%</td></tr>
+       <tr><td><a href="Model.php.html#115"><abbr title="Anorm\Model::belongsTo">belongsTo</abbr></a></td><td class="text-right">66%</td></tr>
+       <tr><td><a href="Model.php.html#140"><abbr title="Anorm\Model::hasManyThrough">hasManyThrough</abbr></a></td><td class="text-right">66%</td></tr>
+       <tr><td><a href="Relationship/Strategy/DataSizeEstimator.php.html#76"><abbr title="Anorm\Relationship\Strategy\DataSizeEstimator::getAverageRelatedRecords">getAverageRelatedRecords</abbr></a></td><td class="text-right">76%</td></tr>
+       <tr><td><a href="Relationship/BatchLoadingOrchestrator.php.html#67"><abbr title="Anorm\Relationship\BatchLoadingOrchestrator::loadRelationshipsForModelClass">loadRelationshipsForModelClass</abbr></a></td><td class="text-right">77%</td></tr>
+       <tr><td><a href="Model.php.html#267"><abbr title="Anorm\Model::createForeignKeyConstraints">createForeignKeyConstraints</abbr></a></td><td class="text-right">80%</td></tr>
+       <tr><td><a href="Relationship/BatchLoader/ManyHasOneBatchLoader.php.html#99"><abbr title="Anorm\Relationship\BatchLoader\ManyHasOneBatchLoader::distributeBatchResults">distributeBatchResults</abbr></a></td><td class="text-right">80%</td></tr>
+       <tr><td><a href="Relationship/Strategy/QueryStrategySelector.php.html#29"><abbr title="Anorm\Relationship\Strategy\QueryStrategySelector::selectStrategy">selectStrategy</abbr></a></td><td class="text-right">80%</td></tr>
+       <tr><td><a href="Relationship/BatchLoadingOrchestrator.php.html#43"><abbr title="Anorm\Relationship\BatchLoadingOrchestrator::loadRelationshipsForModels">loadRelationshipsForModels</abbr></a></td><td class="text-right">83%</td></tr>
+       <tr><td><a href="Relationship/BatchLoadingOrchestrator.php.html#97"><abbr title="Anorm\Relationship\BatchLoadingOrchestrator::loadSingleRelationship">loadSingleRelationship</abbr></a></td><td class="text-right">83%</td></tr>
+       <tr><td><a href="MangoQueryParser.php.html#167"><abbr title="Anorm\MangoQueryParser::parseFieldOperators">parseFieldOperators</abbr></a></td><td class="text-right">85%</td></tr>
+       <tr><td><a href="QueryBuilder.php.html#83"><abbr title="Anorm\QueryBuilder::with">with</abbr></a></td><td class="text-right">85%</td></tr>
+       <tr><td><a href="MangoQueryParser.php.html#328"><abbr title="Anorm\MangoQueryParser::parseAndOperator">parseAndOperator</abbr></a></td><td class="text-right">87%</td></tr>
+       <tr><td><a href="MangoQueryParser.php.html#348"><abbr title="Anorm\MangoQueryParser::parseOrOperator">parseOrOperator</abbr></a></td><td class="text-right">87%</td></tr>
+       <tr><td><a href="Model.php.html#363"><abbr title="Anorm\Model::createForeignKey">createForeignKey</abbr></a></td><td class="text-right">88%</td></tr>
+       <tr><td><a href="MangoQueryParser.php.html#381"><abbr title="Anorm\MangoQueryParser::parseNorOperator">parseNorOperator</abbr></a></td><td class="text-right">88%</td></tr>
+       <tr><td><a href="Relationship/Strategy/QueryStrategySelector.php.html#48"><abbr title="Anorm\Relationship\Strategy\QueryStrategySelector::shouldUseJoinStrategy">shouldUseJoinStrategy</abbr></a></td><td class="text-right">88%</td></tr>
+       <tr><td><a href="MangoQueryParser.php.html#186"><abbr title="Anorm\MangoQueryParser::parseFieldOperator">parseFieldOperator</abbr></a></td><td class="text-right">89%</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3>Project Risks</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Method</th>
+         <th class="text-right"><abbr title="Change Risk Anti-Patterns (CRAP) Index">CRAP</abbr></th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="Relationship/BatchLoader/ManyHasManyBatchLoader.php.html#21"><abbr title="Anorm\Relationship\BatchLoader\ManyHasManyBatchLoader::batchLoad">batchLoad</abbr></a></td><td class="text-right">110</td></tr>
+       <tr><td><a href="Relationship/Strategy/QueryStrategySelector.php.html#134"><abbr title="Anorm\Relationship\Strategy\QueryStrategySelector::getDecisionFactors">getDecisionFactors</abbr></a></td><td class="text-right">42</td></tr>
+       <tr><td><a href="Relationship/BatchLoader/ManyHasOneBatchLoader.php.html#163"><abbr title="Anorm\Relationship\BatchLoader\ManyHasOneBatchLoader::getBatchStatistics">getBatchStatistics</abbr></a></td><td class="text-right">30</td></tr>
+       <tr><td><a href="Relationship/Strategy/QueryStrategySelector.php.html#117"><abbr title="Anorm\Relationship\Strategy\QueryStrategySelector::estimateQueryCount">estimateQueryCount</abbr></a></td><td class="text-right">30</td></tr>
+       <tr><td><a href="TableMaker.php.html#117"><abbr title="Anorm\TableMaker::createMissingForeignKeyConstraints">createMissingForeignKeyConstraints</abbr></a></td><td class="text-right">30</td></tr>
+       <tr><td><a href="Relationship/Strategy/DataSizeEstimator.php.html#152"><abbr title="Anorm\Relationship\Strategy\DataSizeEstimator::estimateFieldSize">estimateFieldSize</abbr></a></td><td class="text-right">29</td></tr>
+       <tr><td><a href="Relationship/BatchLoader/ManyHasManyBatchLoader.php.html#106"><abbr title="Anorm\Relationship\BatchLoader\ManyHasManyBatchLoader::distributeBatchResults">distributeBatchResults</abbr></a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="MangoQueryParser.php.html#186"><abbr title="Anorm\MangoQueryParser::parseFieldOperator">parseFieldOperator</abbr></a></td><td class="text-right">16</td></tr>
+       <tr><td><a href="TableMaker.php.html#139"><abbr title="Anorm\TableMaker::createForeignKeyConstraintsFromModel">createForeignKeyConstraintsFromModel</abbr></a></td><td class="text-right">15</td></tr>
+       <tr><td><a href="Relationship/ManyHasMany.php.html#200"><abbr title="Anorm\Relationship\ManyHasMany::estimateDataSize">estimateDataSize</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="Relationship/ManyHasOne.php.html#126"><abbr title="Anorm\Relationship\ManyHasOne::estimateDataSize">estimateDataSize</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="Relationship/OneHasMany.php.html#125"><abbr title="Anorm\Relationship\OneHasMany::estimateDataSize">estimateDataSize</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="Relationship/Relationship.php.html#169"><abbr title="Anorm\Relationship\Relationship::getConstraintName">getConstraintName</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="Relationship/Strategy/QueryStrategySelector.php.html#91"><abbr title="Anorm\Relationship\Strategy\QueryStrategySelector::getStrategyMetadata">getStrategyMetadata</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="TableMaker.php.html#161"><abbr title="Anorm\TableMaker::createForeignKeyFromRelationship">createForeignKeyFromRelationship</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="TableMaker.php.html#191"><abbr title="Anorm\TableMaker::createForeignKey">createForeignKey</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="TableMaker.php.html#30"><abbr title="Anorm\TableMaker::_fix">_fix</abbr></a></td><td class="text-right">11</td></tr>
+       <tr><td><a href="Relationship/Strategy/QueryStrategySelector.php.html#73"><abbr title="Anorm\Relationship\Strategy\QueryStrategySelector::isJoinOptimalForCardinality">isJoinOptimalForCardinality</abbr></a></td><td class="text-right">7</td></tr>
+       <tr><td><a href="Relationship/Strategy/DataSizeEstimator.php.html#76"><abbr title="Anorm\Relationship\Strategy\DataSizeEstimator::getAverageRelatedRecords">getAverageRelatedRecords</abbr></a></td><td class="text-right">7</td></tr>
+       <tr><td><a href="Model.php.html#179"><abbr title="Anorm\Model::getPropertyNameFromClass">getPropertyNameFromClass</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Model.php.html#246"><abbr title="Anorm\Model::constraintOptions">constraintOptions</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="QueryBuilder.php.html#106"><abbr title="Anorm\QueryBuilder::joinRelationship">joinRelationship</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Relationship/BatchLoader/ManyHasManyBatchLoader.php.html#136"><abbr title="Anorm\Relationship\BatchLoader\ManyHasManyBatchLoader::estimateQueryCount">estimateQueryCount</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Relationship/BatchLoader/ManyHasOneBatchLoader.php.html#129"><abbr title="Anorm\Relationship\BatchLoader\ManyHasOneBatchLoader::estimateQueryCount">estimateQueryCount</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Relationship/BatchLoader/OneHasManyBatchLoader.php.html#130"><abbr title="Anorm\Relationship\BatchLoader\OneHasManyBatchLoader::estimateQueryCount">estimateQueryCount</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Relationship/BatchLoadingOrchestrator.php.html#163"><abbr title="Anorm\Relationship\BatchLoadingOrchestrator::executeIndividualLoading">executeIndividualLoading</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Relationship/Relationship.php.html#91"><abbr title="Anorm\Relationship\Relationship::getOption">getOption</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Relationship/Strategy/FieldSelectionParser.php.html#174"><abbr title="Anorm\Relationship\Strategy\FieldSelectionParser::isAllFields">isAllFields</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="TableMaker.php.html#103"><abbr title="Anorm\TableMaker::handleForeignKeyConstraint">handleForeignKeyConstraint</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="TableMaker.php.html#260"><abbr title="Anorm\TableMaker::ensureColumnExists">ensureColumnExists</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="TableMaker.php.html#293"><abbr title="Anorm\TableMaker::getTableNameFromModelClass">getTableNameFromModelClass</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Relationship/BatchLoader/ManyHasOneBatchLoader.php.html#99"><abbr title="Anorm\Relationship\BatchLoader\ManyHasOneBatchLoader::distributeBatchResults">distributeBatchResults</abbr></a></td><td class="text-right">5</td></tr>
+       <tr><td><a href="Relationship/BatchLoadingOrchestrator.php.html#97"><abbr title="Anorm\Relationship\BatchLoadingOrchestrator::loadSingleRelationship">loadSingleRelationship</abbr></a></td><td class="text-right">5</td></tr>
+       <tr><td><a href="QueryBuilder.php.html#83"><abbr title="Anorm\QueryBuilder::with">with</abbr></a></td><td class="text-right">5</td></tr>
+       <tr><td><a href="Relationship/BatchLoadingOrchestrator.php.html#67"><abbr title="Anorm\Relationship\BatchLoadingOrchestrator::loadRelationshipsForModelClass">loadRelationshipsForModelClass</abbr></a></td><td class="text-right">4</td></tr>
+       <tr><td><a href="Relationship/BatchLoadingOrchestrator.php.html#134"><abbr title="Anorm\Relationship\BatchLoadingOrchestrator::executeBatchLoading">executeBatchLoading</abbr></a></td><td class="text-right">4</td></tr>
+       <tr><td><a href="Relationship/BatchLoadingOrchestrator.php.html#43"><abbr title="Anorm\Relationship\BatchLoadingOrchestrator::loadRelationshipsForModels">loadRelationshipsForModels</abbr></a></td><td class="text-right">4</td></tr>
+       <tr><td><a href="MangoQueryParser.php.html#328"><abbr title="Anorm\MangoQueryParser::parseAndOperator">parseAndOperator</abbr></a></td><td class="text-right">4</td></tr>
+       <tr><td><a href="MangoQueryParser.php.html#348"><abbr title="Anorm\MangoQueryParser::parseOrOperator">parseOrOperator</abbr></a></td><td class="text-right">4</td></tr>
+       <tr><td><a href="MangoQueryParser.php.html#381"><abbr title="Anorm\MangoQueryParser::parseNorOperator">parseNorOperator</abbr></a></td><td class="text-right">4</td></tr>
+       <tr><td><a href="Relationship/Strategy/QueryStrategySelector.php.html#48"><abbr title="Anorm\Relationship\Strategy\QueryStrategySelector::shouldUseJoinStrategy">shouldUseJoinStrategy</abbr></a></td><td class="text-right">4</td></tr>
+       <tr><td><a href="Model.php.html#267"><abbr title="Anorm\Model::createForeignKeyConstraints">createForeignKeyConstraints</abbr></a></td><td class="text-right">3</td></tr>
+       <tr><td><a href="Relationship/Strategy/QueryStrategySelector.php.html#29"><abbr title="Anorm\Relationship\Strategy\QueryStrategySelector::selectStrategy">selectStrategy</abbr></a></td><td class="text-right">3</td></tr>
+       <tr><td><a href="MangoQueryParser.php.html#167"><abbr title="Anorm\MangoQueryParser::parseFieldOperators">parseFieldOperators</abbr></a></td><td class="text-right">3</td></tr>
+       <tr><td><a href="Model.php.html#363"><abbr title="Anorm\Model::createForeignKey">createForeignKey</abbr></a></td><td class="text-right">3</td></tr>
+       <tr><td><a href="Model.php.html#91"><abbr title="Anorm\Model::hasMany">hasMany</abbr></a></td><td class="text-right">2</td></tr>
+       <tr><td><a href="Model.php.html#115"><abbr title="Anorm\Model::belongsTo">belongsTo</abbr></a></td><td class="text-right">2</td></tr>
+       <tr><td><a href="Model.php.html#140"><abbr title="Anorm\Model::hasManyThrough">hasManyThrough</abbr></a></td><td class="text-right">2</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+   </div>
+   <footer>
+    <hr/>
+    <p>
+     <small>Generated by <a href="https://github.com/sebastianbergmann/php-code-coverage" target="_top">php-code-coverage 9.2.32</a> using <a href="https://secure.php.net/" target="_top">PHP 8.1.2-1ubuntu2.22</a> and <a href="https://phpunit.de/">PHPUnit 9.6.29</a> at Mon Oct 13 12:14:48 UTC 2025.</small>
+    </p>
+   </footer>
+  </div>
+  <script src="../_js/jquery.min.js?v=9.2.32" type="text/javascript"></script>
+  <script src="../_js/d3.min.js?v=9.2.32" type="text/javascript"></script>
+  <script src="../_js/nv.d3.min.js?v=9.2.32" type="text/javascript"></script>
+  <script type="text/javascript">
+$(document).ready(function() {
+  nv.addGraph(function() {
+    var chart = nv.models.multiBarChart();
+    chart.tooltips(false)
+      .showControls(false)
+      .showLegend(false)
+      .reduceXTicks(false)
+      .staggerLabels(true)
+      .yAxis.tickFormat(d3.format('d'));
+
+    d3.select('#classCoverageDistribution svg')
+      .datum(getCoverageDistributionData([1,0,0,0,2,0,3,2,3,2,4,6], "Class Coverage"))
+      .transition().duration(500).call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+  });
+
+  nv.addGraph(function() {
+    var chart = nv.models.multiBarChart();
+    chart.tooltips(false)
+      .showControls(false)
+      .showLegend(false)
+      .reduceXTicks(false)
+      .staggerLabels(true)
+      .yAxis.tickFormat(d3.format('d'));
+
+    d3.select('#methodCoverageDistribution svg')
+      .datum(getCoverageDistributionData([52,0,0,1,0,2,2,4,2,13,9,170], "Method Coverage"))
+      .transition().duration(500).call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+  });
+
+  function getCoverageDistributionData(data, label) {
+    var labels = [
+      '0%',
+      '0-10%',
+      '10-20%',
+      '20-30%',
+      '30-40%',
+      '40-50%',
+      '50-60%',
+      '60-70%',
+      '70-80%',
+      '80-90%',
+      '90-100%',
+      '100%'
+    ];
+    var values = [];
+    $.each(labels, function(key) {
+      values.push({x: labels[key], y: data[key]});
+    });
+
+    return [
+      {
+        key: label,
+        values: values,
+        color: "#4572A7"
+      }
+    ];
+  }
+  nv.addGraph(function() {
+    var chart = nv.models.scatterChart()
+      .showDistX(true)
+      .showDistY(true)
+      .showLegend(false)
+      .forceX([0, 100]);
+    chart.tooltipContent(function(graph) {
+      return '<p>' + graph.point.class + '</p>';
+    });
+
+    chart.xAxis.axisLabel('Code Coverage (in percent)');
+    chart.yAxis.axisLabel('Cyclomatic Complexity');
+
+    d3.select('#classComplexity svg')
+      .datum(getComplexityData([[100,9,"<a href=\"Anorm.php.html#5\">Anorm\\Anorm<\/a>"],[100,50,"<a href=\"DataMapper.php.html#5\">Anorm\\DataMapper<\/a>"],[96.7741935483871,29,"<a href=\"MangoQuery.php.html#9\">Anorm\\MangoQuery<\/a>"],[95.91836734693877,95,"<a href=\"MangoQueryParser.php.html#9\">Anorm\\MangoQueryParser<\/a>"],[78.75,44,"<a href=\"Model.php.html#7\">Anorm\\Model<\/a>"],[89.92248062015504,56,"<a href=\"QueryBuilder.php.html#7\">Anorm\\QueryBuilder<\/a>"],[0,19,"<a href=\"Relationship\/BatchLoader\/ManyHasManyBatchLoader.php.html#11\">Anorm\\Relationship\\BatchLoader\\ManyHasManyBatchLoader<\/a>"],[61.016949152542374,23,"<a href=\"Relationship\/BatchLoader\/ManyHasOneBatchLoader.php.html#11\">Anorm\\Relationship\\BatchLoader\\ManyHasOneBatchLoader<\/a>"],[84.78260869565217,18,"<a href=\"Relationship\/BatchLoader\/OneHasManyBatchLoader.php.html#11\">Anorm\\Relationship\\BatchLoader\\OneHasManyBatchLoader<\/a>"],[69.6969696969697,30,"<a href=\"Relationship\/BatchLoadingOrchestrator.php.html#15\">Anorm\\Relationship\\BatchLoadingOrchestrator<\/a>"],[53.125,17,"<a href=\"Relationship\/ManyHasMany.php.html#12\">Anorm\\Relationship\\ManyHasMany<\/a>"],[55.55555555555556,12,"<a href=\"Relationship\/ManyHasOne.php.html#12\">Anorm\\Relationship\\ManyHasOne<\/a>"],[54.054054054054056,12,"<a href=\"Relationship\/OneHasMany.php.html#12\">Anorm\\Relationship\\OneHasMany<\/a>"],[78.57142857142857,14,"<a href=\"Relationship\/Relationship.php.html#9\">Anorm\\Relationship\\Relationship<\/a>"],[90.9090909090909,15,"<a href=\"Relationship\/RelationshipManager.php.html#9\">Anorm\\Relationship\\RelationshipManager<\/a>"],[76.27118644067797,29,"<a href=\"Relationship\/Strategy\/DataSizeEstimator.php.html#12\">Anorm\\Relationship\\Strategy\\DataSizeEstimator<\/a>"],[98.33333333333333,21,"<a href=\"Relationship\/Strategy\/FieldSelectionParser.php.html#13\">Anorm\\Relationship\\Strategy\\FieldSelectionParser<\/a>"],[36.61971830985916,33,"<a href=\"Relationship\/Strategy\/QueryStrategySelector.php.html#12\">Anorm\\Relationship\\Strategy\\QueryStrategySelector<\/a>"],[100,9,"<a href=\"SqlCondition.php.html#9\">Anorm\\SqlCondition<\/a>"],[37.77777777777778,49,"<a href=\"TableMaker.php.html#5\">Anorm\\TableMaker<\/a>"],[100,3,"<a href=\"Transform\/FunctionTransform.php.html#7\">Anorm\\Transform\\FunctionTransform<\/a>"],[100,2,"<a href=\"Transform\/JsonArrayTransform.php.html#7\">Anorm\\Transform\\JsonArrayTransform<\/a>"],[100,5,"<a href=\"Transform\/SqlDateTimeTransform.php.html#8\">Anorm\\Transform\\SqlDateTimeTransform<\/a>"]], 'Class Complexity'))
+      .transition()
+      .duration(500)
+      .call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+  });
+
+  nv.addGraph(function() {
+    var chart = nv.models.scatterChart()
+      .showDistX(true)
+      .showDistY(true)
+      .showLegend(false)
+      .forceX([0, 100]);
+    chart.tooltipContent(function(graph) {
+      return '<p>' + graph.point.class + '</p>';
+    });
+
+    chart.xAxis.axisLabel('Code Coverage (in percent)');
+    chart.yAxis.axisLabel('Method Complexity');
+
+    d3.select('#methodComplexity svg')
+      .datum(getComplexityData([[100,2,"<a href=\"Anorm.php.html#26\">Anorm\\Anorm::connect<\/a>"],[100,2,"<a href=\"Anorm.php.html#42\">Anorm\\Anorm::use<\/a>"],[100,2,"<a href=\"Anorm.php.html#56\">Anorm\\Anorm::pdo<\/a>"],[100,3,"<a href=\"Anorm.php.html#67\">Anorm\\Anorm::__construct<\/a>"],[100,1,"<a href=\"DataMapper.php.html#30\">Anorm\\DataMapper::create<\/a>"],[100,1,"<a href=\"DataMapper.php.html#36\">Anorm\\DataMapper::createByClass<\/a>"],[100,1,"<a href=\"DataMapper.php.html#46\">Anorm\\DataMapper::__construct<\/a>"],[100,5,"<a href=\"DataMapper.php.html#53\">Anorm\\DataMapper::autoTable<\/a>"],[100,2,"<a href=\"DataMapper.php.html#76\">Anorm\\DataMapper::splitUpper<\/a>"],[100,4,"<a href=\"DataMapper.php.html#86\">Anorm\\DataMapper::propertyName<\/a>"],[100,2,"<a href=\"DataMapper.php.html#101\">Anorm\\DataMapper::autoMap<\/a>"],[100,17,"<a href=\"DataMapper.php.html#110\">Anorm\\DataMapper::write<\/a>"],[100,1,"<a href=\"DataMapper.php.html#188\">Anorm\\DataMapper::read<\/a>"],[100,5,"<a href=\"DataMapper.php.html#199\">Anorm\\DataMapper::dynamicWrapper<\/a>"],[100,1,"<a href=\"DataMapper.php.html#225\">Anorm\\DataMapper::query<\/a>"],[100,1,"<a href=\"DataMapper.php.html#239\">Anorm\\DataMapper::readRow<\/a>"],[100,7,"<a href=\"DataMapper.php.html#245\">Anorm\\DataMapper::readArray<\/a>"],[100,1,"<a href=\"DataMapper.php.html#265\">Anorm\\DataMapper::delete<\/a>"],[100,1,"<a href=\"DataMapper.php.html#274\">Anorm\\DataMapper::find<\/a>"],[100,1,"<a href=\"MangoQuery.php.html#18\">Anorm\\MangoQuery::__construct<\/a>"],[100,1,"<a href=\"MangoQuery.php.html#30\">Anorm\\MangoQuery::getSelector<\/a>"],[100,1,"<a href=\"MangoQuery.php.html#35\">Anorm\\MangoQuery::getFields<\/a>"],[100,1,"<a href=\"MangoQuery.php.html#40\">Anorm\\MangoQuery::getSort<\/a>"],[100,1,"<a href=\"MangoQuery.php.html#45\">Anorm\\MangoQuery::getLimit<\/a>"],[100,1,"<a href=\"MangoQuery.php.html#50\">Anorm\\MangoQuery::getSkip<\/a>"],[100,1,"<a href=\"MangoQuery.php.html#55\">Anorm\\MangoQuery::getUseIndex<\/a>"],[92.85714285714286,15,"<a href=\"MangoQuery.php.html#63\">Anorm\\MangoQuery::validateMangoQuery<\/a>"],[100,1,"<a href=\"MangoQuery.php.html#103\">Anorm\\MangoQuery::hasConditions<\/a>"],[100,2,"<a href=\"MangoQuery.php.html#111\">Anorm\\MangoQuery::hasFields<\/a>"],[100,2,"<a href=\"MangoQuery.php.html#119\">Anorm\\MangoQuery::hasSort<\/a>"],[100,2,"<a href=\"MangoQuery.php.html#127\">Anorm\\MangoQuery::hasPagination<\/a>"],[100,1,"<a href=\"MangoQueryParser.php.html#14\">Anorm\\MangoQueryParser::__construct<\/a>"],[100,2,"<a href=\"MangoQueryParser.php.html#22\">Anorm\\MangoQueryParser::parseSelector<\/a>"],[100,3,"<a href=\"MangoQueryParser.php.html#34\">Anorm\\MangoQueryParser::parseFields<\/a>"],[92.3076923076923,7,"<a href=\"MangoQueryParser.php.html#51\">Anorm\\MangoQueryParser::parseSort<\/a>"],[100,3,"<a href=\"MangoQueryParser.php.html#80\">Anorm\\MangoQueryParser::parseConditions<\/a>"],[100,2,"<a href=\"MangoQueryParser.php.html#101\">Anorm\\MangoQueryParser::isOperator<\/a>"],[100,1,"<a href=\"MangoQueryParser.php.html#122\">Anorm\\MangoQueryParser::normalizeOperator<\/a>"],[100,6,"<a href=\"MangoQueryParser.php.html#130\">Anorm\\MangoQueryParser::parseOperator<\/a>"],[100,2,"<a href=\"MangoQueryParser.php.html#151\">Anorm\\MangoQueryParser::parseFieldCondition<\/a>"],[85.71428571428571,3,"<a href=\"MangoQueryParser.php.html#167\">Anorm\\MangoQueryParser::parseFieldOperators<\/a>"],[89.65517241379311,16,"<a href=\"MangoQueryParser.php.html#186\">Anorm\\MangoQueryParser::parseFieldOperator<\/a>"],[100,2,"<a href=\"MangoQueryParser.php.html#225\">Anorm\\MangoQueryParser::mapFieldToColumn<\/a>"],[100,1,"<a href=\"MangoQueryParser.php.html#239\">Anorm\\MangoQueryParser::generateParamName<\/a>"],[100,2,"<a href=\"MangoQueryParser.php.html#247\">Anorm\\MangoQueryParser::createEqualityCondition<\/a>"],[100,3,"<a href=\"MangoQueryParser.php.html#260\">Anorm\\MangoQueryParser::createComparisonCondition<\/a>"],[100,4,"<a href=\"MangoQueryParser.php.html#274\">Anorm\\MangoQueryParser::createInCondition<\/a>"],[100,4,"<a href=\"MangoQueryParser.php.html#295\">Anorm\\MangoQueryParser::createNotInCondition<\/a>"],[100,2,"<a href=\"MangoQueryParser.php.html#316\">Anorm\\MangoQueryParser::createExistsCondition<\/a>"],[87.5,4,"<a href=\"MangoQueryParser.php.html#328\">Anorm\\MangoQueryParser::parseAndOperator<\/a>"],[87.5,4,"<a href=\"MangoQueryParser.php.html#348\">Anorm\\MangoQueryParser::parseOrOperator<\/a>"],[100,2,"<a href=\"MangoQueryParser.php.html#368\">Anorm\\MangoQueryParser::parseNotOperator<\/a>"],[88.88888888888889,4,"<a href=\"MangoQueryParser.php.html#381\">Anorm\\MangoQueryParser::parseNorOperator<\/a>"],[100,4,"<a href=\"MangoQueryParser.php.html#402\">Anorm\\MangoQueryParser::combineConditions<\/a>"],[100,2,"<a href=\"MangoQueryParser.php.html#428\">Anorm\\MangoQueryParser::createRegexCondition<\/a>"],[100,2,"<a href=\"MangoQueryParser.php.html#441\">Anorm\\MangoQueryParser::createBeginsWithCondition<\/a>"],[100,3,"<a href=\"MangoQueryParser.php.html#454\">Anorm\\MangoQueryParser::createAllCondition<\/a>"],[100,3,"<a href=\"MangoQueryParser.php.html#472\">Anorm\\MangoQueryParser::createElemMatchCondition<\/a>"],[100,3,"<a href=\"MangoQueryParser.php.html#503\">Anorm\\MangoQueryParser::createSizeCondition<\/a>"],[100,1,"<a href=\"Model.php.html#18\">Anorm\\Model::__construct<\/a>"],[100,1,"<a href=\"Model.php.html#30\">Anorm\\Model::getPdo<\/a>"],[100,2,"<a href=\"Model.php.html#38\">Anorm\\Model::write<\/a>"],[100,1,"<a href=\"Model.php.html#52\">Anorm\\Model::read<\/a>"],[100,4,"<a href=\"Model.php.html#62\">Anorm\\Model::readOrThrow<\/a>"],[66.66666666666666,2,"<a href=\"Model.php.html#91\">Anorm\\Model::hasMany<\/a>"],[66.66666666666666,2,"<a href=\"Model.php.html#115\">Anorm\\Model::belongsTo<\/a>"],[66.66666666666666,2,"<a href=\"Model.php.html#140\">Anorm\\Model::hasManyThrough<\/a>"],[100,1,"<a href=\"Model.php.html#152\">Anorm\\Model::loadRelated<\/a>"],[100,1,"<a href=\"Model.php.html#160\">Anorm\\Model::loadAllRelated<\/a>"],[100,1,"<a href=\"Model.php.html#168\">Anorm\\Model::getRelationshipManager<\/a>"],[0,2,"<a href=\"Model.php.html#179\">Anorm\\Model::getPropertyNameFromClass<\/a>"],[100,1,"<a href=\"Model.php.html#201\">Anorm\\Model::cascadeDelete<\/a>"],[0,1,"<a href=\"Model.php.html#215\">Anorm\\Model::setNullDelete<\/a>"],[0,1,"<a href=\"Model.php.html#229\">Anorm\\Model::restrictDelete<\/a>"],[0,2,"<a href=\"Model.php.html#246\">Anorm\\Model::constraintOptions<\/a>"],[80,3,"<a href=\"Model.php.html#267\">Anorm\\Model::createForeignKeyConstraints<\/a>"],[100,4,"<a href=\"Model.php.html#283\">Anorm\\Model::createForeignKeyFromRelationship<\/a>"],[100,1,"<a href=\"Model.php.html#314\">Anorm\\Model::createManyToManyConstraints<\/a>"],[100,1,"<a href=\"Model.php.html#347\">Anorm\\Model::createJoinTable<\/a>"],[88.23529411764706,3,"<a href=\"Model.php.html#363\">Anorm\\Model::createForeignKey<\/a>"],[100,1,"<a href=\"Model.php.html#401\">Anorm\\Model::foreignKeyExists<\/a>"],[100,1,"<a href=\"Model.php.html#420\">Anorm\\Model::ensureTableExists<\/a>"],[100,2,"<a href=\"Model.php.html#431\">Anorm\\Model::ensureColumnExists<\/a>"],[100,3,"<a href=\"Model.php.html#458\">Anorm\\Model::getTableNameFromModelClass<\/a>"],[100,3,"<a href=\"QueryBuilder.php.html#27\">Anorm\\QueryBuilder::__construct<\/a>"],[100,1,"<a href=\"QueryBuilder.php.html#39\">Anorm\\QueryBuilder::select<\/a>"],[100,2,"<a href=\"QueryBuilder.php.html#45\">Anorm\\QueryBuilder::ensureSelect<\/a>"],[100,1,"<a href=\"QueryBuilder.php.html#52\">Anorm\\QueryBuilder::from<\/a>"],[100,2,"<a href=\"QueryBuilder.php.html#59\">Anorm\\QueryBuilder::ensureFrom<\/a>"],[100,1,"<a href=\"QueryBuilder.php.html#66\">Anorm\\QueryBuilder::join<\/a>"],[85.71428571428571,5,"<a href=\"QueryBuilder.php.html#83\">Anorm\\QueryBuilder::with<\/a>"],[0,2,"<a href=\"QueryBuilder.php.html#106\">Anorm\\QueryBuilder::joinRelationship<\/a>"],[100,2,"<a href=\"QueryBuilder.php.html#129\">Anorm\\QueryBuilder::where<\/a>"],[100,1,"<a href=\"QueryBuilder.php.html#146\">Anorm\\QueryBuilder::groupBy<\/a>"],[100,1,"<a href=\"QueryBuilder.php.html#153\">Anorm\\QueryBuilder::having<\/a>"],[100,1,"<a href=\"QueryBuilder.php.html#160\">Anorm\\QueryBuilder::orderBy<\/a>"],[100,3,"<a href=\"QueryBuilder.php.html#167\">Anorm\\QueryBuilder::some<\/a>"],[100,5,"<a href=\"QueryBuilder.php.html#181\">Anorm\\QueryBuilder::someWithBatchLoading<\/a>"],[100,2,"<a href=\"QueryBuilder.php.html#212\">Anorm\\QueryBuilder::someWithIndividualLoading<\/a>"],[100,2,"<a href=\"QueryBuilder.php.html#232\">Anorm\\QueryBuilder::limit<\/a>"],[100,2,"<a href=\"QueryBuilder.php.html#241\">Anorm\\QueryBuilder::one<\/a>"],[100,2,"<a href=\"QueryBuilder.php.html#258\">Anorm\\QueryBuilder::oneOrThrow<\/a>"],[100,1,"<a href=\"QueryBuilder.php.html#273\">Anorm\\QueryBuilder::fromMango<\/a>"],[100,1,"<a href=\"QueryBuilder.php.html#283\">Anorm\\QueryBuilder::mango<\/a>"],[100,9,"<a href=\"QueryBuilder.php.html#291\">Anorm\\QueryBuilder::applyMangoQuery<\/a>"],[100,3,"<a href=\"QueryBuilder.php.html#339\">Anorm\\QueryBuilder::loadEagerRelationships<\/a>"],[100,1,"<a href=\"QueryBuilder.php.html#356\">Anorm\\QueryBuilder::enableBatchLoading<\/a>"],[100,1,"<a href=\"QueryBuilder.php.html#367\">Anorm\\QueryBuilder::disableBatchLoading<\/a>"],[100,1,"<a href=\"QueryBuilder.php.html#378\">Anorm\\QueryBuilder::isBatchLoadingEnabled<\/a>"],[100,1,"<a href=\"QueryBuilder.php.html#389\">Anorm\\QueryBuilder::setBatchLoadingConfig<\/a>"],[0,10,"<a href=\"Relationship\/BatchLoader\/ManyHasManyBatchLoader.php.html#21\">Anorm\\Relationship\\BatchLoader\\ManyHasManyBatchLoader::batchLoad<\/a>"],[0,4,"<a href=\"Relationship\/BatchLoader\/ManyHasManyBatchLoader.php.html#106\">Anorm\\Relationship\\BatchLoader\\ManyHasManyBatchLoader::distributeBatchResults<\/a>"],[0,2,"<a href=\"Relationship\/BatchLoader\/ManyHasManyBatchLoader.php.html#136\">Anorm\\Relationship\\BatchLoader\\ManyHasManyBatchLoader::estimateQueryCount<\/a>"],[0,1,"<a href=\"Relationship\/BatchLoader\/ManyHasManyBatchLoader.php.html#147\">Anorm\\Relationship\\BatchLoader\\ManyHasManyBatchLoader::canHandle<\/a>"],[0,1,"<a href=\"Relationship\/BatchLoader\/ManyHasManyBatchLoader.php.html#157\">Anorm\\Relationship\\BatchLoader\\ManyHasManyBatchLoader::getMaxBatchSize<\/a>"],[0,1,"<a href=\"Relationship\/BatchLoader\/ManyHasManyBatchLoader.php.html#170\">Anorm\\Relationship\\BatchLoader\\ManyHasManyBatchLoader::estimateComplexity<\/a>"],[90.32258064516128,9,"<a href=\"Relationship\/BatchLoader\/ManyHasOneBatchLoader.php.html#21\">Anorm\\Relationship\\BatchLoader\\ManyHasOneBatchLoader::batchLoad<\/a>"],[80,5,"<a href=\"Relationship\/BatchLoader\/ManyHasOneBatchLoader.php.html#99\">Anorm\\Relationship\\BatchLoader\\ManyHasOneBatchLoader::distributeBatchResults<\/a>"],[0,2,"<a href=\"Relationship\/BatchLoader\/ManyHasOneBatchLoader.php.html#129\">Anorm\\Relationship\\BatchLoader\\ManyHasOneBatchLoader::estimateQueryCount<\/a>"],[0,1,"<a href=\"Relationship\/BatchLoader\/ManyHasOneBatchLoader.php.html#140\">Anorm\\Relationship\\BatchLoader\\ManyHasOneBatchLoader::canHandle<\/a>"],[0,1,"<a href=\"Relationship\/BatchLoader\/ManyHasOneBatchLoader.php.html#150\">Anorm\\Relationship\\BatchLoader\\ManyHasOneBatchLoader::getMaxBatchSize<\/a>"],[0,5,"<a href=\"Relationship\/BatchLoader\/ManyHasOneBatchLoader.php.html#163\">Anorm\\Relationship\\BatchLoader\\ManyHasOneBatchLoader::getBatchStatistics<\/a>"],[90.9090909090909,10,"<a href=\"Relationship\/BatchLoader\/OneHasManyBatchLoader.php.html#21\">Anorm\\Relationship\\BatchLoader\\OneHasManyBatchLoader::batchLoad<\/a>"],[90,4,"<a href=\"Relationship\/BatchLoader\/OneHasManyBatchLoader.php.html#100\">Anorm\\Relationship\\BatchLoader\\OneHasManyBatchLoader::distributeBatchResults<\/a>"],[0,2,"<a href=\"Relationship\/BatchLoader\/OneHasManyBatchLoader.php.html#130\">Anorm\\Relationship\\BatchLoader\\OneHasManyBatchLoader::estimateQueryCount<\/a>"],[0,1,"<a href=\"Relationship\/BatchLoader\/OneHasManyBatchLoader.php.html#141\">Anorm\\Relationship\\BatchLoader\\OneHasManyBatchLoader::canHandle<\/a>"],[0,1,"<a href=\"Relationship\/BatchLoader\/OneHasManyBatchLoader.php.html#151\">Anorm\\Relationship\\BatchLoader\\OneHasManyBatchLoader::getMaxBatchSize<\/a>"],[100,3,"<a href=\"Relationship\/BatchLoadingOrchestrator.php.html#26\">Anorm\\Relationship\\BatchLoadingOrchestrator::__construct<\/a>"],[83.33333333333334,4,"<a href=\"Relationship\/BatchLoadingOrchestrator.php.html#43\">Anorm\\Relationship\\BatchLoadingOrchestrator::loadRelationshipsForModels<\/a>"],[77.77777777777779,4,"<a href=\"Relationship\/BatchLoadingOrchestrator.php.html#67\">Anorm\\Relationship\\BatchLoadingOrchestrator::loadRelationshipsForModelClass<\/a>"],[83.33333333333334,5,"<a href=\"Relationship\/BatchLoadingOrchestrator.php.html#97\">Anorm\\Relationship\\BatchLoadingOrchestrator::loadSingleRelationship<\/a>"],[50,3,"<a href=\"Relationship\/BatchLoadingOrchestrator.php.html#134\">Anorm\\Relationship\\BatchLoadingOrchestrator::executeBatchLoading<\/a>"],[50,4,"<a href=\"Relationship\/BatchLoadingOrchestrator.php.html#163\">Anorm\\Relationship\\BatchLoadingOrchestrator::executeIndividualLoading<\/a>"],[100,3,"<a href=\"Relationship\/BatchLoadingOrchestrator.php.html#185\">Anorm\\Relationship\\BatchLoadingOrchestrator::groupModelsByClass<\/a>"],[100,1,"<a href=\"Relationship\/BatchLoadingOrchestrator.php.html#207\">Anorm\\Relationship\\BatchLoadingOrchestrator::getDefaultConfig<\/a>"],[100,1,"<a href=\"Relationship\/BatchLoadingOrchestrator.php.html#223\">Anorm\\Relationship\\BatchLoadingOrchestrator::setConfig<\/a>"],[0,1,"<a href=\"Relationship\/BatchLoadingOrchestrator.php.html#233\">Anorm\\Relationship\\BatchLoadingOrchestrator::getConfig<\/a>"],[0,1,"<a href=\"Relationship\/BatchLoadingOrchestrator.php.html#243\">Anorm\\Relationship\\BatchLoadingOrchestrator::getPerformanceStats<\/a>"],[100,1,"<a href=\"Relationship\/ManyHasMany.php.html#23\">Anorm\\Relationship\\ManyHasMany::__construct<\/a>"],[100,1,"<a href=\"Relationship\/ManyHasMany.php.html#34\">Anorm\\Relationship\\ManyHasMany::getType<\/a>"],[100,1,"<a href=\"Relationship\/ManyHasMany.php.html#42\">Anorm\\Relationship\\ManyHasMany::getJoinTable<\/a>"],[100,1,"<a href=\"Relationship\/ManyHasMany.php.html#50\">Anorm\\Relationship\\ManyHasMany::getJoinForeignKey<\/a>"],[100,1,"<a href=\"Relationship\/ManyHasMany.php.html#58\">Anorm\\Relationship\\ManyHasMany::getJoinRelatedKey<\/a>"],[93.75,3,"<a href=\"Relationship\/ManyHasMany.php.html#70\">Anorm\\Relationship\\ManyHasMany::load<\/a>"],[100,1,"<a href=\"Relationship\/ManyHasMany.php.html#108\">Anorm\\Relationship\\ManyHasMany::generateJoinClause<\/a>"],[0,1,"<a href=\"Relationship\/ManyHasMany.php.html#118\">Anorm\\Relationship\\ManyHasMany::generateForeignKeyConstraints<\/a>"],[100,1,"<a href=\"Relationship\/ManyHasMany.php.html#151\">Anorm\\Relationship\\ManyHasMany::generateJoinTableSQL<\/a>"],[0,1,"<a href=\"Relationship\/ManyHasMany.php.html#174\">Anorm\\Relationship\\ManyHasMany::batchLoad<\/a>"],[0,1,"<a href=\"Relationship\/ManyHasMany.php.html#187\">Anorm\\Relationship\\ManyHasMany::distributeBatchResults<\/a>"],[0,3,"<a href=\"Relationship\/ManyHasMany.php.html#200\">Anorm\\Relationship\\ManyHasMany::estimateDataSize<\/a>"],[0,1,"<a href=\"Relationship\/ManyHasMany.php.html#219\">Anorm\\Relationship\\ManyHasMany::getCardinality<\/a>"],[100,1,"<a href=\"Relationship\/ManyHasOne.php.html#17\">Anorm\\Relationship\\ManyHasOne::getType<\/a>"],[92.85714285714286,3,"<a href=\"Relationship\/ManyHasOne.php.html#29\">Anorm\\Relationship\\ManyHasOne::load<\/a>"],[100,1,"<a href=\"Relationship\/ManyHasOne.php.html#66\">Anorm\\Relationship\\ManyHasOne::generateJoinClause<\/a>"],[0,1,"<a href=\"Relationship\/ManyHasOne.php.html#75\">Anorm\\Relationship\\ManyHasOne::generateForeignKeyConstraints<\/a>"],[100,1,"<a href=\"Relationship\/ManyHasOne.php.html#100\">Anorm\\Relationship\\ManyHasOne::batchLoad<\/a>"],[100,1,"<a href=\"Relationship\/ManyHasOne.php.html#113\">Anorm\\Relationship\\ManyHasOne::distributeBatchResults<\/a>"],[0,3,"<a href=\"Relationship\/ManyHasOne.php.html#126\">Anorm\\Relationship\\ManyHasOne::estimateDataSize<\/a>"],[100,1,"<a href=\"Relationship\/ManyHasOne.php.html#144\">Anorm\\Relationship\\ManyHasOne::getCardinality<\/a>"],[100,1,"<a href=\"Relationship\/OneHasMany.php.html#17\">Anorm\\Relationship\\OneHasMany::getType<\/a>"],[92.85714285714286,3,"<a href=\"Relationship\/OneHasMany.php.html#29\">Anorm\\Relationship\\OneHasMany::load<\/a>"],[100,1,"<a href=\"Relationship\/OneHasMany.php.html#65\">Anorm\\Relationship\\OneHasMany::generateJoinClause<\/a>"],[0,1,"<a href=\"Relationship\/OneHasMany.php.html#74\">Anorm\\Relationship\\OneHasMany::generateForeignKeyConstraints<\/a>"],[100,1,"<a href=\"Relationship\/OneHasMany.php.html#99\">Anorm\\Relationship\\OneHasMany::batchLoad<\/a>"],[100,1,"<a href=\"Relationship\/OneHasMany.php.html#112\">Anorm\\Relationship\\OneHasMany::distributeBatchResults<\/a>"],[0,3,"<a href=\"Relationship\/OneHasMany.php.html#125\">Anorm\\Relationship\\OneHasMany::estimateDataSize<\/a>"],[100,1,"<a href=\"Relationship\/OneHasMany.php.html#144\">Anorm\\Relationship\\OneHasMany::getCardinality<\/a>"],[100,1,"<a href=\"Relationship\/Relationship.php.html#29\">Anorm\\Relationship\\Relationship::__construct<\/a>"],[100,1,"<a href=\"Relationship\/Relationship.php.html#51\">Anorm\\Relationship\\Relationship::getRelatedModelClass<\/a>"],[100,1,"<a href=\"Relationship\/Relationship.php.html#59\">Anorm\\Relationship\\Relationship::getPropertyName<\/a>"],[100,1,"<a href=\"Relationship\/Relationship.php.html#67\">Anorm\\Relationship\\Relationship::getForeignKey<\/a>"],[100,1,"<a href=\"Relationship\/Relationship.php.html#75\">Anorm\\Relationship\\Relationship::getPrimaryKey<\/a>"],[0,1,"<a href=\"Relationship\/Relationship.php.html#83\">Anorm\\Relationship\\Relationship::getOptions<\/a>"],[0,2,"<a href=\"Relationship\/Relationship.php.html#91\">Anorm\\Relationship\\Relationship::getOption<\/a>"],[100,1,"<a href=\"Relationship\/Relationship.php.html#99\">Anorm\\Relationship\\Relationship::getConstraintOptions<\/a>"],[100,0,"<a href=\"Relationship\/Relationship.php.html#107\">Anorm\\Relationship\\Relationship::getType<\/a>"],[100,0,"<a href=\"Relationship\/Relationship.php.html#113\">Anorm\\Relationship\\Relationship::load<\/a>"],[100,0,"<a href=\"Relationship\/Relationship.php.html#124\">Anorm\\Relationship\\Relationship::batchLoad<\/a>"],[100,0,"<a href=\"Relationship\/Relationship.php.html#134\">Anorm\\Relationship\\Relationship::distributeBatchResults<\/a>"],[100,0,"<a href=\"Relationship\/Relationship.php.html#144\">Anorm\\Relationship\\Relationship::estimateDataSize<\/a>"],[100,0,"<a href=\"Relationship\/Relationship.php.html#152\">Anorm\\Relationship\\Relationship::getCardinality<\/a>"],[100,0,"<a href=\"Relationship\/Relationship.php.html#158\">Anorm\\Relationship\\Relationship::generateJoinClause<\/a>"],[100,0,"<a href=\"Relationship\/Relationship.php.html#164\">Anorm\\Relationship\\Relationship::generateForeignKeyConstraints<\/a>"],[0,3,"<a href=\"Relationship\/Relationship.php.html#169\">Anorm\\Relationship\\Relationship::getConstraintName<\/a>"],[100,2,"<a href=\"Relationship\/Relationship.php.html#183\">Anorm\\Relationship\\Relationship::getTableNameFromModelClass<\/a>"],[100,1,"<a href=\"Relationship\/RelationshipManager.php.html#20\">Anorm\\Relationship\\RelationshipManager::__construct<\/a>"],[100,1,"<a href=\"Relationship\/RelationshipManager.php.html#29\">Anorm\\Relationship\\RelationshipManager::hasMany<\/a>"],[100,1,"<a href=\"Relationship\/RelationshipManager.php.html#38\">Anorm\\Relationship\\RelationshipManager::belongsTo<\/a>"],[100,1,"<a href=\"Relationship\/RelationshipManager.php.html#47\">Anorm\\Relationship\\RelationshipManager::hasManyThrough<\/a>"],[100,2,"<a href=\"Relationship\/RelationshipManager.php.html#56\">Anorm\\Relationship\\RelationshipManager::loadRelated<\/a>"],[100,2,"<a href=\"Relationship\/RelationshipManager.php.html#74\">Anorm\\Relationship\\RelationshipManager::loadAllRelated<\/a>"],[100,2,"<a href=\"Relationship\/RelationshipManager.php.html#84\">Anorm\\Relationship\\RelationshipManager::getRelationship<\/a>"],[0,1,"<a href=\"Relationship\/RelationshipManager.php.html#92\">Anorm\\Relationship\\RelationshipManager::getAllRelationships<\/a>"],[100,1,"<a href=\"Relationship\/RelationshipManager.php.html#100\">Anorm\\Relationship\\RelationshipManager::getRelationships<\/a>"],[0,1,"<a href=\"Relationship\/RelationshipManager.php.html#108\">Anorm\\Relationship\\RelationshipManager::hasRelationship<\/a>"],[100,2,"<a href=\"Relationship\/RelationshipManager.php.html#116\">Anorm\\Relationship\\RelationshipManager::clearRelationships<\/a>"],[100,1,"<a href=\"Relationship\/Strategy\/DataSizeEstimator.php.html#24\">Anorm\\Relationship\\Strategy\\DataSizeEstimator::estimateInClauseDataSize<\/a>"],[91.66666666666666,4,"<a href=\"Relationship\/Strategy\/DataSizeEstimator.php.html#42\">Anorm\\Relationship\\Strategy\\DataSizeEstimator::estimateJoinDataSize<\/a>"],[76.47058823529412,7,"<a href=\"Relationship\/Strategy\/DataSizeEstimator.php.html#76\">Anorm\\Relationship\\Strategy\\DataSizeEstimator::getAverageRelatedRecords<\/a>"],[100,2,"<a href=\"Relationship\/Strategy\/DataSizeEstimator.php.html#111\">Anorm\\Relationship\\Strategy\\DataSizeEstimator::getAverageRecordSize<\/a>"],[100,2,"<a href=\"Relationship\/Strategy\/DataSizeEstimator.php.html#133\">Anorm\\Relationship\\Strategy\\DataSizeEstimator::calculateSelectedFieldSize<\/a>"],[41.66666666666667,10,"<a href=\"Relationship\/Strategy\/DataSizeEstimator.php.html#152\">Anorm\\Relationship\\Strategy\\DataSizeEstimator::estimateFieldSize<\/a>"],[100,1,"<a href=\"Relationship\/Strategy\/DataSizeEstimator.php.html#187\">Anorm\\Relationship\\Strategy\\DataSizeEstimator::getSourceModelClass<\/a>"],[0,1,"<a href=\"Relationship\/Strategy\/DataSizeEstimator.php.html#199\">Anorm\\Relationship\\Strategy\\DataSizeEstimator::clearCache<\/a>"],[0,1,"<a href=\"Relationship\/Strategy\/DataSizeEstimator.php.html#210\">Anorm\\Relationship\\Strategy\\DataSizeEstimator::setCacheValue<\/a>"],[100,3,"<a href=\"Relationship\/Strategy\/FieldSelectionParser.php.html#26\">Anorm\\Relationship\\Strategy\\FieldSelectionParser::parseFieldSelection<\/a>"],[100,2,"<a href=\"Relationship\/Strategy\/FieldSelectionParser.php.html#71\">Anorm\\Relationship\\Strategy\\FieldSelectionParser::parseMultipleSelections<\/a>"],[100,5,"<a href=\"Relationship\/Strategy\/FieldSelectionParser.php.html#93\">Anorm\\Relationship\\Strategy\\FieldSelectionParser::validateFields<\/a>"],[100,5,"<a href=\"Relationship\/Strategy\/FieldSelectionParser.php.html#131\">Anorm\\Relationship\\Strategy\\FieldSelectionParser::generateSelectClause<\/a>"],[100,3,"<a href=\"Relationship\/Strategy\/FieldSelectionParser.php.html#153\">Anorm\\Relationship\\Strategy\\FieldSelectionParser::extractPrefixedFields<\/a>"],[0,2,"<a href=\"Relationship\/Strategy\/FieldSelectionParser.php.html#174\">Anorm\\Relationship\\Strategy\\FieldSelectionParser::isAllFields<\/a>"],[100,1,"<a href=\"Relationship\/Strategy\/FieldSelectionParser.php.html#187\">Anorm\\Relationship\\Strategy\\FieldSelectionParser::normalizeSpec<\/a>"],[100,2,"<a href=\"Relationship\/Strategy\/QueryStrategySelector.php.html#20\">Anorm\\Relationship\\Strategy\\QueryStrategySelector::__construct<\/a>"],[80,3,"<a href=\"Relationship\/Strategy\/QueryStrategySelector.php.html#29\">Anorm\\Relationship\\Strategy\\QueryStrategySelector::selectStrategy<\/a>"],[88.88888888888889,4,"<a href=\"Relationship\/Strategy\/QueryStrategySelector.php.html#48\">Anorm\\Relationship\\Strategy\\QueryStrategySelector::shouldUseJoinStrategy<\/a>"],[62.5,6,"<a href=\"Relationship\/Strategy\/QueryStrategySelector.php.html#73\">Anorm\\Relationship\\Strategy\\QueryStrategySelector::isJoinOptimalForCardinality<\/a>"],[0,3,"<a href=\"Relationship\/Strategy\/QueryStrategySelector.php.html#91\">Anorm\\Relationship\\Strategy\\QueryStrategySelector::getStrategyMetadata<\/a>"],[0,5,"<a href=\"Relationship\/Strategy\/QueryStrategySelector.php.html#117\">Anorm\\Relationship\\Strategy\\QueryStrategySelector::estimateQueryCount<\/a>"],[0,6,"<a href=\"Relationship\/Strategy\/QueryStrategySelector.php.html#134\">Anorm\\Relationship\\Strategy\\QueryStrategySelector::getDecisionFactors<\/a>"],[0,1,"<a href=\"Relationship\/Strategy\/QueryStrategySelector.php.html#163\">Anorm\\Relationship\\Strategy\\QueryStrategySelector::isStrategySupported<\/a>"],[100,1,"<a href=\"Relationship\/Strategy\/QueryStrategySelector.php.html#177\">Anorm\\Relationship\\Strategy\\QueryStrategySelector::getDefaultConfig<\/a>"],[0,1,"<a href=\"Relationship\/Strategy\/QueryStrategySelector.php.html#191\">Anorm\\Relationship\\Strategy\\QueryStrategySelector::setConfig<\/a>"],[0,1,"<a href=\"Relationship\/Strategy\/QueryStrategySelector.php.html#199\">Anorm\\Relationship\\Strategy\\QueryStrategySelector::getConfig<\/a>"],[100,1,"<a href=\"SqlCondition.php.html#14\">Anorm\\SqlCondition::__construct<\/a>"],[100,1,"<a href=\"SqlCondition.php.html#20\">Anorm\\SqlCondition::getSql<\/a>"],[100,1,"<a href=\"SqlCondition.php.html#25\">Anorm\\SqlCondition::getBindings<\/a>"],[100,1,"<a href=\"SqlCondition.php.html#33\">Anorm\\SqlCondition::combine<\/a>"],[100,1,"<a href=\"SqlCondition.php.html#44\">Anorm\\SqlCondition::wrap<\/a>"],[100,1,"<a href=\"SqlCondition.php.html#52\">Anorm\\SqlCondition::empty<\/a>"],[100,1,"<a href=\"SqlCondition.php.html#60\">Anorm\\SqlCondition::never<\/a>"],[100,2,"<a href=\"SqlCondition.php.html#68\">Anorm\\SqlCondition::isEmpty<\/a>"],[100,1,"<a href=\"TableMaker.php.html#7\">Anorm\\TableMaker::fix<\/a>"],[100,1,"<a href=\"TableMaker.php.html#23\">Anorm\\TableMaker::__construct<\/a>"],[46.666666666666664,6,"<a href=\"TableMaker.php.html#30\">Anorm\\TableMaker::_fix<\/a>"],[100,2,"<a href=\"TableMaker.php.html#52\">Anorm\\TableMaker::createTable<\/a>"],[100,3,"<a href=\"TableMaker.php.html#77\">Anorm\\TableMaker::createColumn<\/a>"],[0,2,"<a href=\"TableMaker.php.html#103\">Anorm\\TableMaker::handleForeignKeyConstraint<\/a>"],[0,5,"<a href=\"TableMaker.php.html#117\">Anorm\\TableMaker::createMissingForeignKeyConstraints<\/a>"],[25,5,"<a href=\"TableMaker.php.html#139\">Anorm\\TableMaker::createForeignKeyConstraintsFromModel<\/a>"],[0,3,"<a href=\"TableMaker.php.html#161\">Anorm\\TableMaker::createForeignKeyFromRelationship<\/a>"],[0,3,"<a href=\"TableMaker.php.html#191\">Anorm\\TableMaker::createForeignKey<\/a>"],[0,1,"<a href=\"TableMaker.php.html#230\">Anorm\\TableMaker::foreignKeyExists<\/a>"],[0,1,"<a href=\"TableMaker.php.html#249\">Anorm\\TableMaker::ensureTableExists<\/a>"],[0,2,"<a href=\"TableMaker.php.html#260\">Anorm\\TableMaker::ensureColumnExists<\/a>"],[0,1,"<a href=\"TableMaker.php.html#284\">Anorm\\TableMaker::getColumnDefinitionForForeignKey<\/a>"],[0,2,"<a href=\"TableMaker.php.html#293\">Anorm\\TableMaker::getTableNameFromModelClass<\/a>"],[100,11,"<a href=\"TableMaker.php.html#310\">Anorm\\TableMaker::columnDefinition<\/a>"],[100,1,"<a href=\"Transform\/FunctionTransform.php.html#15\">Anorm\\Transform\\FunctionTransform::__construct<\/a>"],[100,1,"<a href=\"Transform\/FunctionTransform.php.html#21\">Anorm\\Transform\\FunctionTransform::txDatabaseToModel<\/a>"],[100,1,"<a href=\"Transform\/FunctionTransform.php.html#26\">Anorm\\Transform\\FunctionTransform::txModelToDatabase<\/a>"],[100,1,"<a href=\"Transform\/JsonArrayTransform.php.html#9\">Anorm\\Transform\\JsonArrayTransform::txDatabaseToModel<\/a>"],[100,1,"<a href=\"Transform\/JsonArrayTransform.php.html#14\">Anorm\\Transform\\JsonArrayTransform::txModelToDatabase<\/a>"],[100,1,"<a href=\"Transform\/SqlDateTimeTransform.php.html#13\">Anorm\\Transform\\SqlDateTimeTransform::__construct<\/a>"],[100,2,"<a href=\"Transform\/SqlDateTimeTransform.php.html#18\">Anorm\\Transform\\SqlDateTimeTransform::txDatabaseToModel<\/a>"],[100,2,"<a href=\"Transform\/SqlDateTimeTransform.php.html#23\">Anorm\\Transform\\SqlDateTimeTransform::txModelToDatabase<\/a>"]], 'Method Complexity'))
+      .transition()
+      .duration(500)
+      .call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+  });
+
+  function getComplexityData(data, label) {
+    var values = [];
+    $.each(data, function(key) {
+      var value = Math.round(data[key][0]*100) / 100;
+      values.push({
+        x: value,
+        y: data[key][1],
+        class: data[key][2],
+        size: 0.05,
+        shape: 'diamond'
+      });
+    });
+
+    return [
+      {
+        key: label,
+        values: values,
+        color: "#4572A7"
+      }
+    ];
+  }
+});
+  </script>
+ </body>
+</html>
