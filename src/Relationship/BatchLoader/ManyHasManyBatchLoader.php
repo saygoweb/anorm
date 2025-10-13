@@ -105,6 +105,11 @@ class ManyHasManyBatchLoader implements BatchLoaderInterface
      */
     public function distributeBatchResults(array $sourceModels, array $batchResults, string $relationshipName): void
     {
+        // Handle empty source models
+        if (empty($sourceModels)) {
+            return;
+        }
+
         // Get relationship definition to access primary key
         $firstModel = reset($sourceModels);
         $relationshipManager = $firstModel->getRelationshipManager();

@@ -34,35 +34,20 @@ class FinalCoverage_Test extends TestCase
         }
     }
 
-    public function testBatchLoadingOrchestratorLogStrategySelection()
+    public function testBatchLoadingOrchestratorConfiguration()
     {
         $orchestrator = new BatchLoadingOrchestrator();
         $orchestrator->setConfig(['debug_mode' => true]);
-        
-        $users = DataMapper::find(UserModel::class, $this->pdo)->some();
-        $userArray = iterator_to_array($users);
-        
-        if (count($userArray) > 0) {
-            // Use reflection to test logStrategySelection
-            $reflection = new \ReflectionClass($orchestrator);
-            $method = $reflection->getMethod('logStrategySelection');
-            $method->setAccessible(true);
-            
-            $relationshipManager = $userArray[0]->getRelationshipManager();
-            $relationship = $relationshipManager->getRelationship('posts');
-            
-            if ($relationship) {
-                // Capture error log before
-                $errorsBefore = error_get_last();
-                
-                $method->invoke($orchestrator, $relationship, QueryStrategyInterface::STRATEGY_IN_CLAUSE_BATCH, 10, ['id', 'title']);
-                
-                // Should have logged something
-                $this->assertTrue(true); // Method executed
-            }
-        } else {
-            $this->markTestSkipped('No test data available');
-        }
+
+        // Test that configuration is properly set
+        $config = $orchestrator->getConfig();
+        $this->assertTrue($config['debug_mode']);
+
+        // Test default configuration
+        $defaultOrchestrator = new BatchLoadingOrchestrator();
+        $defaultConfig = $defaultOrchestrator->getConfig();
+        $this->assertIsArray($defaultConfig);
+        $this->assertArrayHasKey('enable_batch_loading', $defaultConfig);
     }
 
     public function testModelAdditionalMethods()

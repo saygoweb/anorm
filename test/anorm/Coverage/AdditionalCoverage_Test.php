@@ -69,7 +69,7 @@ class AdditionalCoverage_Test extends TestCase
         $relationship->method('getRelatedModelClass')->willReturn('TestModel');
         
         $avg = $estimator->getAverageRelatedRecords($relationship);
-        $this->assertEquals(5.0, $avg); // This will be cached from previous tests, so expect the cached value
+        $this->assertEquals(2.0, $avg); // Unknown cardinality returns default value of 2.0
         
         // Test calculateSelectedFieldSize with empty array
         $size = $estimator->calculateSelectedFieldSize([]);
