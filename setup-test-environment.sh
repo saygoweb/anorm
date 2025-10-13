@@ -265,89 +265,44 @@ install_php_dependencies() {
     print_success "PHP dependencies installed"
 }
 
-# Function to create helper scripts (idempotent)
-create_helper_scripts() {
-    print_status "Checking helper scripts..."
+# Function to setup environment for calling shell
+setup_calling_shell_environment() {
+    print_status "Setting up environment for calling shell..."
 
-    local scripts_created=0
+    # Create a temporary script that will export environment variables
+    local env_script="/tmp/anorm_env_$$"
 
-    # Create a test runner script if it doesn't exist
-    if [ ! -f "$PROJECT_ROOT/run-tests.sh" ]; then
-        print_info "Creating run-tests.sh..."
-        cat > "$PROJECT_ROOT/run-tests.sh" << 'EOF'
-#!/bin/bash
-# Helper script to run tests
+    cat > "$env_script" << EOF
+# Anorm Environment Variables
+# Source this file to load environment variables into your shell
+# Usage: source $env_script
 
-set -e
-
-# Load environment variables
-if [ -f .env ]; then
+if [ -f "$PROJECT_ROOT/.env" ]; then
     set -a
-    source .env
+    source "$PROJECT_ROOT/.env"
     set +a
-    echo "Environment variables loaded from .env"
+    echo "✅ Environment variables loaded from .env"
+    echo "   DB_HOST=\$DB_HOST"
+    echo "   DB_NAME=\$DB_NAME"
+    echo "   DB_USER=\$DB_USER"
+    echo ""
+    echo "🎉 You can now run 'composer test' directly!"
 else
-    echo "Warning: .env file not found"
-fi
-
-# Run tests
-case "${1:-quick}" in
-    "quick")
-        composer test:quick
-        ;;
-    "coverage")
-        composer test:coverage
-        ;;
-    "ci")
-        composer test:ci
-        ;;
-    *)
-        composer test
-        ;;
-esac
-EOF
-        chmod +x "$PROJECT_ROOT/run-tests.sh"
-        scripts_created=1
-    else
-        print_success "run-tests.sh already exists"
-    fi
-
-    # Create environment loader if it doesn't exist
-    if [ ! -f "$PROJECT_ROOT/load-env.sh" ]; then
-        print_info "Creating load-env.sh..."
-        cat > "$PROJECT_ROOT/load-env.sh" << 'EOF'
-#!/bin/bash
-# Load environment variables
-
-if [ -f .env ]; then
-    set -a
-    source .env
-    set +a
-    echo "Environment variables loaded from .env"
-    echo "DB_HOST=$DB_HOST"
-    echo "DB_NAME=$DB_NAME"
-    echo "DB_USER=$DB_USER"
-else
-    echo "No .env file found"
+    echo "❌ Error: .env file not found at $PROJECT_ROOT/.env"
 fi
 EOF
-        chmod +x "$PROJECT_ROOT/load-env.sh"
-        scripts_created=1
-    else
-        print_success "load-env.sh already exists"
-    fi
 
-    # Change ownership if running as root
+    # Make the script readable by the original user
     if [ -n "$SUDO_USER" ]; then
-        chown "$SUDO_USER:$SUDO_USER" "$PROJECT_ROOT/run-tests.sh" 2>/dev/null || true
-        chown "$SUDO_USER:$SUDO_USER" "$PROJECT_ROOT/load-env.sh" 2>/dev/null || true
+        chown "$SUDO_USER:$SUDO_USER" "$env_script"
     fi
 
-    if [ $scripts_created -eq 1 ]; then
-        print_success "Helper scripts created"
-    else
-        print_success "Helper scripts already exist"
-    fi
+    print_success "Environment setup script created at: $env_script"
+    print_info "To load environment variables into your current shell, run:"
+    print_info "  source $env_script"
+
+    # Store the script path for later use
+    ENV_SCRIPT_PATH="$env_script"
 }
 
 # Function to verify environment is working (idempotent)
@@ -438,12 +393,20 @@ show_usage() {
     echo "  Password: $DB_PASS"
     echo "  Root Password: $DB_ROOT_PASSWORD"
     echo
-    print_info "Available commands:"
+    print_info "To load environment variables and run tests:"
     echo
-    echo -e "${CYAN}  # Run tests:${NC}"
-    echo "  ./run-tests.sh [quick|coverage|ci|full]"
-    echo "  source .env && composer test"
-    echo "  export \$(cat .env | grep -v '^#' | xargs) && composer test"
+    echo -e "${CYAN}  # Load environment into your shell:${NC}"
+    if [ -n "$ENV_SCRIPT_PATH" ]; then
+        echo "  source $ENV_SCRIPT_PATH"
+    else
+        echo "  source /tmp/anorm_env_*"
+    fi
+    echo
+    echo -e "${CYAN}  # Then run tests directly:${NC}"
+    echo "  composer test                # Full test suite"
+    echo "  composer test:quick          # Quick tests without coverage"
+    echo "  composer test:coverage       # Tests with coverage"
+    echo "  composer test:ci             # CI tests with clover coverage"
     echo
     echo -e "${CYAN}  # Code quality:${NC}"
     echo "  composer cs:check            # Check coding standards"
@@ -458,7 +421,6 @@ show_usage() {
     echo "  mysql -u$DB_USER -p$DB_PASS $DB_NAME  # Connect to test database"
     echo
     echo -e "${CYAN}  # Environment:${NC}"
-    echo "  source load-env.sh           # Load environment variables"
     echo "  cat .env                     # View environment configuration"
     echo "  sudo ./setup-test-environment.sh  # Re-run setup (idempotent)"
 }
@@ -484,7 +446,7 @@ main() {
     install_mariadb
     ensure_mariadb_running
     install_php_dependencies
-    create_helper_scripts
+    setup_calling_shell_environment
     verify_environment
 
     echo
@@ -492,7 +454,21 @@ main() {
 
     echo
     print_success "🎉 Test environment setup completed successfully!"
-    print_info "You can now run 'composer test' and start developing!"
+    echo
+    print_info "📋 To load environment variables into your current shell, run:"
+    echo
+    echo -e "${GREEN}# Copy and paste this command:${NC}"
+    echo -e "${CYAN}export DB_HOST='$DB_HOST' DB_NAME='$DB_NAME' DB_USER='$DB_USER' DB_PASS='$DB_PASS' DB_DATABASE='$DB_NAME' DB_USERNAME='$DB_USER' DB_PASSWORD='$DB_PASS'${NC}"
+    echo
+    print_info "Or alternatively:"
+    if [ -n "$ENV_SCRIPT_PATH" ]; then
+        echo -e "${CYAN}source $ENV_SCRIPT_PATH${NC}"
+    else
+        echo -e "${CYAN}source /tmp/anorm_env_*${NC}"
+    fi
+    echo
+    print_info "Then run: ${CYAN}composer test${NC}"
+    echo
     print_info "Run this script again anytime to ensure environment is properly configured."
 }
 
@@ -510,10 +486,24 @@ case "${1:-}" in
         echo "  - Only installs missing components"
         echo "  - Ensures database is running and accessible"
         echo
+        echo "Options:"
+        echo "  --env-only    Only output environment variable export commands"
+        echo
         echo "Requirements:"
         echo "  - Must be run as root (use sudo)"
         echo "  - Ubuntu/Debian system with apt package manager"
         echo "  - .env file must exist with database configuration"
+        echo
+        echo "Examples:"
+        echo "  sudo $0                    # Full setup"
+        echo "  eval \"\$(sudo $0 --env-only)\"  # Load environment variables"
+        exit 0
+        ;;
+    --env-only)
+        # Just load config and output export commands
+        cd "$PROJECT_ROOT"
+        load_env_config >/dev/null 2>&1
+        echo "export DB_HOST='$DB_HOST' DB_NAME='$DB_NAME' DB_USER='$DB_USER' DB_PASS='$DB_PASS' DB_DATABASE='$DB_NAME' DB_USERNAME='$DB_USER' DB_PASSWORD='$DB_PASS'"
         exit 0
         ;;
 esac
