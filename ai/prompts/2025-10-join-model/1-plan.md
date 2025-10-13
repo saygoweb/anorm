@@ -2,9 +2,10 @@
 
 ## Implementation Status
 
-**✅ COMPLETED** - Core Join Model feature has been successfully implemented and tested.
+**✅ COMPLETED + ENHANCED** - Core Join Model feature has been successfully implemented and tested, with additional dynamic foreign key constraint management.
 
-**Commit:** `d29b646` - "Implement Join Model feature with relationship support"
+**Core Implementation Commit:** `d29b646` - "Implement Join Model feature with relationship support"
+**Enhancement Commit:** `da867e1` - "Implement dynamic foreign key constraint management"
 
 **Date:** October 13, 2025
 
@@ -17,6 +18,49 @@ This plan outlines the implementation of a "Join Model" feature for Anorm, provi
 3. **manyHasMany** - Many-to-many relationships through intermediate join tables/models
 
 This implementation will be similar to Rails ActiveRecord associations and will integrate seamlessly with the existing QueryBuilder and DataMapper architecture.
+
+## Enhancement: Dynamic Foreign Key Constraint Management
+
+**Added:** October 13, 2025
+
+The Join Model feature has been enhanced with dynamic foreign key constraint management, extending Anorm's existing MODE_DYNAMIC capabilities to include "code first" foreign key creation. This allows developers to define foreign key constraints directly in their model relationship definitions, and have the database schema automatically updated to match.
+
+### Key Features of Dynamic Foreign Key Management
+
+1. **Automatic Constraint Creation**: Foreign key constraints are automatically created based on relationship definitions when models are used in MODE_DYNAMIC
+2. **Constraint Options**: Support for CASCADE, RESTRICT, SET NULL, and NO ACTION behaviors for both DELETE and UPDATE operations
+3. **Join Table Management**: Automatic creation of join tables with proper foreign key constraints for many-to-many relationships
+4. **Code First Approach**: Database schema follows model definitions, not the other way around
+5. **Seamless Integration**: Works with existing TableMaker dynamic schema creation system
+
+### Usage Examples
+
+```php
+// Define relationship with CASCADE delete
+$this->belongsTo(
+    'CompanyModel',
+    'company_id',
+    'id',
+    'company',
+    $this->cascadeDelete() // Convenience method for CASCADE constraints
+);
+
+// Define relationship with custom constraint options
+$this->hasMany(
+    'PostModel',
+    'user_id',
+    'id',
+    'posts',
+    $this->constraintOptions('SET NULL', 'CASCADE', 'custom_fk_name')
+);
+```
+
+### Implementation Details
+
+- **TableMaker Enhancement**: Extended to handle foreign key constraint violations and create missing constraints
+- **Relationship Schema Generation**: Each relationship class can generate appropriate foreign key SQL
+- **Model Integration**: Foreign key constraints are created automatically during `write()` operations in MODE_DYNAMIC
+- **Comprehensive Testing**: 13 new tests covering all relationship types and constraint scenarios
 
 ## Current State Analysis
 
