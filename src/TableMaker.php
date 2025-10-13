@@ -300,7 +300,7 @@ class TableMaker
         $tableName = strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', $className));
 
         // Simple pluralization (add 's' if doesn't end with 's')
-        if (!str_ends_with($tableName, 's')) {
+        if (substr($tableName, -1) !== 's') {
             $tableName .= 's';
         }
 

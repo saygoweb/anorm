@@ -455,9 +455,9 @@ class Model
         $tableName = strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', $className));
 
         // Better pluralization rules
-        if (str_ends_with($tableName, 'y')) {
+        if (substr($tableName, -1) === 'y') {
             $tableName = substr($tableName, 0, -1) . 'ies';
-        } elseif (!str_ends_with($tableName, 's')) {
+        } elseif (substr($tableName, -1) !== 's') {
             $tableName .= 's';
         }
 
