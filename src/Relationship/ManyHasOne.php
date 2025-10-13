@@ -57,7 +57,7 @@ class ManyHasOne extends Relationship
 
     /**
      * Generate JOIN clause for many-to-one relationship
-     * 
+     *
      * @param string $sourceTable The source table name
      * @param string $relatedTable The related table name
      * @return string The JOIN clause
@@ -65,5 +65,26 @@ class ManyHasOne extends Relationship
     public function generateJoinClause($sourceTable, $relatedTable)
     {
         return "LEFT JOIN `{$relatedTable}` ON `{$sourceTable}`.`{$this->foreignKey}` = `{$relatedTable}`.`{$this->primaryKey}`";
+    }
+
+    /**
+     * Generate foreign key constraint SQL for ManyHasOne relationship
+     * Creates foreign key on the source table pointing to related table
+     */
+    public function generateForeignKeyConstraints($sourceTable)
+    {
+        $targetTable = $this->getTableNameFromModelClass($this->relatedModelClass);
+        $constraintName = $this->getConstraintName($sourceTable, $targetTable);
+        $onDelete = $this->constraintOptions['on_delete'];
+        $onUpdate = $this->constraintOptions['on_update'];
+
+        $sql = "ALTER TABLE `{$sourceTable}`
+                ADD CONSTRAINT `{$constraintName}`
+                FOREIGN KEY (`{$this->foreignKey}`)
+                REFERENCES `{$targetTable}`(`{$this->primaryKey}`)
+                ON DELETE {$onDelete}
+                ON UPDATE {$onUpdate}";
+
+        return [$sql];
     }
 }

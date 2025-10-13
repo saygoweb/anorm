@@ -99,7 +99,7 @@ class ManyHasMany extends Relationship
 
     /**
      * Generate JOIN clause for many-to-many relationship
-     * 
+     *
      * @param string $sourceTable The source table name
      * @param string $relatedTable The related table name
      * @return string The JOIN clause
@@ -108,5 +108,57 @@ class ManyHasMany extends Relationship
     {
         return "LEFT JOIN `{$this->joinTable}` ON `{$sourceTable}`.`{$this->primaryKey}` = `{$this->joinTable}`.`{$this->joinForeignKey}` " .
                "LEFT JOIN `{$relatedTable}` ON `{$this->joinTable}`.`{$this->joinRelatedKey}` = `{$relatedTable}`.`{$this->primaryKey}`";
+    }
+
+    /**
+     * Generate foreign key constraint SQL for ManyHasMany relationship
+     * Creates foreign keys on the join table pointing to both source and target tables
+     */
+    public function generateForeignKeyConstraints($sourceTable)
+    {
+        $targetTable = $this->getTableNameFromModelClass($this->relatedModelClass);
+        $constraints = [];
+
+        // Foreign key from join table to source table
+        $sourceConstraintName = "fk_{$this->joinTable}_{$this->joinForeignKey}";
+        $onDelete = $this->constraintOptions['on_delete'];
+        $onUpdate = $this->constraintOptions['on_update'];
+
+        $constraints[] = "ALTER TABLE `{$this->joinTable}`
+                         ADD CONSTRAINT `{$sourceConstraintName}`
+                         FOREIGN KEY (`{$this->joinForeignKey}`)
+                         REFERENCES `{$sourceTable}`(`{$this->primaryKey}`)
+                         ON DELETE {$onDelete}
+                         ON UPDATE {$onUpdate}";
+
+        // Foreign key from join table to target table
+        $targetConstraintName = "fk_{$this->joinTable}_{$this->joinRelatedKey}";
+
+        $constraints[] = "ALTER TABLE `{$this->joinTable}`
+                         ADD CONSTRAINT `{$targetConstraintName}`
+                         FOREIGN KEY (`{$this->joinRelatedKey}`)
+                         REFERENCES `{$targetTable}`(`{$this->primaryKey}`)
+                         ON DELETE {$onDelete}
+                         ON UPDATE {$onUpdate}";
+
+        return $constraints;
+    }
+
+    /**
+     * Generate SQL to create the join table if it doesn't exist
+     */
+    public function generateJoinTableSQL($sourceTable)
+    {
+        $targetTable = $this->getTableNameFromModelClass($this->relatedModelClass);
+
+        $sql = "CREATE TABLE IF NOT EXISTS `{$this->joinTable}` (
+                    `{$this->joinForeignKey}` INT(11) NOT NULL,
+                    `{$this->joinRelatedKey}` INT(11) NOT NULL,
+                    PRIMARY KEY (`{$this->joinForeignKey}`, `{$this->joinRelatedKey}`),
+                    INDEX `idx_{$this->joinTable}_{$this->joinForeignKey}` (`{$this->joinForeignKey}`),
+                    INDEX `idx_{$this->joinTable}_{$this->joinRelatedKey}` (`{$this->joinRelatedKey}`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
+        return $sql;
     }
 }

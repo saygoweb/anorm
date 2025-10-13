@@ -95,6 +95,14 @@ class RelationshipManager
     }
 
     /**
+     * Get all relationship objects (values only)
+     */
+    public function getRelationships()
+    {
+        return array_values($this->relationships);
+    }
+
+    /**
      * Check if a relationship is defined
      */
     public function hasRelationship($relationshipName)
