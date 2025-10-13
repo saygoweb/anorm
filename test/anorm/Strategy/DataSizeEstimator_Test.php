@@ -83,18 +83,21 @@ class DataSizeEstimator_Test extends TestCase
         // Clear cache to ensure clean test
         DataSizeEstimator::clearCache();
 
-        $oneToManyRelationship = $this->createMockRelationship('one-to-many');
-        $manyToOneRelationship = $this->createMockRelationship('many-to-one');
-        $oneToOneRelationship = $this->createMockRelationship('one-to-one');
-        $manyToManyRelationship = $this->createMockRelationship('many-to-many');
-        
+        $oneToManyRelationship = $this->createMockRelationship('one-to-many', 'OneToManyModel');
+        $manyToOneRelationship = $this->createMockRelationship('many-to-one', 'ManyToOneModel');
+        $oneToOneRelationship = $this->createMockRelationship('one-to-one', 'OneToOneModel');
+        $manyToManyRelationship = $this->createMockRelationship('many-to-many', 'ManyToManyModel');
+
         $oneToManyAvg = $this->estimator->getAverageRelatedRecords($oneToManyRelationship);
         $manyToOneAvg = $this->estimator->getAverageRelatedRecords($manyToOneRelationship);
         $oneToOneAvg = $this->estimator->getAverageRelatedRecords($oneToOneRelationship);
         $manyToManyAvg = $this->estimator->getAverageRelatedRecords($manyToManyRelationship);
-        
-        $this->assertEquals(5.0, $oneToManyAvg);
-        $this->assertEquals(1.0, $manyToOneAvg);
+
+        // Debug output to understand what's happening
+        // echo "oneToManyAvg: $oneToManyAvg, manyToOneAvg: $manyToOneAvg\n";
+
+        $this->assertEquals(5.0, $oneToManyAvg);  // Hardcoded estimate for one-to-many relationships
+        $this->assertEquals(1.0, $manyToOneAvg);  // Hardcoded estimate for many-to-one relationships
         $this->assertEquals(1.0, $oneToOneAvg);
         $this->assertEquals(3.0, $manyToManyAvg);
         
@@ -145,8 +148,8 @@ class DataSizeEstimator_Test extends TestCase
         $this->assertEquals(500, $method->invoke($this->estimator, 'description'));
         $this->assertEquals(500, $method->invoke($this->estimator, 'content'));
         $this->assertEquals(50, $method->invoke($this->estimator, 'email'));
-        $this->assertEquals(50, $method->invoke($this->estimator, 'created_at')); // Default size since it doesn't contain 'date' or 'time'
-        $this->assertEquals(50, $method->invoke($this->estimator, 'updated_at')); // Default size since it doesn't contain 'date' or 'time'
+        $this->assertEquals(50, $method->invoke($this->estimator, 'created_at')); // Default size (doesn't contain 'date' or 'time')
+        $this->assertEquals(20, $method->invoke($this->estimator, 'updated_at')); // Contains 'date' in 'updated_at'
         $this->assertEquals(20, $method->invoke($this->estimator, 'date_field')); // Contains 'date'
         $this->assertEquals(20, $method->invoke($this->estimator, 'time_field')); // Contains 'time'
         $this->assertEquals(20, $method->invoke($this->estimator, 'datetime_field')); // Contains 'date'
