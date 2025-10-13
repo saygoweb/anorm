@@ -61,23 +61,15 @@ jobs:
       uses: actions/github-script@v7
       with:
         script: |
-          const aiFiles = `${{ steps.check-ai-files.outputs.ai_files }}`;
-          const comment = `## ❌ PR File Validation Failed
-
-Files under the \`ai/\` directory are not allowed in pull requests.
-
-**Files found:**
-\`\`\`
-${aiFiles}
-\`\`\`
-
-**What you need to do:**
-- Remove these files from your PR, or
-- Move them outside the \`ai/\` directory
-
-Files under \`ai/\` can exist in branches but must not be included in pull requests.
-
-This check will need to pass before the PR can be merged.`;
+          const aiFiles = '${{ steps.check-ai-files.outputs.ai_files }}';
+          const comment = '## ❌ PR File Validation Failed\n\n' +
+            'Files under the `ai/` directory are not allowed in pull requests.\n\n' +
+            '**Files found:**\n```\n' + aiFiles + '\n```\n\n' +
+            '**What you need to do:**\n' +
+            '- Remove these files from your PR, or\n' +
+            '- Move them outside the `ai/` directory\n\n' +
+            'Files under `ai/` can exist in branches but must not be included in pull requests.\n\n' +
+            'This check will need to pass before the PR can be merged.';
 
           github.rest.issues.createComment({
             issue_number: context.issue.number,
