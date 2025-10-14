@@ -33,7 +33,7 @@
         "test:ci": "phpunit --coverage-clover=build/logs/clover.xml",
         "cs:check": "phpcs",
         "cs:fix": "phpcbf",
-        "analyze": "phpstan analyse src/ test/ --level=5",
+        "analyze": "phpstan analyse src/ test/ --level=5 --memory-limit=512M",
         "quality": [
             "@cs:check",
             "@analyze"
