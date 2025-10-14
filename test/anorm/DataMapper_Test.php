@@ -22,7 +22,7 @@ class DataMapperTest extends TestCase
     function testSplitUpper_TwoWords_OK()
     {
         $actual = DataMapper::splitUpper('TestWord');
-        $this->assertEquals(array('Test', 'Word'), $actual);
+        $this->assertEquals(['Test', 'Word'], $actual);
     }
 
     function testPropertyName_TwoWords_OK()
@@ -46,6 +46,6 @@ class DataMapperTest extends TestCase
     function testAutoMap_TestClass_OK()
     {
         $actual = DataMapper::autoMap(new TestClassModel());
-        $this->assertEquals(array('testProperty' => 'test_property'), $actual);
+        $this->assertEquals(['testProperty' => 'test_property'], $actual);
     }
 }

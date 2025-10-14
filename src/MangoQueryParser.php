@@ -507,6 +507,6 @@ class MangoQueryParser
         }
 
         $paramName = $this->generateParamName();
-        return new SqlCondition("JSON_LENGTH({$columnName}) = {$paramName}", [$paramName => (int)$value]);
+        return new SqlCondition("JSON_LENGTH({$columnName}) = {$paramName}", [$paramName => (int) $value]);
     }
 }

@@ -52,7 +52,7 @@ class TableMaker
     private function createTable()
     {
         // Regex the message to get the name of the table
-        $matches = array();
+        $matches = [];
         if (!\preg_match("/'([^\.']*)\.([^\.']*)'/", $this->exception->getMessage(), $matches)) {
             throw new \Exception('Anorm: Could not parse PDOException', 0, $this->exception);
         }
@@ -77,7 +77,7 @@ class TableMaker
     private function createColumn()
     {
         // Regex the message to get the name of the table
-        $matches = array();
+        $matches = [];
         if (!\preg_match("/column '([^\.']*)'/", $this->exception->getMessage(), $matches)) {
             throw new \Exception('Anorm: Could not parse PDOException', 0, $this->exception);
         }

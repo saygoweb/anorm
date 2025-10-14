@@ -6,7 +6,7 @@ class Anorm
 {
     const DEFAULT = 'default';
 
-    private static $connections = array();
+    private static $connections = [];
 
     /**
      * @var callable Function that returns a SQL type definition for creating a column

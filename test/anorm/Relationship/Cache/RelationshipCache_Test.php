@@ -16,7 +16,7 @@ class RelationshipCache_Test extends TestCase
 
     public function testBasicCacheOperations()
     {
-        $model = (object)['id' => 1, 'name' => 'Test Model'];
+        $model = (object) ['id' => 1, 'name' => 'Test Model'];
         $cacheKey = 'test_key';
 
         // Test set and get
@@ -34,7 +34,7 @@ class RelationshipCache_Test extends TestCase
     {
         // Fill cache to capacity
         for ($i = 1; $i <= 5; $i++) {
-            $model = (object)['id' => $i, 'name' => "Model {$i}"];
+            $model = (object) ['id' => $i, 'name' => "Model {$i}"];
             $this->cache->set("key_{$i}", $model);
         }
 
@@ -42,7 +42,7 @@ class RelationshipCache_Test extends TestCase
         $this->cache->get('key_2');
 
         // Add one more item to trigger eviction
-        $newModel = (object)['id' => 6, 'name' => 'Model 6'];
+        $newModel = (object) ['id' => 6, 'name' => 'Model 6'];
         $this->cache->set('key_6', $newModel);
 
         // key_1 should be evicted (least recently used)
@@ -55,7 +55,7 @@ class RelationshipCache_Test extends TestCase
 
     public function testCacheStatistics()
     {
-        $model = (object)['id' => 1, 'name' => 'Test Model'];
+        $model = (object) ['id' => 1, 'name' => 'Test Model'];
 
         // Generate some cache activity
         $this->cache->set('key_1', $model);
@@ -88,10 +88,10 @@ class RelationshipCache_Test extends TestCase
     public function testInvalidateByModelClass()
     {
         // Add models of different classes
-        $this->cache->set('oneHasMany:PostModel:1', (object)['id' => 1]);
-        $this->cache->set('oneHasMany:PostModel:2', (object)['id' => 2]);
-        $this->cache->set('manyHasOne:UserModel:1', (object)['id' => 1]);
-        $this->cache->set('oneHasMany:CommentModel:1', (object)['id' => 1]);
+        $this->cache->set('oneHasMany:PostModel:1', (object) ['id' => 1]);
+        $this->cache->set('oneHasMany:PostModel:2', (object) ['id' => 2]);
+        $this->cache->set('manyHasOne:UserModel:1', (object) ['id' => 1]);
+        $this->cache->set('oneHasMany:CommentModel:1', (object) ['id' => 1]);
 
         // Invalidate PostModel entries
         $removed = $this->cache->invalidateByModelClass('PostModel');
@@ -106,8 +106,8 @@ class RelationshipCache_Test extends TestCase
     public function testWarmCache()
     {
         $relationships = [
-            ['key' => 'key_1', 'model' => (object)['id' => 1]],
-            ['key' => 'key_2', 'model' => (object)['id' => 2]],
+            ['key' => 'key_1', 'model' => (object) ['id' => 1]],
+            ['key' => 'key_2', 'model' => (object) ['id' => 2]],
             ['key' => 'key_3'], // Missing model - should be skipped
         ];
 
@@ -124,8 +124,8 @@ class RelationshipCache_Test extends TestCase
     public function testClearCache()
     {
         // Add some items
-        $this->cache->set('key_1', (object)['id' => 1]);
-        $this->cache->set('key_2', (object)['id' => 2]);
+        $this->cache->set('key_1', (object) ['id' => 1]);
+        $this->cache->set('key_2', (object) ['id' => 2]);
         $this->cache->get('key_1'); // Generate some stats
 
         $this->assertEquals(2, $this->cache->getStats()['size']);
@@ -144,7 +144,7 @@ class RelationshipCache_Test extends TestCase
     {
         // Generate some cache activity
         for ($i = 1; $i <= 3; $i++) {
-            $this->cache->set("key_{$i}", (object)['id' => $i]);
+            $this->cache->set("key_{$i}", (object) ['id' => $i]);
         }
 
         // Generate hits and misses
@@ -154,7 +154,7 @@ class RelationshipCache_Test extends TestCase
 
         // Trigger eviction by filling cache
         for ($i = 4; $i <= 7; $i++) {
-            $this->cache->set("key_{$i}", (object)['id' => $i]);
+            $this->cache->set("key_{$i}", (object) ['id' => $i]);
         }
 
         $metrics = $this->cache->getEfficiencyMetrics();
@@ -206,7 +206,7 @@ class RelationshipCache_Test extends TestCase
 
         // Add more items than cache capacity
         for ($i = 1; $i <= 10; $i++) {
-            $this->cache->set("overflow_key_{$i}", (object)['id' => $i]);
+            $this->cache->set("overflow_key_{$i}", (object) ['id' => $i]);
         }
 
         $stats = $this->cache->getStats();

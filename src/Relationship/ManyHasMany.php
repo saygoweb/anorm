@@ -208,7 +208,7 @@ class ManyHasMany extends Relationship
             $avgRecordSize = count($fieldSelection) * 50; // 50 bytes per field estimate
         }
 
-        return (int)($sourceCount * $avgRelatedRecords * $avgRecordSize);
+        return (int) ($sourceCount * $avgRelatedRecords * $avgRecordSize);
     }
 
     /**

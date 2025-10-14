@@ -75,17 +75,17 @@ class DataMapper
 
     public static function splitUpper($s)
     {
-        $matches = array();
+        $matches = [];
         $matchCount = preg_match_all('/[A-Z][a-z0-9]*/', $s, $matches);
         if ($matchCount > 0) {
             return $matches[0];
         }
-        return array();
+        return [];
     }
 
     public static function propertyName($s)
     {
-        $matches = array();
+        $matches = [];
         $matchCount = preg_match_all('/^([a-z0-9]+)((?:[A-Z][a-z0-9]*)*)/', $s, $matches);
         $propertyName = '';
         if ($matchCount == 1 && count($matches) == 3) {
@@ -242,7 +242,7 @@ class DataMapper
         return $this->readArray($c, $data);
     }
 
-    public function readArray(&$c, $data, $exclude = array())
+    public function readArray(&$c, $data, $exclude = [])
     {
         if (!$data) {
             return false;

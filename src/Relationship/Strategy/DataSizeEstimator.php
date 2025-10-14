@@ -28,7 +28,7 @@ class DataSizeEstimator
 
         // IN clause loads full records for all related models
         $totalRelatedRecords = $sourceCount * $avgRelatedRecords;
-        return (int)($totalRelatedRecords * $avgRecordSize);
+        return (int) ($totalRelatedRecords * $avgRecordSize);
     }
 
     /**
@@ -64,7 +64,7 @@ class DataSizeEstimator
             $totalSize = $sourceCount * ($sourceRecordSize + $avgRecordSize);
         }
 
-        return (int)$totalSize;
+        return (int) $totalSize;
     }
 
     /**

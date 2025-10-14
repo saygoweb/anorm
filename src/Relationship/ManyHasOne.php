@@ -133,7 +133,7 @@ class ManyHasOne extends Relationship
             $avgRecordSize = count($fieldSelection) * 50; // 50 bytes per field estimate
         }
 
-        return (int)($sourceCount * $avgRecordSize);
+        return (int) ($sourceCount * $avgRecordSize);
     }
 
     /**

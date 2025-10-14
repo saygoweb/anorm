@@ -141,7 +141,7 @@ class RelationshipCache
         $parts = [
             $relationshipType,
             $relatedModelClass,
-            (string)$relatedModelId
+            (string) $relatedModelId
         ];
 
         if ($fieldSelection !== null) {

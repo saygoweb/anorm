@@ -122,14 +122,14 @@ class BatchLoadingPerformance_Test extends TestCase
         // you might use a query logger or database profiler
         $result = $this->pdo->query("SHOW SESSION STATUS LIKE 'Queries'");
         $row = $result->fetch(\PDO::FETCH_ASSOC);
-        return (int)$row['Value'];
+        return (int) $row['Value'];
     }
 
     private function countUsers(): int
     {
         $result = $this->pdo->query("SELECT COUNT(*) as count FROM users");
         $row = $result->fetch(\PDO::FETCH_ASSOC);
-        return (int)$row['count'];
+        return (int) $row['count'];
     }
 
     private function createAdditionalTestData(): void

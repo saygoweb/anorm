@@ -42,7 +42,7 @@ class ModelMakerTest extends TestCase
         $o = new ModelMaker(null, 'some_table');
         $this->assertEquals('some_table', $o->table);
         $o->modelInfo = new ModelInfo();
-        $o->modelInfo->properties = array('fieldOne', 'fieldTwo');
+        $o->modelInfo->properties = ['fieldOne', 'fieldTwo'];
         $actual = $o->writeModelAsString();
         $expected = <<<"EOD"
 <?php
@@ -80,7 +80,7 @@ EOD;
         $o = new ModelMaker(null, 'some_table');
         $this->assertEquals('some_table', $o->table);
         $o->modelInfo = new ModelInfo();
-        $o->modelInfo->properties = array('fieldOne', 'fieldTwo');
+        $o->modelInfo->properties = ['fieldOne', 'fieldTwo'];
         $tempFilePath = tempnam("/tmp", "ModelMakerTest");
         // It is already created and this will cause an exception to be thrown.
         $o->writeModelAsFile($tempFilePath);
@@ -99,7 +99,7 @@ EOD;
         $o = new ModelMaker(null, 'some_table');
         $this->assertEquals('some_table', $o->table);
         $o->modelInfo = new ModelInfo();
-        $o->modelInfo->properties = array('fieldOne', 'fieldTwo');
+        $o->modelInfo->properties = ['fieldOne', 'fieldTwo'];
         $tempFilePath = tempnam("/tmp", "ModelMakerTest");
         // It is already created and this will cause an exception to be thrown.
         // So we delete the tempfile.
@@ -140,7 +140,7 @@ EOD;
         $o = new ModelMaker(null, 'some_table');
         $this->assertEquals('some_table', $o->table);
         $o->modelInfo = new ModelInfo();
-        $o->modelInfo->properties = array('fieldOne', 'fieldTwo');
+        $o->modelInfo->properties = ['fieldOne', 'fieldTwo'];
         $tempFilePath = tempnam("/tmp", "ModelMakerTest");
         // It is already created so use the force flag to overwrite
         $actual = $o->writeModelAsFile($tempFilePath, null, true);

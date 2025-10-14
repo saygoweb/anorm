@@ -233,8 +233,8 @@ class NestedRelationshipParser_Test extends TestCase
             // Simulate loaded posts
             foreach ($userArray as $user) {
                 $user->posts = [
-                    (object)['id' => 1, 'title' => 'Post 1'],
-                    (object)['id' => 2, 'title' => 'Post 2']
+                    (object) ['id' => 1, 'title' => 'Post 1'],
+                    (object) ['id' => 2, 'title' => 'Post 2']
                 ];
             }
 
@@ -260,7 +260,7 @@ class NestedRelationshipParser_Test extends TestCase
         if (count($postArray) > 0) {
             // Simulate loaded user
             foreach ($postArray as $post) {
-                $post->user = (object)['id' => 1, 'name' => 'Test User'];
+                $post->user = (object) ['id' => 1, 'name' => 'Test User'];
             }
 
             // Use reflection to test private method
