@@ -4,8 +4,8 @@ namespace Anorm;
 
 class DataMapper
 {
-    const MODE_DYNAMIC = 'dynamic';
-    const MODE_STATIC  = 'static';
+    public const MODE_DYNAMIC = 'dynamic';
+    public const MODE_STATIC  = 'static';
 
     public $mode = self::MODE_STATIC;
 

@@ -4,7 +4,7 @@ namespace Anorm;
 
 class Anorm
 {
-    const DEFAULT = 'default';
+    public const DEFAULT = 'default';
 
     private static $connections = [];
 

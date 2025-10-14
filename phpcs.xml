@@ -27,12 +27,30 @@
     <!-- Show sniff codes in all reports -->
     <arg value="s"/>
 
-    <!-- Set line length limit to 150 characters -->
+    <!-- Set line length limit to 150 characters for src/, 200 for test/ -->
     <rule ref="Generic.Files.LineLength">
         <properties>
             <property name="lineLimit" value="150"/>
             <property name="absoluteLineLimit" value="200"/>
         </properties>
+        <!-- Stricter line length for src/ files -->
+        <include-pattern>src/*</include-pattern>
+        <type>error</type>
+    </rule>
+
+    <!-- More lenient line length for test files -->
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="200"/>
+            <property name="absoluteLineLimit" value="250"/>
+        </properties>
+        <include-pattern>test/*</include-pattern>
+        <type>warning</type>
+    </rule>
+
+    <!-- Make constant visibility an error -->
+    <rule ref="PSR12.Properties.ConstantVisibility">
+        <type>error</type>
     </rule>
 
     <!-- Additional rules -->

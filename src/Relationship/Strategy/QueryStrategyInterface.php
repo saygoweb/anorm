@@ -11,9 +11,9 @@ namespace Anorm\Relationship\Strategy;
 interface QueryStrategyInterface
 {
     /** Strategy constants */
-    const STRATEGY_IN_CLAUSE_BATCH = 'in_clause_batch';
-    const STRATEGY_JOIN_WITH_SELECTION = 'join_with_selection';
-    const STRATEGY_INDIVIDUAL_LOADING = 'individual_loading';
+    public const STRATEGY_IN_CLAUSE_BATCH = 'in_clause_batch';
+    public const STRATEGY_JOIN_WITH_SELECTION = 'join_with_selection';
+    public const STRATEGY_INDIVIDUAL_LOADING = 'individual_loading';
 
     /**
      * Select the optimal query strategy for a relationship
