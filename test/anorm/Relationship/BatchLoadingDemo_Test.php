@@ -26,19 +26,19 @@ class BatchLoadingDemo_Test extends TestCase
             ->some();
 
         $userArray = iterator_to_array($users);
-        
+
         // Verify the data is loaded correctly
         $this->assertCount(3, $userArray);
-        
+
         foreach ($userArray as $user) {
             $this->assertNotNull($user->name);
             $this->assertIsArray($user->posts);
-            
+
             if ($user->company_id) {
                 $this->assertInstanceOf(CompanyModel::class, $user->company);
             }
         }
-        
+
         // Check specific user data
         $john = $userArray[0];
         $this->assertEquals('John Doe', $john->name);
@@ -65,7 +65,7 @@ class BatchLoadingDemo_Test extends TestCase
             $this->assertInstanceOf(UserModel::class, $post->user);
             $this->assertNotNull($post->user->name);
         }
-        
+
         // Check that we don't have duplicate user objects for the same user
         $userIds = [];
         foreach ($postArray as $post) {
@@ -83,7 +83,7 @@ class BatchLoadingDemo_Test extends TestCase
     public function testBatchLoadingErrorHandling()
     {
         // Test that batch loading gracefully handles errors and falls back to individual loading
-        
+
         // Create a mock scenario where batch loading might fail
         // For now, just test that the system works with valid data
         $users = DataMapper::find(UserModel::class, $this->pdo)
@@ -97,7 +97,7 @@ class BatchLoadingDemo_Test extends TestCase
 
         $userArray = iterator_to_array($users);
         $this->assertCount(3, $userArray);
-        
+
         // Verify relationships are loaded
         foreach ($userArray as $user) {
             $this->assertIsArray($user->posts);
@@ -113,7 +113,7 @@ class BatchLoadingDemo_Test extends TestCase
 
         $userArray = iterator_to_array($users);
         $this->assertCount(3, $userArray);
-        
+
         // Verify that no relationships are loaded
         foreach ($userArray as $user) {
             $this->assertNull($user->posts);
@@ -129,13 +129,13 @@ class BatchLoadingDemo_Test extends TestCase
                 'debug_mode' => true,
                 'individual_loading_threshold' => 0
             ]);
-        
+
         $this->assertTrue($queryBuilder->isBatchLoadingEnabled());
-        
+
         // Test disabling batch loading
         $queryBuilder->disableBatchLoading();
         $this->assertFalse($queryBuilder->isBatchLoadingEnabled());
-        
+
         // Test re-enabling
         $queryBuilder->enableBatchLoading();
         $this->assertTrue($queryBuilder->isBatchLoadingEnabled());
@@ -160,7 +160,7 @@ class BatchLoadingDemo_Test extends TestCase
     {
         // Basic memory usage test
         $memoryBefore = memory_get_usage();
-        
+
         $users = DataMapper::find(UserModel::class, $this->pdo)
             ->with(['posts', 'company'])
             ->setBatchLoadingConfig([
@@ -170,14 +170,14 @@ class BatchLoadingDemo_Test extends TestCase
             ->some();
 
         $userArray = iterator_to_array($users);
-        
+
         $memoryAfter = memory_get_usage();
         $memoryUsed = $memoryAfter - $memoryBefore;
-        
+
         // Basic assertions
         $this->assertCount(3, $userArray);
         $this->assertLessThan(1024 * 1024, $memoryUsed); // Should use less than 1MB for this small dataset
-        
+
         // Memory usage should be reasonable for small datasets
     }
 }

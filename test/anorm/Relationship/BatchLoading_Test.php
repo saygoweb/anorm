@@ -92,7 +92,7 @@ class BatchLoading_Test extends TestCase
             ->setBatchLoadingConfig(['debug_mode' => true]);
 
         $this->assertTrue($queryBuilder->isBatchLoadingEnabled());
-        
+
         // Test that we can still get results
         $users = $queryBuilder->some();
         $userArray = iterator_to_array($users);
@@ -137,20 +137,20 @@ class BatchLoading_Test extends TestCase
     {
         // This is a basic performance test to ensure batch loading doesn't break
         $startTime = microtime(true);
-        
+
         $users = DataMapper::find(UserModel::class, $this->pdo)
             ->with(['posts', 'company'])
             ->some();
 
         $userArray = iterator_to_array($users);
-        
+
         $endTime = microtime(true);
         $executionTime = $endTime - $startTime;
 
         // Basic assertions
         $this->assertCount(3, $userArray);
         $this->assertLessThan(5.0, $executionTime); // Should complete in under 5 seconds
-        
+
         // Verify data integrity
         foreach ($userArray as $user) {
             $this->assertNotNull($user->name);

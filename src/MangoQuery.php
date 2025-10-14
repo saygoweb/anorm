@@ -18,7 +18,7 @@ class MangoQuery
     public function __construct(array $mangoQuery)
     {
         $this->validateMangoQuery($mangoQuery);
-        
+
         $this->selector = $mangoQuery['selector'] ?? [];
         $this->fields = $mangoQuery['fields'] ?? null;
         $this->sort = $mangoQuery['sort'] ?? null;

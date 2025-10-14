@@ -4,7 +4,7 @@ namespace Anorm\Relationship\BatchLoader;
 
 /**
  * Interface for batch loading relationships to optimize N+1 query problems
- * 
+ *
  * This interface defines the contract for loading relationships in batches
  * rather than individually, reducing database queries from O(N) to O(1).
  */
@@ -26,11 +26,11 @@ interface BatchLoaderInterface
 
     /**
      * Distribute batch-loaded results to their corresponding source models
-     * 
+     *
      * This method takes the results from batchLoad() and assigns them to the
      * appropriate properties on each source model. The assignment pattern
      * depends on the relationship type (single model vs array of models).
-     * 
+     *
      * @param array $sourceModels Array of model instances to receive the loaded data
      * @param array $batchResults Results from batchLoad(), keyed by source model identifier
      * @param string $relationshipName Name of the relationship being distributed

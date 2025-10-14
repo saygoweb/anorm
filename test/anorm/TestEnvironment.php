@@ -44,8 +44,10 @@ class TestEnvironment
                     $value = trim($value);
 
                     // Remove quotes if present
-                    if (($value[0] === '"' && $value[-1] === '"') ||
-                        ($value[0] === "'" && $value[-1] === "'")) {
+                    if (
+                        ($value[0] === '"' && $value[-1] === '"') ||
+                        ($value[0] === "'" && $value[-1] === "'")
+                    ) {
                         $value = substr($value, 1, -1);
                     }
 

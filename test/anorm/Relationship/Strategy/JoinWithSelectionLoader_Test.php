@@ -86,14 +86,14 @@ class JoinWithSelectionLoader_Test extends TestCase
     public function testBuildSelectClause()
     {
         $relationship = $this->createMockRelationship();
-        
+
         // Test with field selection
         $selectClause = $this->loader->buildSelectClause(['id', 'name'], 'users', 'users', $relationship);
-        
+
         $this->assertStringContainsString('source_id', $selectClause);
         $this->assertStringContainsString('r.`id`', $selectClause);
         $this->assertStringContainsString('r.`name`', $selectClause);
-        
+
         // Test without field selection (all fields)
         $selectClauseAll = $this->loader->buildSelectClause(null, 'users', 'posts', $relationship);
         $this->assertStringContainsString('r.*', $selectClauseAll);
@@ -121,7 +121,7 @@ class JoinWithSelectionLoader_Test extends TestCase
     {
         $users = DataMapper::find(UserModel::class, $this->pdo)->some();
         $userArray = iterator_to_array($users);
-        
+
         if (count($userArray) > 0) {
             // Create mock batch results
             $batchResults = [];
@@ -135,9 +135,9 @@ class JoinWithSelectionLoader_Test extends TestCase
                 }
                 $batchResults[$user->id] = $posts;
             }
-            
+
             $this->loader->distributeBatchResults($userArray, $batchResults, 'posts');
-            
+
             // Verify distribution
             foreach ($userArray as $user) {
                 if (isset($batchResults[$user->id])) {
@@ -154,7 +154,7 @@ class JoinWithSelectionLoader_Test extends TestCase
     {
         // JoinWithSelectionLoader should be able to handle any relationship type
         $relationship = $this->createMockRelationship();
-        
+
         // Since it implements BatchLoaderInterface, it should handle all types
         $this->assertTrue($this->loader->canHandle($relationship));
     }
@@ -180,13 +180,13 @@ class JoinWithSelectionLoader_Test extends TestCase
     {
         $users = DataMapper::find(UserModel::class, $this->pdo)->some();
         $userArray = iterator_to_array($users);
-        
+
         if (count($userArray) > 0) {
             $relationship = $this->createMockRelationship();
             $fieldSelection = ['id', 'name'];
-            
+
             $query = $this->loader->buildJoinQuery($relationship, $fieldSelection, $userArray);
-            
+
             $this->assertIsString($query);
             $this->assertStringContainsString('SELECT', $query);
             $this->assertStringContainsString('FROM', $query);
@@ -202,7 +202,7 @@ class JoinWithSelectionLoader_Test extends TestCase
         // Test handling of LEFT JOIN results with null related data
         $users = DataMapper::find(UserModel::class, $this->pdo)->some();
         $userArray = iterator_to_array($users);
-        
+
         if (count($userArray) > 0) {
             // Create mock PDO statement with null data
             $mockStatement = $this->createMock(\PDOStatement::class);
@@ -216,7 +216,7 @@ class JoinWithSelectionLoader_Test extends TestCase
             $relationship = $this->createMockRelationship();
             $relationship->method('getRelatedModelClass')->willReturn(UserModel::class); // Use existing class
             $result = $this->loader->processJoinResults($mockStatement, $userArray, $relationship, ['id', 'name']);
-            
+
             $this->assertIsArray($result);
             // Should skip null results but include valid ones
             $this->assertArrayNotHasKey(1, $result); // Null data should be skipped

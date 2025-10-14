@@ -82,16 +82,16 @@ class ManyHasManyBatchLoader_Test extends TestCase
     {
         $users = DataMapper::find(UserModel::class, $this->pdo)->some();
         $userArray = iterator_to_array($users);
-        
+
         if (count($userArray) > 0) {
             // Create mock batch results
             $batchResults = [
                 1 => [], // Empty array for user 1
                 2 => [], // Empty array for user 2
             ];
-            
+
             $this->batchLoader->distributeBatchResults($userArray, $batchResults, 'tags');
-            
+
             // Verify that the relationship property is set
             foreach ($userArray as $user) {
                 if (isset($batchResults[$user->id])) {
@@ -136,17 +136,17 @@ class ManyHasManyBatchLoader_Test extends TestCase
     {
         $users = DataMapper::find(UserModel::class, $this->pdo)->some();
         $userArray = iterator_to_array($users);
-        
+
         if (count($userArray) > 0) {
             $complexity = $this->batchLoader->estimateComplexity($userArray, 'tags');
-            
+
             $this->assertIsArray($complexity);
             $this->assertArrayHasKey('source_count', $complexity);
             $this->assertArrayHasKey('estimated_related_per_source', $complexity);
             $this->assertArrayHasKey('estimated_total_related', $complexity);
             $this->assertArrayHasKey('complexity_score', $complexity);
             $this->assertArrayHasKey('recommended_batch_size', $complexity);
-            
+
             $this->assertEquals(count($userArray), $complexity['source_count']);
             $this->assertGreaterThan(0, $complexity['estimated_related_per_source']);
         } else {
@@ -178,11 +178,11 @@ class ManyHasManyBatchLoader_Test extends TestCase
     {
         $users = DataMapper::find(UserModel::class, $this->pdo)->some();
         $userArray = iterator_to_array($users);
-        
+
         if (count($userArray) > 0) {
             // Test with non-existent relationship
             $this->batchLoader->distributeBatchResults($userArray, [], 'nonexistent_relationship');
-            
+
             // Should not throw an exception and should handle gracefully
             $this->assertTrue(true); // If we get here, the test passed
         } else {

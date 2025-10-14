@@ -21,7 +21,7 @@ class NestedRelationshipParser_Test extends TestCase
     {
         $specs = ['posts.comments'];
         $parsed = $this->parser->parseNestedSpecs($specs);
-        
+
         $this->assertArrayHasKey('posts', $parsed);
         $this->assertArrayHasKey('nested', $parsed['posts']);
         $this->assertArrayHasKey('comments', $parsed['posts']['nested']);
@@ -33,7 +33,7 @@ class NestedRelationshipParser_Test extends TestCase
     {
         $specs = ['posts:id,title.comments:id,content'];
         $parsed = $this->parser->parseNestedSpecs($specs);
-        
+
         $this->assertArrayHasKey('posts', $parsed);
         $this->assertEquals(['id', 'title'], $parsed['posts']['fields']);
         $this->assertArrayHasKey('comments', $parsed['posts']['nested']);
@@ -48,7 +48,7 @@ class NestedRelationshipParser_Test extends TestCase
             'company.users'
         ];
         $parsed = $this->parser->parseNestedSpecs($specs);
-        
+
         $this->assertArrayHasKey('posts', $parsed);
         $this->assertArrayHasKey('company', $parsed);
         $this->assertArrayHasKey('comments', $parsed['posts']['nested']);
@@ -60,7 +60,7 @@ class NestedRelationshipParser_Test extends TestCase
     {
         $specs = ['posts.comments.author'];
         $parsed = $this->parser->parseNestedSpecs($specs);
-        
+
         $this->assertArrayHasKey('posts', $parsed);
         $this->assertArrayHasKey('comments', $parsed['posts']['nested']);
         $this->assertArrayHasKey('author', $parsed['posts']['nested']['comments']['nested']);
@@ -70,7 +70,7 @@ class NestedRelationshipParser_Test extends TestCase
     {
         $users = DataMapper::find(UserModel::class, $this->pdo)->some();
         $userArray = iterator_to_array($users);
-        
+
         if (count($userArray) > 0) {
             $nestedSpecs = [
                 'posts' => [
@@ -78,10 +78,10 @@ class NestedRelationshipParser_Test extends TestCase
                     'nested' => []
                 ]
             ];
-            
+
             // This should load the posts relationship
             $this->parser->loadNestedRelationships($userArray, $nestedSpecs);
-            
+
             // Verify that posts were loaded
             foreach ($userArray as $user) {
                 $this->assertIsArray($user->posts ?? []);
@@ -94,7 +94,7 @@ class NestedRelationshipParser_Test extends TestCase
     public function testValidateNestedSpecValid()
     {
         $validation = $this->parser->validateNestedSpec('posts:id,title.comments:id,content');
-        
+
         $this->assertTrue($validation['valid']);
         $this->assertEmpty($validation['errors']);
         $this->assertEquals(2, $validation['depth']);
@@ -103,7 +103,7 @@ class NestedRelationshipParser_Test extends TestCase
     public function testValidateNestedSpecDeepNesting()
     {
         $validation = $this->parser->validateNestedSpec('a.b.c.d.e.f');
-        
+
         $this->assertTrue($validation['valid']);
         $this->assertNotEmpty($validation['warnings']);
         $this->assertEquals(6, $validation['depth']);
@@ -113,7 +113,7 @@ class NestedRelationshipParser_Test extends TestCase
     public function testValidateNestedSpecCircularReference()
     {
         $validation = $this->parser->validateNestedSpec('posts.posts');
-        
+
         $this->assertFalse($validation['valid']);
         $this->assertNotEmpty($validation['errors']);
         $this->assertStringContainsString('circular reference', $validation['errors'][0]);
@@ -122,7 +122,7 @@ class NestedRelationshipParser_Test extends TestCase
     public function testValidateNestedSpecInvalidFieldSelection()
     {
         $validation = $this->parser->validateNestedSpec('posts:id,title,');
-        
+
         // This should still be valid as the parser handles trailing commas
         $this->assertTrue($validation['valid']);
     }
@@ -131,7 +131,7 @@ class NestedRelationshipParser_Test extends TestCase
     {
         $users = DataMapper::find(UserModel::class, $this->pdo)->some();
         $userArray = iterator_to_array($users);
-        
+
         if (count($userArray) > 0) {
             // Create a circular reference scenario
             $nestedSpecs = [
@@ -145,10 +145,10 @@ class NestedRelationshipParser_Test extends TestCase
                     ]
                 ]
             ];
-            
+
             // This should handle circular references gracefully
             $this->parser->loadNestedRelationships($userArray, $nestedSpecs, 2);
-            
+
             // Should not cause infinite recursion
             $this->assertTrue(true);
         } else {
@@ -160,7 +160,7 @@ class NestedRelationshipParser_Test extends TestCase
     {
         $users = DataMapper::find(UserModel::class, $this->pdo)->some();
         $userArray = iterator_to_array($users);
-        
+
         if (count($userArray) > 0) {
             $nestedSpecs = [
                 'posts' => [
@@ -178,10 +178,10 @@ class NestedRelationshipParser_Test extends TestCase
                     ]
                 ]
             ];
-            
+
             // Test with limited depth
             $this->parser->loadNestedRelationships($userArray, $nestedSpecs, 1);
-            
+
             // Should stop at depth 1
             $this->assertTrue(true);
         } else {
@@ -192,7 +192,7 @@ class NestedRelationshipParser_Test extends TestCase
     public function testGetLoadingStats()
     {
         $stats = $this->parser->getLoadingStats();
-        
+
         $this->assertIsArray($stats);
         $this->assertArrayHasKey('current_depth', $stats);
         $this->assertArrayHasKey('loading_stack', $stats);
@@ -205,7 +205,7 @@ class NestedRelationshipParser_Test extends TestCase
         // Simulate some loading state
         $users = DataMapper::find(UserModel::class, $this->pdo)->some();
         $userArray = iterator_to_array($users);
-        
+
         if (count($userArray) > 0) {
             $nestedSpecs = [
                 'posts' => [
@@ -213,10 +213,10 @@ class NestedRelationshipParser_Test extends TestCase
                     'nested' => []
                 ]
             ];
-            
+
             $this->parser->loadNestedRelationships($userArray, $nestedSpecs);
         }
-        
+
         // Reset should clear the loading stack
         $this->parser->reset();
         $stats = $this->parser->getLoadingStats();
@@ -228,7 +228,7 @@ class NestedRelationshipParser_Test extends TestCase
     {
         $users = DataMapper::find(UserModel::class, $this->pdo)->some();
         $userArray = iterator_to_array($users);
-        
+
         if (count($userArray) > 0) {
             // Simulate loaded posts
             foreach ($userArray as $user) {
@@ -237,14 +237,14 @@ class NestedRelationshipParser_Test extends TestCase
                     (object)['id' => 2, 'title' => 'Post 2']
                 ];
             }
-            
+
             // Use reflection to test private method
             $reflection = new \ReflectionClass($this->parser);
             $method = $reflection->getMethod('extractRelatedModels');
             $method->setAccessible(true);
-            
+
             $relatedModels = $method->invoke($this->parser, $userArray, 'posts');
-            
+
             $this->assertIsArray($relatedModels);
             $this->assertCount(count($userArray) * 2, $relatedModels); // 2 posts per user
         } else {
@@ -256,20 +256,20 @@ class NestedRelationshipParser_Test extends TestCase
     {
         $posts = DataMapper::find(PostModel::class, $this->pdo)->some();
         $postArray = iterator_to_array($posts);
-        
+
         if (count($postArray) > 0) {
             // Simulate loaded user
             foreach ($postArray as $post) {
                 $post->user = (object)['id' => 1, 'name' => 'Test User'];
             }
-            
+
             // Use reflection to test private method
             $reflection = new \ReflectionClass($this->parser);
             $method = $reflection->getMethod('extractRelatedModels');
             $method->setAccessible(true);
-            
+
             $relatedModels = $method->invoke($this->parser, $postArray, 'user');
-            
+
             $this->assertIsArray($relatedModels);
             $this->assertCount(count($postArray), $relatedModels); // 1 user per post
         } else {

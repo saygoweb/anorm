@@ -18,10 +18,10 @@ class TagModel extends Model
         // Define relationships with explicit property names
         $this->hasManyThrough('Anorm\Test\PostModel', 'tag_id', 'post_id', 'post_tags', 'id', 'posts');
     }
-    
+
     public $id;
     public $name;
-    
+
     /** @var PostModel[] */
     public $posts;
 }

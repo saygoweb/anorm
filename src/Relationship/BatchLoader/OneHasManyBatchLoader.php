@@ -4,7 +4,7 @@ namespace Anorm\Relationship\BatchLoader;
 
 /**
  * Batch loader for One-to-Many relationships
- * 
+ *
  * Optimizes loading of hasMany relationships by collecting all foreign keys
  * and executing a single IN clause query instead of N individual queries.
  */
@@ -28,7 +28,7 @@ class OneHasManyBatchLoader implements BatchLoaderInterface
         $firstModel = reset($sourceModels);
         $relationshipManager = $firstModel->getRelationshipManager();
         $relationship = $relationshipManager->getRelationship($relationshipName);
-        
+
         if (!$relationship) {
             throw new \Exception("Relationship '{$relationshipName}' not defined");
         }
@@ -48,12 +48,12 @@ class OneHasManyBatchLoader implements BatchLoaderInterface
 
         // Remove duplicates and prepare for IN clause
         $primaryKeys = array_values(array_unique($primaryKeys));
-        
+
         // Create an instance of the related model to get its mapper
         $relatedClass = $relationship->getRelatedModelClass();
         $relatedInstance = new $relatedClass($firstModel->getPdo());
         $mapper = $relatedInstance->_mapper;
-        
+
         // Build the batch query using IN clause
         $placeholders = str_repeat('?,', count($primaryKeys) - 1) . '?';
 
@@ -69,29 +69,29 @@ class OneHasManyBatchLoader implements BatchLoaderInterface
 
         // Execute the batch query
         $result = $mapper->query($sql, $primaryKeys);
-        
+
         // Group results by foreign key value
         $groupedResults = [];
         while ($data = $result->fetch(\PDO::FETCH_ASSOC)) {
             $foreignKeyValue = $data[$relationship->getForeignKey()];
-            
+
             // Create related model instance
             $relatedModel = new $relatedClass($firstModel->getPdo());
             $relatedModel->_mapper->readArray($relatedModel, $data);
-            
+
             // Group by foreign key (which corresponds to source model primary key)
             if (!isset($groupedResults[$foreignKeyValue])) {
                 $groupedResults[$foreignKeyValue] = [];
             }
             $groupedResults[$foreignKeyValue][] = $relatedModel;
         }
-        
+
         return $groupedResults;
     }
 
     /**
      * Distribute batch-loaded results to their corresponding source models
-     * 
+     *
      * @param array $sourceModels Array of model instances to receive the loaded data
      * @param array $batchResults Results from batchLoad(), keyed by source model primary key
      * @param string $relationshipName Name of the relationship being distributed
@@ -103,14 +103,14 @@ class OneHasManyBatchLoader implements BatchLoaderInterface
         $firstModel = reset($sourceModels);
         $relationshipManager = $firstModel->getRelationshipManager();
         $relationship = $relationshipManager->getRelationship($relationshipName);
-        
+
         if (!$relationship) {
             return; // Relationship not found, skip distribution
         }
 
         foreach ($sourceModels as $model) {
             $primaryKeyValue = $model->{$relationship->getPrimaryKey()};
-            
+
             // Assign the related models array to the model property
             if (isset($batchResults[$primaryKeyValue])) {
                 $model->{$relationshipName} = $batchResults[$primaryKeyValue];
@@ -123,7 +123,7 @@ class OneHasManyBatchLoader implements BatchLoaderInterface
 
     /**
      * Estimate the number of queries this batch loader would execute
-     * 
+     *
      * @param int $sourceCount Number of source models
      * @return int Number of queries (always 1 for batch loading)
      */
@@ -134,7 +134,7 @@ class OneHasManyBatchLoader implements BatchLoaderInterface
 
     /**
      * Check if this batch loader can handle the given relationship
-     * 
+     *
      * @param object $relationship The relationship to check
      * @return bool True if this loader can handle the relationship
      */
@@ -145,7 +145,7 @@ class OneHasManyBatchLoader implements BatchLoaderInterface
 
     /**
      * Get the maximum recommended batch size for this loader
-     * 
+     *
      * @return int Maximum number of source models to process in one batch
      */
     public function getMaxBatchSize(): int

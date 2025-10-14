@@ -56,7 +56,7 @@ class BatchLoadingOrchestrator_Test extends TestCase
     public function testLoadRelationshipsForModelsWithEmptyModels()
     {
         $this->orchestrator->loadRelationshipsForModels([], ['posts']);
-        
+
         // Should not throw an exception
         $this->assertTrue(true);
     }
@@ -65,10 +65,10 @@ class BatchLoadingOrchestrator_Test extends TestCase
     {
         $users = DataMapper::find(UserModel::class, $this->pdo)->some();
         $userArray = iterator_to_array($users);
-        
+
         if (count($userArray) > 0) {
             $this->orchestrator->loadRelationshipsForModels($userArray, []);
-            
+
             // Should not throw an exception
             $this->assertTrue(true);
         } else {
@@ -80,10 +80,10 @@ class BatchLoadingOrchestrator_Test extends TestCase
     {
         $users = DataMapper::find(UserModel::class, $this->pdo)->some();
         $userArray = iterator_to_array($users);
-        
+
         if (count($userArray) > 0) {
             $this->orchestrator->loadRelationshipsForModels($userArray, ['posts', 'company']);
-            
+
             // Verify relationships are loaded
             foreach ($userArray as $user) {
                 $this->assertIsArray($user->posts ?? []);
@@ -99,10 +99,10 @@ class BatchLoadingOrchestrator_Test extends TestCase
     {
         $users = DataMapper::find(UserModel::class, $this->pdo)->some();
         $userArray = iterator_to_array($users);
-        
+
         if (count($userArray) > 0) {
             $this->orchestrator->loadRelationshipsForModels($userArray, ['posts:id,title', 'company:name']);
-            
+
             // Should handle field selection syntax
             $this->assertTrue(true); // If we get here, parsing worked
         } else {
@@ -114,15 +114,15 @@ class BatchLoadingOrchestrator_Test extends TestCase
     {
         $users = DataMapper::find(UserModel::class, $this->pdo)->some();
         $posts = DataMapper::find(PostModel::class, $this->pdo)->some();
-        
+
         $userArray = iterator_to_array($users);
         $postArray = iterator_to_array($posts);
-        
+
         if (count($userArray) > 0 && count($postArray) > 0) {
             $mixedModels = array_merge($userArray, $postArray);
-            
+
             $this->orchestrator->loadRelationshipsForModels($mixedModels, ['posts', 'user']);
-            
+
             // Should handle mixed model types
             $this->assertTrue(true);
         } else {
@@ -137,10 +137,10 @@ class BatchLoadingOrchestrator_Test extends TestCase
             'enable_batch_loading' => false,
             'max_batch_size' => 500
         ];
-        
+
         $this->orchestrator->setConfig($config);
         $retrievedConfig = $this->orchestrator->getConfig();
-        
+
         $this->assertTrue($retrievedConfig['debug_mode']);
         $this->assertFalse($retrievedConfig['enable_batch_loading']);
         $this->assertEquals(500, $retrievedConfig['max_batch_size']);
@@ -150,12 +150,12 @@ class BatchLoadingOrchestrator_Test extends TestCase
     {
         $customSelector = new QueryStrategySelector();
         $customParser = new FieldSelectionParser();
-        
+
         $orchestrator = new BatchLoadingOrchestrator($customSelector, $customParser);
-        
+
         $users = DataMapper::find(UserModel::class, $this->pdo)->some();
         $userArray = iterator_to_array($users);
-        
+
         if (count($userArray) > 0) {
             $orchestrator->loadRelationshipsForModels($userArray, ['posts']);
             $this->assertTrue(true); // Should work with custom components
@@ -167,7 +167,7 @@ class BatchLoadingOrchestrator_Test extends TestCase
     public function testGetPerformanceStats()
     {
         $stats = $this->orchestrator->getPerformanceStats();
-        
+
         $this->assertIsArray($stats);
         $this->assertArrayHasKey('total_models_processed', $stats);
         $this->assertArrayHasKey('total_relationships_loaded', $stats);
@@ -180,20 +180,20 @@ class BatchLoadingOrchestrator_Test extends TestCase
     {
         $users = DataMapper::find(UserModel::class, $this->pdo)->some();
         $posts = DataMapper::find(PostModel::class, $this->pdo)->some();
-        
+
         $userArray = iterator_to_array($users);
         $postArray = iterator_to_array($posts);
-        
+
         if (count($userArray) > 0 && count($postArray) > 0) {
             $mixedModels = array_merge($userArray, $postArray);
-            
+
             // Use reflection to test private method
             $reflection = new \ReflectionClass($this->orchestrator);
             $method = $reflection->getMethod('groupModelsByClass');
             $method->setAccessible(true);
-            
+
             $grouped = $method->invoke($this->orchestrator, $mixedModels);
-            
+
             $this->assertIsArray($grouped);
             $this->assertArrayHasKey(UserModel::class, $grouped);
             $this->assertArrayHasKey(PostModel::class, $grouped);
@@ -208,11 +208,11 @@ class BatchLoadingOrchestrator_Test extends TestCase
     {
         $users = DataMapper::find(UserModel::class, $this->pdo)->some();
         $userArray = iterator_to_array($users);
-        
+
         if (count($userArray) > 0) {
             // Should handle non-existent relationships gracefully
             $this->orchestrator->loadRelationshipsForModels($userArray, ['nonexistent_relationship']);
-            
+
             $this->assertTrue(true); // Should not throw exception
         } else {
             $this->markTestSkipped('No test data available');
@@ -222,16 +222,16 @@ class BatchLoadingOrchestrator_Test extends TestCase
     public function testLoadRelationshipsWithDebugMode()
     {
         $this->orchestrator->setConfig(['debug_mode' => true]);
-        
+
         $users = DataMapper::find(UserModel::class, $this->pdo)->some();
         $userArray = iterator_to_array($users);
-        
+
         if (count($userArray) > 0) {
             // Capture error log output
             $errorLogBefore = error_get_last();
-            
+
             $this->orchestrator->loadRelationshipsForModels($userArray, ['posts']);
-            
+
             // Should work with debug mode enabled
             $this->assertTrue(true);
         } else {
@@ -244,17 +244,17 @@ class BatchLoadingOrchestrator_Test extends TestCase
         // Create a mock relationship that will cause an error
         $users = DataMapper::find(UserModel::class, $this->pdo)->some();
         $userArray = iterator_to_array($users);
-        
+
         if (count($userArray) > 0) {
             // Test with fallback enabled
             $this->orchestrator->setConfig([
                 'debug_mode' => true,
                 'fallback_to_individual' => true
             ]);
-            
+
             // This should handle errors gracefully
             $this->orchestrator->loadRelationshipsForModels($userArray, ['posts']);
-            
+
             $this->assertTrue(true);
         } else {
             $this->markTestSkipped('No test data available');

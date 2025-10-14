@@ -55,29 +55,29 @@ class RelationshipBatchMethods_Test extends TestCase
     {
         $users = DataMapper::find(UserModel::class, $this->pdo)->some();
         $userArray = iterator_to_array($users);
-        
+
         if (count($userArray) > 0) {
             $user = $userArray[0];
             $relationshipManager = $user->getRelationshipManager();
             $relationship = $relationshipManager->getRelationship('posts');
-            
+
             if ($relationship instanceof OneHasMany) {
                 // Test batch loading
                 $batchResults = $relationship->batchLoad($userArray, $this->pdo);
                 $this->assertIsArray($batchResults);
-                
+
                 // Test distribution
                 $relationship->distributeBatchResults($userArray, $batchResults);
-                
+
                 // Test data size estimation
                 $dataSize = $relationship->estimateDataSize(count($userArray), null);
                 $this->assertIsInt($dataSize);
                 $this->assertGreaterThan(0, $dataSize);
-                
+
                 // Test with field selection
                 $dataSizeWithFields = $relationship->estimateDataSize(count($userArray), ['id', 'title']);
                 $this->assertIsInt($dataSizeWithFields);
-                
+
                 // Test cardinality
                 $this->assertEquals('one-to-many', $relationship->getCardinality());
             } else {
@@ -92,29 +92,29 @@ class RelationshipBatchMethods_Test extends TestCase
     {
         $posts = DataMapper::find(PostModel::class, $this->pdo)->some();
         $postArray = iterator_to_array($posts);
-        
+
         if (count($postArray) > 0) {
             $post = $postArray[0];
             $relationshipManager = $post->getRelationshipManager();
             $relationship = $relationshipManager->getRelationship('user');
-            
+
             if ($relationship instanceof ManyHasOne) {
                 // Test batch loading
                 $batchResults = $relationship->batchLoad($postArray, $this->pdo);
                 $this->assertIsArray($batchResults);
-                
+
                 // Test distribution
                 $relationship->distributeBatchResults($postArray, $batchResults);
-                
+
                 // Test data size estimation
                 $dataSize = $relationship->estimateDataSize(count($postArray), null);
                 $this->assertIsInt($dataSize);
                 $this->assertGreaterThan(0, $dataSize);
-                
+
                 // Test with field selection
                 $dataSizeWithFields = $relationship->estimateDataSize(count($postArray), ['id', 'name']);
                 $this->assertIsInt($dataSizeWithFields);
-                
+
                 // Test cardinality
                 $this->assertEquals('many-to-one', $relationship->getCardinality());
             } else {
@@ -129,39 +129,39 @@ class RelationshipBatchMethods_Test extends TestCase
     {
         $users = DataMapper::find(UserModel::class, $this->pdo)->some();
         $userArray = iterator_to_array($users);
-        
+
         if (count($userArray) > 0) {
             $user = $userArray[0];
             $relationshipManager = $user->getRelationshipManager();
-            
+
             // Try to find a many-to-many relationship
             $allRelationships = $relationshipManager->getAllRelationships();
             $manyToManyRelationship = null;
-            
+
             foreach ($allRelationships as $name => $rel) {
                 if ($rel instanceof ManyHasMany) {
                     $manyToManyRelationship = $rel;
                     break;
                 }
             }
-            
+
             if ($manyToManyRelationship) {
                 // Test batch loading
                 $batchResults = $manyToManyRelationship->batchLoad($userArray, $this->pdo);
                 $this->assertIsArray($batchResults);
-                
+
                 // Test distribution
                 $manyToManyRelationship->distributeBatchResults($userArray, $batchResults);
-                
+
                 // Test data size estimation
                 $dataSize = $manyToManyRelationship->estimateDataSize(count($userArray), null);
                 $this->assertIsInt($dataSize);
                 $this->assertGreaterThan(0, $dataSize);
-                
+
                 // Test with field selection
                 $dataSizeWithFields = $manyToManyRelationship->estimateDataSize(count($userArray), ['id', 'name']);
                 $this->assertIsInt($dataSizeWithFields);
-                
+
                 // Test cardinality
                 $this->assertEquals('many-to-many', $manyToManyRelationship->getCardinality());
             } else {
@@ -176,12 +176,12 @@ class RelationshipBatchMethods_Test extends TestCase
     {
         $users = DataMapper::find(UserModel::class, $this->pdo)->some();
         $userArray = iterator_to_array($users);
-        
+
         if (count($userArray) > 0) {
             $user = $userArray[0];
             $relationshipManager = $user->getRelationshipManager();
             $relationship = $relationshipManager->getRelationship('posts');
-            
+
             if ($relationship) {
                 // Test with empty field selection
                 $dataSize = $relationship->estimateDataSize(count($userArray), []);
@@ -199,18 +199,18 @@ class RelationshipBatchMethods_Test extends TestCase
     {
         $users = DataMapper::find(UserModel::class, $this->pdo)->some();
         $userArray = iterator_to_array($users);
-        
+
         if (count($userArray) > 0) {
             $user = $userArray[0];
             $relationshipManager = $user->getRelationshipManager();
             $relationship = $relationshipManager->getRelationship('posts');
-            
+
             if ($relationship) {
                 // Test with empty array
                 $batchResults = $relationship->batchLoad([], $this->pdo);
                 $this->assertIsArray($batchResults);
                 $this->assertEmpty($batchResults);
-                
+
                 // Test data size estimation with zero models
                 $dataSize = $relationship->estimateDataSize(0, null);
                 $this->assertEquals(0, $dataSize);
@@ -226,16 +226,16 @@ class RelationshipBatchMethods_Test extends TestCase
     {
         $users = DataMapper::find(UserModel::class, $this->pdo)->some();
         $userArray = iterator_to_array($users);
-        
+
         if (count($userArray) > 0) {
             $user = $userArray[0];
             $relationshipManager = $user->getRelationshipManager();
             $relationship = $relationshipManager->getRelationship('posts');
-            
+
             if ($relationship) {
                 // Test distribution with empty results
                 $relationship->distributeBatchResults($userArray, []);
-                
+
                 // Should not throw an exception
                 $this->assertTrue(true);
             } else {

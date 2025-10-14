@@ -17,16 +17,16 @@ class DynamicCompanyModel extends Model
         $mapper = DataMapper::createByClass($pdo, $this);
         $mapper->table = 'dynamic_companies';
         $mapper->mode = DataMapper::MODE_DYNAMIC; // Enable dynamic schema creation
-        
+
         // Set up column mapping
         $mapper->map = [
             'id' => 'id',
             'name' => 'name',
             'address' => 'address'
         ];
-        
+
         parent::__construct($pdo, $mapper);
-        
+
         // Define relationships
         $this->hasMany('Anorm\Test\DynamicUserModel', 'company_id', 'id', 'users');
     }

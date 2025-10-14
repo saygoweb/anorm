@@ -69,10 +69,10 @@ class BatchLoadingIntegration_Test extends TestCase
             ->some();
 
         $userArray = iterator_to_array($users);
-        
+
         // We should have at least 15 users (3 original + 12 created)
         $this->assertGreaterThanOrEqual(15, count($userArray));
-        
+
         // Verify that all users have their posts loaded
         foreach ($userArray as $user) {
             $this->assertNotNull($user->name);
@@ -134,7 +134,7 @@ class BatchLoadingIntegration_Test extends TestCase
 
         $userArray = iterator_to_array($users);
         $this->assertGreaterThan(0, count($userArray));
-        
+
         // Verify relationships are loaded (full objects for now, field selection optimization in Phase 3)
         foreach ($userArray as $user) {
             if (!empty($user->posts)) {
@@ -145,7 +145,7 @@ class BatchLoadingIntegration_Test extends TestCase
                     $this->assertNotNull($post->title);
                 }
             }
-            
+
             if ($user->company) {
                 $this->assertInstanceOf(CompanyModel::class, $user->company);
                 $this->assertNotNull($user->company->name);
@@ -158,7 +158,7 @@ class BatchLoadingIntegration_Test extends TestCase
         // Create additional users (IDs 4-15)
         for ($i = 4; $i <= 15; $i++) {
             $this->pdo->exec("INSERT IGNORE INTO users (id, name, email, company_id) VALUES ({$i}, 'Test User {$i}', 'user{$i}@test.com', " . (($i % 2) + 1) . ")");
-            
+
             // Create posts for each user
             for ($j = 1; $j <= 2; $j++) {
                 $postId = ($i - 1) * 10 + $j + 100; // Unique post IDs starting from 101
@@ -177,7 +177,7 @@ class BatchLoadingIntegration_Test extends TestCase
     public function testBatchLoadingStrategySelection()
     {
         // Test that strategy selection works correctly with different configurations
-        
+
         // Test 1: Force individual loading
         $users = DataMapper::find(UserModel::class, $this->pdo)
             ->with(['posts'])
@@ -186,10 +186,10 @@ class BatchLoadingIntegration_Test extends TestCase
                 'individual_loading_threshold' => 100  // High threshold forces individual loading
             ])
             ->some();
-        
+
         $userArray = iterator_to_array($users);
         $this->assertGreaterThan(0, count($userArray));
-        
+
         // Test 2: Force batch loading
         $users = DataMapper::find(UserModel::class, $this->pdo)
             ->with(['posts'])
@@ -198,7 +198,7 @@ class BatchLoadingIntegration_Test extends TestCase
                 'individual_loading_threshold' => 1  // Low threshold forces batch loading
             ])
             ->some();
-        
+
         $userArray = iterator_to_array($users);
         $this->assertGreaterThan(0, count($userArray));
     }
@@ -206,7 +206,7 @@ class BatchLoadingIntegration_Test extends TestCase
     public function testBatchLoadingErrorRecovery()
     {
         // Test that the system gracefully handles errors and falls back to individual loading
-        
+
         $users = DataMapper::find(UserModel::class, $this->pdo)
             ->with(['posts', 'company'])
             ->setBatchLoadingConfig([
@@ -218,7 +218,7 @@ class BatchLoadingIntegration_Test extends TestCase
 
         $userArray = iterator_to_array($users);
         $this->assertGreaterThan(0, count($userArray));
-        
+
         // Verify that relationships are loaded despite any potential errors
         foreach ($userArray as $user) {
             $this->assertNotNull($user->name);

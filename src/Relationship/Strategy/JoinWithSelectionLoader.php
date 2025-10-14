@@ -6,7 +6,7 @@ use Anorm\Relationship\BatchLoader\BatchLoaderInterface;
 
 /**
  * JOIN-based loader with field selection optimization
- * 
+ *
  * This loader uses JOIN queries with field selection to minimize data transfer
  * while maintaining query efficiency. It's particularly effective for relationships
  * where only specific fields are needed from related models.
@@ -39,7 +39,7 @@ class JoinWithSelectionLoader implements BatchLoaderInterface
         $firstModel = reset($sourceModels);
         $relationshipManager = $firstModel->getRelationshipManager();
         $relationship = $relationshipManager->getRelationship($relationshipName);
-        
+
         if (!$relationship) {
             throw new \Exception("Relationship '{$relationshipName}' not defined");
         }
@@ -68,7 +68,7 @@ class JoinWithSelectionLoader implements BatchLoaderInterface
 
     /**
      * Distribute batch-loaded results to their corresponding source models
-     * 
+     *
      * @param array $sourceModels Array of model instances to receive the loaded data
      * @param array $batchResults Results from batchLoad(), keyed by source model identifier
      * @param string $relationshipName Name of the relationship being distributed
@@ -80,16 +80,16 @@ class JoinWithSelectionLoader implements BatchLoaderInterface
         $firstModel = reset($sourceModels);
         $relationshipManager = $firstModel->getRelationshipManager();
         $relationship = $relationshipManager->getRelationship($relationshipName);
-        
+
         if (!$relationship) {
             return; // Relationship not found, skip distribution
         }
 
         $cardinality = $relationship->getCardinality();
-        
+
         foreach ($sourceModels as $model) {
             $primaryKeyValue = $model->{$relationship->getPrimaryKey()};
-            
+
             if (isset($batchResults[$primaryKeyValue])) {
                 if ($cardinality === 'many-to-one' || $cardinality === 'one-to-one') {
                     // Single model relationship
@@ -111,7 +111,7 @@ class JoinWithSelectionLoader implements BatchLoaderInterface
 
     /**
      * Build JOIN query with field selection
-     * 
+     *
      * @param object $relationship The relationship instance
      * @param array|null $fieldSelection Specific fields to load, or null for all fields
      * @param array $sourceModels Source models for the query
@@ -122,23 +122,23 @@ class JoinWithSelectionLoader implements BatchLoaderInterface
         // Get table information
         $sourceTable = $this->getTableName($relationship, 'source');
         $relatedTable = $this->getTableName($relationship, 'related');
-        
+
         // Build SELECT clause with field selection
         $selectClause = $this->buildSelectClause($fieldSelection, $sourceTable, $relatedTable, $relationship);
-        
+
         // Build JOIN clause
         $joinClause = $relationship->generateJoinClause($sourceTable, $relatedTable);
-        
+
         // Build WHERE clause for source model filtering
         $primaryKeys = $this->extractPrimaryKeys($sourceModels, $relationship);
         $whereClause = $this->buildWhereClause($sourceTable, $relationship->getPrimaryKey(), $primaryKeys);
-        
+
         return "SELECT {$selectClause} FROM `{$sourceTable}` s {$joinClause} WHERE {$whereClause}";
     }
 
     /**
      * Build SELECT clause with field selection and table aliases
-     * 
+     *
      * @param array|null $fieldSelection Specific fields to load
      * @param string $sourceTable Source table name
      * @param string $relatedTable Related table name
@@ -148,11 +148,11 @@ class JoinWithSelectionLoader implements BatchLoaderInterface
     public function buildSelectClause(?array $fieldSelection, string $sourceTable, string $relatedTable, $relationship): string
     {
         $selectParts = [];
-        
+
         // Always include source primary key for grouping
         $sourcePrimaryKey = $relationship->getPrimaryKey();
         $selectParts[] = "s.`{$sourcePrimaryKey}` AS source_id";
-        
+
         // Add related table fields with selection
         if ($fieldSelection === null || empty($fieldSelection)) {
             // Select all fields from related table
@@ -163,13 +163,13 @@ class JoinWithSelectionLoader implements BatchLoaderInterface
                 $selectParts[] = "r.`{$field}`";
             }
         }
-        
+
         return implode(', ', $selectParts);
     }
 
     /**
      * Process JOIN query results and group by source model
-     * 
+     *
      * @param \PDOStatement $result Query result
      * @param array $sourceModels Source models
      * @param object $relationship The relationship instance
@@ -180,27 +180,27 @@ class JoinWithSelectionLoader implements BatchLoaderInterface
     {
         $groupedResults = [];
         $relatedClass = $relationship->getRelatedModelClass();
-        
+
         while ($row = $result->fetch(\PDO::FETCH_ASSOC)) {
             $sourceId = $row['source_id'];
             unset($row['source_id']); // Remove source ID from related model data
-            
+
             // Skip rows with no related data (LEFT JOIN nulls)
             if ($this->isEmptyRelatedRow($row)) {
                 continue;
             }
-            
+
             // Create related model instance (potentially partial)
             $firstModel = reset($sourceModels);
             $relatedModel = $this->createPartialModel($relatedClass, $row, $fieldSelection, $firstModel->getPdo());
-            
+
             // Group by source ID
             if (!isset($groupedResults[$sourceId])) {
                 $groupedResults[$sourceId] = [];
             }
             $groupedResults[$sourceId][] = $relatedModel;
         }
-        
+
         return $groupedResults;
     }
 
@@ -235,7 +235,7 @@ class JoinWithSelectionLoader implements BatchLoaderInterface
 
     /**
      * Extract primary keys from source models
-     * 
+     *
      * @param array $sourceModels Source models
      * @param object $relationship The relationship instance
      * @return array Primary key values
@@ -244,20 +244,20 @@ class JoinWithSelectionLoader implements BatchLoaderInterface
     {
         $primaryKeys = [];
         $primaryKeyField = $relationship->getPrimaryKey();
-        
+
         foreach ($sourceModels as $model) {
             $primaryKeyValue = $model->{$primaryKeyField};
             if ($primaryKeyValue !== null) {
                 $primaryKeys[] = $primaryKeyValue;
             }
         }
-        
+
         return array_unique($primaryKeys);
     }
 
     /**
      * Build WHERE clause for primary key filtering
-     * 
+     *
      * @param string $table Table name
      * @param string $primaryKeyField Primary key field name
      * @param array $primaryKeys Primary key values
@@ -268,14 +268,14 @@ class JoinWithSelectionLoader implements BatchLoaderInterface
         if (empty($primaryKeys)) {
             return '1=0'; // No results
         }
-        
+
         $placeholders = str_repeat('?,', count($primaryKeys) - 1) . '?';
         return "s.`{$primaryKeyField}` IN ({$placeholders})";
     }
 
     /**
      * Get table name for a relationship
-     * 
+     *
      * @param object $relationship The relationship instance
      * @param string $type 'source' or 'related'
      * @return string Table name

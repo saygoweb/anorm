@@ -4,7 +4,7 @@ namespace Anorm\Relationship\Strategy;
 
 /**
  * Interface for selecting optimal query strategies for relationship loading
- * 
+ *
  * This interface defines the contract for choosing between different
  * relationship loading strategies based on data characteristics and requirements.
  */
@@ -17,10 +17,10 @@ interface QueryStrategyInterface
 
     /**
      * Select the optimal query strategy for a relationship
-     * 
+     *
      * Analyzes the relationship characteristics, source model count, and field
      * selection requirements to determine the most efficient loading strategy.
-     * 
+     *
      * @param object $relationship The relationship instance to analyze
      * @param int $sourceCount Number of source models that need this relationship loaded
      * @param array|null $fieldSelection Specific fields to load, or null for all fields
@@ -30,10 +30,10 @@ interface QueryStrategyInterface
 
     /**
      * Get metadata about a strategy selection decision
-     * 
+     *
      * Provides detailed information about why a particular strategy was chosen,
      * including estimated data sizes, query counts, and performance implications.
-     * 
+     *
      * @param string $strategy The selected strategy
      * @param object $relationship The relationship that was analyzed
      * @param int $sourceCount Number of source models
@@ -44,7 +44,7 @@ interface QueryStrategyInterface
 
     /**
      * Check if a strategy is supported for a given relationship type
-     * 
+     *
      * @param string $strategy Strategy to check
      * @param string $relationshipType Type of relationship (oneHasMany, manyHasOne, etc.)
      * @return bool True if the strategy is supported for this relationship type

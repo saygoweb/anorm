@@ -4,7 +4,7 @@ namespace Anorm\Relationship\Cache;
 
 /**
  * LRU (Least Recently Used) cache for relationship data
- * 
+ *
  * This cache stores loaded relationship models to avoid redundant database queries
  * when the same related models are needed across different source models.
  */
@@ -12,13 +12,13 @@ class RelationshipCache
 {
     /** @var array Cache storage */
     private $cache = [];
-    
+
     /** @var array Access order tracking for LRU eviction */
     private $accessOrder = [];
-    
+
     /** @var int Maximum number of items to cache */
     private $maxSize;
-    
+
     /** @var array Cache statistics */
     private $stats = [
         'hits' => 0,
@@ -34,7 +34,7 @@ class RelationshipCache
 
     /**
      * Get a cached relationship model
-     * 
+     *
      * @param string $cacheKey Unique cache key for the relationship
      * @return mixed|null Cached model or null if not found
      */
@@ -46,14 +46,14 @@ class RelationshipCache
             $this->stats['hits']++;
             return $this->cache[$cacheKey];
         }
-        
+
         $this->stats['misses']++;
         return null;
     }
 
     /**
      * Store a relationship model in cache
-     * 
+     *
      * @param string $cacheKey Unique cache key
      * @param mixed $model Model to cache
      * @return void
@@ -64,7 +64,7 @@ class RelationshipCache
         if (count($this->cache) >= $this->maxSize && !isset($this->cache[$cacheKey])) {
             $this->evictLeastRecentlyUsed();
         }
-        
+
         $this->cache[$cacheKey] = $model;
         $this->updateAccessOrder($cacheKey);
         $this->stats['sets']++;
@@ -83,7 +83,7 @@ class RelationshipCache
 
     /**
      * Remove an item from cache
-     * 
+     *
      * @param string $cacheKey Cache key to remove
      * @return void
      */
@@ -95,7 +95,7 @@ class RelationshipCache
 
     /**
      * Clear all cached items
-     * 
+     *
      * @return void
      */
     public function clear(): void
@@ -112,14 +112,14 @@ class RelationshipCache
 
     /**
      * Get cache statistics
-     * 
+     *
      * @return array Cache performance metrics
      */
     public function getStats(): array
     {
         $total = $this->stats['hits'] + $this->stats['misses'];
         $hitRate = $total > 0 ? ($this->stats['hits'] / $total) * 100 : 0;
-        
+
         return array_merge($this->stats, [
             'size' => count($this->cache),
             'max_size' => $this->maxSize,
@@ -129,7 +129,7 @@ class RelationshipCache
 
     /**
      * Generate cache key for a relationship
-     * 
+     *
      * @param string $relationshipType Type of relationship (oneHasMany, manyHasOne, etc.)
      * @param string $relatedModelClass Class name of related model
      * @param mixed $relatedModelId Primary key of related model
@@ -143,18 +143,18 @@ class RelationshipCache
             $relatedModelClass,
             (string)$relatedModelId
         ];
-        
+
         if ($fieldSelection !== null) {
             sort($fieldSelection); // Normalize field order
             $parts[] = implode(',', $fieldSelection);
         }
-        
+
         return implode(':', $parts);
     }
 
     /**
      * Invalidate cache entries for a specific model class
-     * 
+     *
      * @param string $modelClass Model class to invalidate
      * @return int Number of entries removed
      */
@@ -162,24 +162,24 @@ class RelationshipCache
     {
         $removed = 0;
         $keysToRemove = [];
-        
+
         foreach (array_keys($this->cache) as $key) {
             if (strpos($key, $modelClass) !== false) {
                 $keysToRemove[] = $key;
             }
         }
-        
+
         foreach ($keysToRemove as $key) {
             $this->remove($key);
             $removed++;
         }
-        
+
         return $removed;
     }
 
     /**
      * Warm cache with frequently accessed relationships
-     * 
+     *
      * @param array $relationships Array of relationship data to pre-load
      * @return void
      */
@@ -194,7 +194,7 @@ class RelationshipCache
 
     /**
      * Update access order for LRU tracking
-     * 
+     *
      * @param string $cacheKey Cache key that was accessed
      * @return void
      */
@@ -202,14 +202,14 @@ class RelationshipCache
     {
         // Remove from current position
         $this->removeFromAccessOrder($cacheKey);
-        
+
         // Add to end (most recently used)
         $this->accessOrder[] = $cacheKey;
     }
 
     /**
      * Remove key from access order tracking
-     * 
+     *
      * @param string $cacheKey Cache key to remove
      * @return void
      */
@@ -223,7 +223,7 @@ class RelationshipCache
 
     /**
      * Evict the least recently used item
-     * 
+     *
      * @return void
      */
     private function evictLeastRecentlyUsed(): void
@@ -237,13 +237,13 @@ class RelationshipCache
 
     /**
      * Get cache efficiency metrics
-     * 
+     *
      * @return array Performance analysis
      */
     public function getEfficiencyMetrics(): array
     {
         $stats = $this->getStats();
-        
+
         return [
             'hit_rate' => $stats['hit_rate'],
             'miss_rate' => 100 - $stats['hit_rate'],

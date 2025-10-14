@@ -27,10 +27,10 @@ class DataSizeEstimator_Test extends TestCase
     public function testEstimateInClauseDataSize()
     {
         $size = $this->estimator->estimateInClauseDataSize($this->mockRelationship, 10);
-        
+
         $this->assertIsInt($size);
         $this->assertGreaterThan(0, $size);
-        
+
         // Size should scale with source count
         $largerSize = $this->estimator->estimateInClauseDataSize($this->mockRelationship, 20);
         $this->assertGreaterThan($size, $largerSize);
@@ -39,7 +39,7 @@ class DataSizeEstimator_Test extends TestCase
     public function testEstimateJoinDataSizeWithoutFieldSelection()
     {
         $size = $this->estimator->estimateJoinDataSize($this->mockRelationship, 10, null);
-        
+
         $this->assertIsInt($size);
         $this->assertGreaterThan(0, $size);
     }
@@ -48,10 +48,10 @@ class DataSizeEstimator_Test extends TestCase
     {
         $fieldSelection = ['id', 'title', 'content'];
         $size = $this->estimator->estimateJoinDataSize($this->mockRelationship, 10, $fieldSelection);
-        
+
         $this->assertIsInt($size);
         $this->assertGreaterThan(0, $size);
-        
+
         // Size with field selection should be different from without
         $sizeWithoutSelection = $this->estimator->estimateJoinDataSize($this->mockRelationship, 10, null);
         $this->assertNotEquals($size, $sizeWithoutSelection);
@@ -63,17 +63,17 @@ class DataSizeEstimator_Test extends TestCase
         $manyToOneRelationship = $this->createMockRelationship('many-to-one');
         $oneToOneRelationship = $this->createMockRelationship('one-to-one');
         $manyToManyRelationship = $this->createMockRelationship('many-to-many');
-        
+
         $oneToManySize = $this->estimator->estimateJoinDataSize($oneToManyRelationship, 10, null);
         $manyToOneSize = $this->estimator->estimateJoinDataSize($manyToOneRelationship, 10, null);
         $oneToOneSize = $this->estimator->estimateJoinDataSize($oneToOneRelationship, 10, null);
         $manyToManySize = $this->estimator->estimateJoinDataSize($manyToManyRelationship, 10, null);
-        
+
         $this->assertIsInt($oneToManySize);
         $this->assertIsInt($manyToOneSize);
         $this->assertIsInt($oneToOneSize);
         $this->assertIsInt($manyToManySize);
-        
+
         // One-to-many should generally be larger than many-to-one due to duplication
         $this->assertGreaterThan($manyToOneSize, $oneToManySize);
     }
@@ -100,7 +100,7 @@ class DataSizeEstimator_Test extends TestCase
         $this->assertEquals(1.0, $manyToOneAvg);  // Hardcoded estimate for many-to-one relationships
         $this->assertEquals(1.0, $oneToOneAvg);
         $this->assertEquals(3.0, $manyToManyAvg);
-        
+
         // Test caching - second call should return same value
         $cachedAvg = $this->estimator->getAverageRelatedRecords($oneToManyRelationship);
         $this->assertEquals($oneToManyAvg, $cachedAvg);
@@ -109,11 +109,11 @@ class DataSizeEstimator_Test extends TestCase
     public function testGetAverageRecordSize()
     {
         $size = $this->estimator->getAverageRecordSize('TestModel');
-        
+
         $this->assertIsInt($size);
         $this->assertGreaterThan(0, $size);
         $this->assertEquals(1024, $size); // Default estimate
-        
+
         // Test caching - second call should return same value
         $cachedSize = $this->estimator->getAverageRecordSize('TestModel');
         $this->assertEquals($size, $cachedSize);
@@ -123,10 +123,10 @@ class DataSizeEstimator_Test extends TestCase
     {
         $fields = ['id', 'name', 'email', 'description', 'created_at'];
         $size = $this->estimator->calculateSelectedFieldSize($fields);
-        
+
         $this->assertIsInt($size);
         $this->assertGreaterThan(0, $size);
-        
+
         // More fields should result in larger size
         $moreFields = ['id', 'name', 'email', 'description', 'created_at', 'updated_at', 'content'];
         $largerSize = $this->estimator->calculateSelectedFieldSize($moreFields);
@@ -139,7 +139,7 @@ class DataSizeEstimator_Test extends TestCase
         $reflection = new \ReflectionClass($this->estimator);
         $method = $reflection->getMethod('estimateFieldSize');
         $method->setAccessible(true);
-        
+
         // Test different field types
         $this->assertEquals(8, $method->invoke($this->estimator, 'id'));
         $this->assertEquals(8, $method->invoke($this->estimator, 'user_id'));
@@ -162,7 +162,7 @@ class DataSizeEstimator_Test extends TestCase
         $reflection = new \ReflectionClass($this->estimator);
         $method = $reflection->getMethod('getSourceModelClass');
         $method->setAccessible(true);
-        
+
         $result = $method->invoke($this->estimator, $this->mockRelationship);
         $this->assertEquals('DefaultModel', $result);
     }
@@ -172,14 +172,14 @@ class DataSizeEstimator_Test extends TestCase
         // First, populate cache
         $this->estimator->getAverageRelatedRecords($this->mockRelationship);
         $this->estimator->getAverageRecordSize('TestModel');
-        
+
         // Clear cache
         DataSizeEstimator::clearCache();
-        
+
         // Values should still be returned (recalculated)
         $avg = $this->estimator->getAverageRelatedRecords($this->mockRelationship);
         $size = $this->estimator->getAverageRecordSize('TestModel');
-        
+
         $this->assertIsFloat($avg);
         $this->assertIsInt($size);
     }
@@ -188,24 +188,24 @@ class DataSizeEstimator_Test extends TestCase
     {
         $testKey = 'test_cache_key';
         $testValue = 12345;
-        
+
         DataSizeEstimator::setCacheValue($testKey, $testValue);
-        
+
         // Use reflection to access cache
         $reflection = new \ReflectionClass(DataSizeEstimator::class);
         $property = $reflection->getProperty('cache');
         $property->setAccessible(true);
         $cache = $property->getValue();
-        
+
         $this->assertEquals($testValue, $cache[$testKey]);
     }
 
     public function testEstimateJoinDataSizeWithUnknownCardinality()
     {
         $unknownRelationship = $this->createMockRelationship('unknown-cardinality');
-        
+
         $size = $this->estimator->estimateJoinDataSize($unknownRelationship, 10, null);
-        
+
         $this->assertIsInt($size);
         $this->assertGreaterThan(0, $size);
     }

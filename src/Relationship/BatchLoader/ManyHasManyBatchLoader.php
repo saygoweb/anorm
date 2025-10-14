@@ -4,7 +4,7 @@ namespace Anorm\Relationship\BatchLoader;
 
 /**
  * Batch loader for Many-to-Many relationships (hasManyThrough)
- * 
+ *
  * Optimizes loading of many-to-many relationships by collecting all primary keys
  * and executing a single complex JOIN query through the pivot table instead of N individual queries.
  */
@@ -28,7 +28,7 @@ class ManyHasManyBatchLoader implements BatchLoaderInterface
         $firstModel = reset($sourceModels);
         $relationshipManager = $firstModel->getRelationshipManager();
         $relationship = $relationshipManager->getRelationship($relationshipName);
-        
+
         if (!$relationship) {
             throw new \Exception("Relationship '{$relationshipName}' not defined");
         }
@@ -48,12 +48,12 @@ class ManyHasManyBatchLoader implements BatchLoaderInterface
 
         // Remove duplicates and prepare for IN clause
         $primaryKeys = array_values(array_unique($primaryKeys));
-        
+
         // Create an instance of the related model to get its mapper
         $relatedClass = $relationship->getRelatedModelClass();
         $relatedInstance = new $relatedClass($firstModel->getPdo());
         $mapper = $relatedInstance->_mapper;
-        
+
         // Build the complex JOIN query through the pivot table
         $placeholders = str_repeat('?,', count($primaryKeys) - 1) . '?';
 
@@ -72,32 +72,32 @@ class ManyHasManyBatchLoader implements BatchLoaderInterface
 
         // Execute the batch query
         $result = $mapper->query($sql, $primaryKeys);
-        
+
         // Group results by source primary key
         $groupedResults = [];
         while ($data = $result->fetch(\PDO::FETCH_ASSOC)) {
             $sourceId = $data['source_id'];
-            
+
             // Remove the source_id from the data before creating the model
             unset($data['source_id']);
-            
+
             // Create related model instance
             $relatedModel = new $relatedClass($firstModel->getPdo());
             $relatedModel->_mapper->readArray($relatedModel, $data);
-            
+
             // Group by source primary key
             if (!isset($groupedResults[$sourceId])) {
                 $groupedResults[$sourceId] = [];
             }
             $groupedResults[$sourceId][] = $relatedModel;
         }
-        
+
         return $groupedResults;
     }
 
     /**
      * Distribute batch-loaded results to their corresponding source models
-     * 
+     *
      * @param array $sourceModels Array of model instances to receive the loaded data
      * @param array $batchResults Results from batchLoad(), keyed by source model primary key
      * @param string $relationshipName Name of the relationship being distributed
@@ -114,14 +114,14 @@ class ManyHasManyBatchLoader implements BatchLoaderInterface
         $firstModel = reset($sourceModels);
         $relationshipManager = $firstModel->getRelationshipManager();
         $relationship = $relationshipManager->getRelationship($relationshipName);
-        
+
         if (!$relationship) {
             return; // Relationship not found, skip distribution
         }
 
         foreach ($sourceModels as $model) {
             $primaryKeyValue = $model->{$relationship->getPrimaryKey()};
-            
+
             // Assign the related models array to the model property
             if (isset($batchResults[$primaryKeyValue])) {
                 $model->{$relationshipName} = $batchResults[$primaryKeyValue];
@@ -134,7 +134,7 @@ class ManyHasManyBatchLoader implements BatchLoaderInterface
 
     /**
      * Estimate the number of queries this batch loader would execute
-     * 
+     *
      * @param int $sourceCount Number of source models
      * @return int Number of queries (always 1 for batch loading)
      */
@@ -145,7 +145,7 @@ class ManyHasManyBatchLoader implements BatchLoaderInterface
 
     /**
      * Check if this batch loader can handle the given relationship
-     * 
+     *
      * @param object $relationship The relationship to check
      * @return bool True if this loader can handle the relationship
      */
@@ -156,7 +156,7 @@ class ManyHasManyBatchLoader implements BatchLoaderInterface
 
     /**
      * Get the maximum recommended batch size for this loader
-     * 
+     *
      * @return int Maximum number of source models to process in one batch
      */
     public function getMaxBatchSize(): int
@@ -167,7 +167,7 @@ class ManyHasManyBatchLoader implements BatchLoaderInterface
 
     /**
      * Estimate the complexity of the many-to-many relationship
-     * 
+     *
      * @param array $sourceModels Source models to analyze
      * @param string $relationshipName Name of the relationship
      * @return array Complexity metrics
@@ -175,11 +175,11 @@ class ManyHasManyBatchLoader implements BatchLoaderInterface
     public function estimateComplexity(array $sourceModels, string $relationshipName): array
     {
         $sourceCount = count($sourceModels);
-        
+
         // Estimate based on typical many-to-many patterns
         $estimatedRelatedPerSource = 3; // Conservative estimate
         $estimatedTotalRelated = $sourceCount * $estimatedRelatedPerSource;
-        
+
         return [
             'source_count' => $sourceCount,
             'estimated_related_per_source' => $estimatedRelatedPerSource,

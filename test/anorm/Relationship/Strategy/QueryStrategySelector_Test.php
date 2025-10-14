@@ -42,7 +42,7 @@ class QueryStrategySelector_Test extends TestCase
     {
         $fieldSelection = ['id', 'title'];
         $strategy = $this->selector->selectStrategy($this->mockRelationship, 20, $fieldSelection);
-        
+
         // Should consider JOIN strategy with field selection
         $this->assertContains($strategy, [
             QueryStrategyInterface::STRATEGY_JOIN_WITH_SELECTION,
@@ -54,9 +54,9 @@ class QueryStrategySelector_Test extends TestCase
     {
         $manyToManyRelationship = $this->createMockRelationship('many-to-many');
         $fieldSelection = ['id', 'name'];
-        
+
         $strategy = $this->selector->selectStrategy($manyToManyRelationship, 20, $fieldSelection);
-        
+
         // Many-to-many should not use JOIN strategy due to data explosion risk
         $this->assertEquals(QueryStrategyInterface::STRATEGY_IN_CLAUSE_BATCH, $strategy);
     }
@@ -65,9 +65,9 @@ class QueryStrategySelector_Test extends TestCase
     {
         $oneToOneRelationship = $this->createMockRelationship('one-to-one');
         $fieldSelection = ['id', 'name'];
-        
+
         $strategy = $this->selector->selectStrategy($oneToOneRelationship, 20, $fieldSelection);
-        
+
         // One-to-one should be able to use JOIN strategy
         $this->assertContains($strategy, [
             QueryStrategyInterface::STRATEGY_JOIN_WITH_SELECTION,
@@ -79,7 +79,7 @@ class QueryStrategySelector_Test extends TestCase
     {
         $strategy = QueryStrategyInterface::STRATEGY_IN_CLAUSE_BATCH;
         $metadata = $this->selector->getStrategyMetadata($strategy, $this->mockRelationship, 20, ['id', 'title']);
-        
+
         $this->assertIsArray($metadata);
         $this->assertArrayHasKey('strategy', $metadata);
         $this->assertArrayHasKey('source_count', $metadata);
@@ -87,7 +87,7 @@ class QueryStrategySelector_Test extends TestCase
         $this->assertArrayHasKey('cardinality', $metadata);
         $this->assertArrayHasKey('estimated_queries', $metadata);
         $this->assertArrayHasKey('decision_factors', $metadata);
-        
+
         $this->assertEquals($strategy, $metadata['strategy']);
         $this->assertEquals(20, $metadata['source_count']);
         $this->assertEquals(['id', 'title'], $metadata['field_selection']);
@@ -98,22 +98,22 @@ class QueryStrategySelector_Test extends TestCase
     public function testIsStrategySupported()
     {
         $this->assertTrue($this->selector->isStrategySupported(
-            QueryStrategyInterface::STRATEGY_INDIVIDUAL_LOADING, 
+            QueryStrategyInterface::STRATEGY_INDIVIDUAL_LOADING,
             'oneHasMany'
         ));
-        
+
         $this->assertTrue($this->selector->isStrategySupported(
-            QueryStrategyInterface::STRATEGY_IN_CLAUSE_BATCH, 
+            QueryStrategyInterface::STRATEGY_IN_CLAUSE_BATCH,
             'manyHasOne'
         ));
-        
+
         $this->assertTrue($this->selector->isStrategySupported(
-            QueryStrategyInterface::STRATEGY_JOIN_WITH_SELECTION, 
+            QueryStrategyInterface::STRATEGY_JOIN_WITH_SELECTION,
             'manyHasMany'
         ));
-        
+
         $this->assertFalse($this->selector->isStrategySupported(
-            'invalid_strategy', 
+            'invalid_strategy',
             'oneHasMany'
         ));
     }
@@ -125,10 +125,10 @@ class QueryStrategySelector_Test extends TestCase
             'join_strategy_threshold' => 0.3,
             'debug_mode' => true
         ];
-        
+
         $this->selector->setConfig($config);
         $retrievedConfig = $this->selector->getConfig();
-        
+
         $this->assertEquals(5, $retrievedConfig['individual_loading_threshold']);
         $this->assertEquals(0.3, $retrievedConfig['join_strategy_threshold']);
         $this->assertTrue($retrievedConfig['debug_mode']);
@@ -138,7 +138,7 @@ class QueryStrategySelector_Test extends TestCase
     {
         $customEstimator = new DataSizeEstimator();
         $selector = new QueryStrategySelector($customEstimator);
-        
+
         $strategy = $selector->selectStrategy($this->mockRelationship, 20, null);
         $this->assertIsString($strategy);
     }
@@ -149,7 +149,7 @@ class QueryStrategySelector_Test extends TestCase
         $reflection = new \ReflectionClass($this->selector);
         $method = $reflection->getMethod('shouldUseJoinStrategy');
         $method->setAccessible(true);
-        
+
         $result = $method->invoke($this->selector, $this->mockRelationship, 20, null);
         $this->assertFalse($result); // Should not use JOIN without field selection
     }
@@ -160,7 +160,7 @@ class QueryStrategySelector_Test extends TestCase
         $reflection = new \ReflectionClass($this->selector);
         $method = $reflection->getMethod('shouldUseJoinStrategy');
         $method->setAccessible(true);
-        
+
         $result = $method->invoke($this->selector, $this->mockRelationship, 20, ['id', 'title']);
         $this->assertIsBool($result);
     }
@@ -171,7 +171,7 @@ class QueryStrategySelector_Test extends TestCase
         $reflection = new \ReflectionClass($this->selector);
         $method = $reflection->getMethod('isJoinOptimalForCardinality');
         $method->setAccessible(true);
-        
+
         $this->assertTrue($method->invoke($this->selector, 'one-to-one'));
         $this->assertTrue($method->invoke($this->selector, 'many-to-one'));
         $this->assertTrue($method->invoke($this->selector, 'one-to-many'));
@@ -185,7 +185,7 @@ class QueryStrategySelector_Test extends TestCase
         $reflection = new \ReflectionClass($this->selector);
         $method = $reflection->getMethod('estimateQueryCount');
         $method->setAccessible(true);
-        
+
         $this->assertEquals(10, $method->invoke($this->selector, QueryStrategyInterface::STRATEGY_INDIVIDUAL_LOADING, 10));
         $this->assertEquals(1, $method->invoke($this->selector, QueryStrategyInterface::STRATEGY_IN_CLAUSE_BATCH, 10));
         $this->assertEquals(1, $method->invoke($this->selector, QueryStrategyInterface::STRATEGY_JOIN_WITH_SELECTION, 10));
@@ -198,12 +198,12 @@ class QueryStrategySelector_Test extends TestCase
         $reflection = new \ReflectionClass($this->selector);
         $method = $reflection->getMethod('getDecisionFactors');
         $method->setAccessible(true);
-        
+
         $factors = $method->invoke($this->selector, QueryStrategyInterface::STRATEGY_IN_CLAUSE_BATCH, $this->mockRelationship, 20, ['id', 'title']);
-        
+
         $this->assertIsArray($factors);
         $this->assertNotEmpty($factors);
-        
+
         // Should contain information about field selection
         $hasFieldSelectionFactor = false;
         foreach ($factors as $factor) {

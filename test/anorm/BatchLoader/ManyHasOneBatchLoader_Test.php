@@ -62,11 +62,11 @@ class ManyHasOneBatchLoader_Test extends TestCase
         // Get posts to test belongsTo relationship
         $posts = DataMapper::find(PostModel::class, $this->pdo)->some();
         $postArray = iterator_to_array($posts);
-        
+
         if (count($postArray) > 0) {
             $result = $this->batchLoader->batchLoad($postArray, 'user');
             $this->assertIsArray($result);
-            
+
             // Results should be keyed by primary key values
             foreach ($result as $key => $value) {
                 $this->assertIsInt($key);
@@ -81,7 +81,7 @@ class ManyHasOneBatchLoader_Test extends TestCase
     {
         $posts = DataMapper::find(PostModel::class, $this->pdo)->some();
         $postArray = iterator_to_array($posts);
-        
+
         if (count($postArray) > 0) {
             // Create mock batch results
             $batchResults = [];
@@ -93,9 +93,9 @@ class ManyHasOneBatchLoader_Test extends TestCase
                     $batchResults[$post->user_id] = $user;
                 }
             }
-            
+
             $this->batchLoader->distributeBatchResults($postArray, $batchResults, 'user');
-            
+
             // Verify that the relationship property is set
             foreach ($postArray as $post) {
                 if ($post->user_id && isset($batchResults[$post->user_id])) {
@@ -141,17 +141,17 @@ class ManyHasOneBatchLoader_Test extends TestCase
     {
         $posts = DataMapper::find(PostModel::class, $this->pdo)->some();
         $postArray = iterator_to_array($posts);
-        
+
         if (count($postArray) > 0) {
             $batchResults = [];
             $stats = $this->batchLoader->getBatchStatistics($postArray, $batchResults);
-            
+
             $this->assertIsArray($stats);
             $this->assertArrayHasKey('source_models', $stats);
             $this->assertArrayHasKey('unique_foreign_keys', $stats);
             $this->assertArrayHasKey('loaded_models', $stats);
             $this->assertArrayHasKey('cache_hit_ratio', $stats);
-            
+
             $this->assertEquals(count($postArray), $stats['source_models']);
         } else {
             $this->markTestSkipped('No test data available');
@@ -167,7 +167,7 @@ class ManyHasOneBatchLoader_Test extends TestCase
             $model->user_id = null; // Null foreign key
             $mockModels[] = $model;
         }
-        
+
         $result = $this->batchLoader->batchLoad($mockModels, 'user');
         $this->assertEquals([], $result);
     }
@@ -177,9 +177,9 @@ class ManyHasOneBatchLoader_Test extends TestCase
         // Create a model with null foreign key
         $post = new PostModel($this->pdo);
         $post->user_id = null;
-        
+
         $this->batchLoader->distributeBatchResults([$post], [], 'user');
-        
+
         // Should set the relationship to null
         $this->assertNull($post->user);
     }
@@ -188,11 +188,11 @@ class ManyHasOneBatchLoader_Test extends TestCase
     {
         $posts = DataMapper::find(PostModel::class, $this->pdo)->some();
         $postArray = iterator_to_array($posts);
-        
+
         if (count($postArray) > 0) {
             // Test with non-existent relationship
             $this->batchLoader->distributeBatchResults($postArray, [], 'nonexistent_relationship');
-            
+
             // Should not throw an exception and should handle gracefully
             $this->assertTrue(true); // If we get here, the test passed
         } else {

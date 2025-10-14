@@ -13,10 +13,10 @@ class ManyHasMany extends Relationship
 {
     /** @var string The join table name */
     protected $joinTable;
-    
+
     /** @var string The foreign key in the join table for this model */
     protected $joinForeignKey;
-    
+
     /** @var string The foreign key in the join table for the related model */
     protected $joinRelatedKey;
 
@@ -62,7 +62,7 @@ class ManyHasMany extends Relationship
 
     /**
      * Load the related models for a many-to-many relationship
-     * 
+     *
      * @param object $sourceModel The model instance that owns the relationship
      * @param \PDO $pdo The database connection
      * @return array Array of related model instances
@@ -71,7 +71,7 @@ class ManyHasMany extends Relationship
     {
         $relatedClass = $this->relatedModelClass;
         $sourceValue = $sourceModel->{$this->primaryKey};
-        
+
         if ($sourceValue === null) {
             return [];
         }
@@ -79,7 +79,7 @@ class ManyHasMany extends Relationship
         // Create an instance of the related model to get its mapper
         $relatedInstance = new $relatedClass($pdo);
         $mapper = $relatedInstance->_mapper;
-        
+
         // Build the query to find related models through the join table
         // Use database column names directly
         $sql = "SELECT r.* FROM `{$mapper->table}` r
@@ -88,13 +88,13 @@ class ManyHasMany extends Relationship
 
         $result = $mapper->query($sql, [$sourceValue]);
         $relatedModels = [];
-        
+
         while ($data = $result->fetch(\PDO::FETCH_ASSOC)) {
             $relatedModel = new $relatedClass($pdo);
             $relatedModel->_mapper->readArray($relatedModel, $data);
             $relatedModels[] = $relatedModel;
         }
-        
+
         return $relatedModels;
     }
 

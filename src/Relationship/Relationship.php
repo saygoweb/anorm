@@ -10,16 +10,16 @@ abstract class Relationship
 {
     /** @var string The class name of the related model */
     protected $relatedModelClass;
-    
+
     /** @var string The property name where the relationship will be stored */
     protected $propertyName;
-    
+
     /** @var string The foreign key column name */
     protected $foreignKey;
-    
+
     /** @var string The primary key column name */
     protected $primaryKey;
-    
+
     /** @var array Additional options for the relationship */
     protected $options;
 

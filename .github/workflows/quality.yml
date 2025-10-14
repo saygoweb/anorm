@@ -43,7 +43,6 @@ jobs:
 
     - name: Run PHP CodeSniffer
       run: composer cs:check
-      continue-on-error: true
 
     - name: Generate CodeSniffer report for annotations
       if: failure()
@@ -90,7 +89,6 @@ jobs:
 
     - name: Run PHPStan
       run: composer analyze
-      continue-on-error: true
 
   security:
     name: Security Scan

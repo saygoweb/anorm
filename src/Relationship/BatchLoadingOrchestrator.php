@@ -8,7 +8,7 @@ use Anorm\Relationship\Strategy\QueryStrategyInterface;
 
 /**
  * Orchestrates batch loading of relationships for multiple models
- * 
+ *
  * This class coordinates the loading of relationships across multiple models,
  * selecting optimal strategies and managing the batch loading process.
  */
@@ -35,7 +35,7 @@ class BatchLoadingOrchestrator
 
     /**
      * Load relationships for multiple models using optimal strategies
-     * 
+     *
      * @param array $models Array of model instances
      * @param array $relationshipSpecs Array of relationship specifications (e.g., ['posts', 'company:name,address'])
      * @return void
@@ -59,7 +59,7 @@ class BatchLoadingOrchestrator
 
     /**
      * Load relationships for models of a single class
-     * 
+     *
      * @param array $models Array of model instances of the same class
      * @param array $parsedSpecs Parsed relationship specifications
      * @return void
@@ -76,7 +76,7 @@ class BatchLoadingOrchestrator
 
         foreach ($parsedSpecs as $relationshipName => $spec) {
             $relationship = $relationshipManager->getRelationship($relationshipName);
-            
+
             if (!$relationship) {
                 // Relationship not defined for this model class, skip
                 continue;
@@ -88,7 +88,7 @@ class BatchLoadingOrchestrator
 
     /**
      * Load a single relationship for multiple models
-     * 
+     *
      * @param array $models Array of model instances
      * @param object $relationship The relationship instance
      * @param array $spec Parsed relationship specification
@@ -143,7 +143,6 @@ class BatchLoadingOrchestrator
 
             // Distribute results to models
             $relationship->distributeBatchResults($models, $batchResults);
-
         } catch (\Exception $e) {
             // Fallback to individual loading on error
             if ($this->config['debug_mode']) {
@@ -155,7 +154,7 @@ class BatchLoadingOrchestrator
 
     /**
      * Execute individual loading strategy (fallback)
-     * 
+     *
      * @param array $models Array of model instances
      * @param object $relationship The relationship instance
      * @return void
@@ -163,7 +162,7 @@ class BatchLoadingOrchestrator
     private function executeIndividualLoading(array $models, $relationship): void
     {
         $relationshipName = $relationship->getPropertyName();
-        
+
         foreach ($models as $model) {
             try {
                 $model->loadRelated($relationshipName);
@@ -178,14 +177,14 @@ class BatchLoadingOrchestrator
 
     /**
      * Group models by their class name
-     * 
+     *
      * @param array $models Array of model instances
      * @return array Models grouped by class name
      */
     private function groupModelsByClass(array $models): array
     {
         $grouped = [];
-        
+
         foreach ($models as $model) {
             $className = get_class($model);
             if (!isset($grouped[$className])) {
@@ -193,7 +192,7 @@ class BatchLoadingOrchestrator
             }
             $grouped[$className][] = $model;
         }
-        
+
         return $grouped;
     }
 
@@ -201,7 +200,7 @@ class BatchLoadingOrchestrator
 
     /**
      * Get default configuration options
-     * 
+     *
      * @return array Default configuration
      */
     private function getDefaultConfig(): array
@@ -216,7 +215,7 @@ class BatchLoadingOrchestrator
 
     /**
      * Update configuration options
-     * 
+     *
      * @param array $config Configuration options to merge
      * @return void
      */
@@ -227,7 +226,7 @@ class BatchLoadingOrchestrator
 
     /**
      * Get current configuration
-     * 
+     *
      * @return array Current configuration
      */
     public function getConfig(): array
@@ -237,7 +236,7 @@ class BatchLoadingOrchestrator
 
     /**
      * Get performance statistics for the last batch loading operation
-     * 
+     *
      * @return array Performance statistics
      */
     public function getPerformanceStats(): array

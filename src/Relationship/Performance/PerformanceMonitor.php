@@ -4,7 +4,7 @@ namespace Anorm\Relationship\Performance;
 
 /**
  * Performance monitoring for relationship loading operations
- * 
+ *
  * Tracks query counts, data transfer volumes, response times, and strategy decisions
  * to provide insights into optimization effectiveness.
  */
@@ -12,10 +12,10 @@ class PerformanceMonitor
 {
     /** @var array Performance metrics storage */
     private $metrics = [];
-    
+
     /** @var array Active operation tracking */
     private $activeOperations = [];
-    
+
     /** @var bool Whether monitoring is enabled */
     private $enabled = true;
 
@@ -27,7 +27,7 @@ class PerformanceMonitor
 
     /**
      * Start tracking a relationship loading operation
-     * 
+     *
      * @param string $operationId Unique identifier for this operation
      * @param array $context Operation context (relationship type, model count, etc.)
      * @return void
@@ -37,7 +37,7 @@ class PerformanceMonitor
         if (!$this->enabled) {
             return;
         }
-        
+
         $this->activeOperations[$operationId] = [
             'start_time' => microtime(true),
             'start_memory' => memory_get_usage(true),
@@ -48,7 +48,7 @@ class PerformanceMonitor
 
     /**
      * End tracking a relationship loading operation
-     * 
+     *
      * @param string $operationId Operation identifier
      * @param array $results Operation results (loaded models, etc.)
      * @return void
@@ -58,11 +58,11 @@ class PerformanceMonitor
         if (!$this->enabled || !isset($this->activeOperations[$operationId])) {
             return;
         }
-        
+
         $operation = $this->activeOperations[$operationId];
         $endTime = microtime(true);
         $endMemory = memory_get_usage(true);
-        
+
         $metrics = [
             'operation_id' => $operationId,
             'duration' => $endTime - $operation['start_time'],
@@ -72,14 +72,14 @@ class PerformanceMonitor
             'results' => $results,
             'timestamp' => $endTime
         ];
-        
+
         $this->recordMetrics($metrics);
         unset($this->activeOperations[$operationId]);
     }
 
     /**
      * Record strategy selection decision
-     * 
+     *
      * @param string $relationshipType Type of relationship
      * @param string $selectedStrategy Strategy that was selected
      * @param array $decisionFactors Factors that influenced the decision
@@ -90,11 +90,11 @@ class PerformanceMonitor
         if (!$this->enabled) {
             return;
         }
-        
+
         if (!isset($this->metrics['strategy_selections'])) {
             $this->metrics['strategy_selections'] = [];
         }
-        
+
         $this->metrics['strategy_selections'][] = [
             'relationship_type' => $relationshipType,
             'selected_strategy' => $selectedStrategy,
@@ -105,7 +105,7 @@ class PerformanceMonitor
 
     /**
      * Record query count reduction
-     * 
+     *
      * @param int $beforeCount Query count before optimization
      * @param int $afterCount Query count after optimization
      * @param string $strategy Strategy used
@@ -116,10 +116,10 @@ class PerformanceMonitor
         if (!$this->enabled) {
             return;
         }
-        
+
         $reduction = $beforeCount - $afterCount;
         $reductionPercentage = $beforeCount > 0 ? ($reduction / $beforeCount) * 100 : 0;
-        
+
         $this->metrics['query_reductions'][] = [
             'before_count' => $beforeCount,
             'after_count' => $afterCount,
@@ -132,7 +132,7 @@ class PerformanceMonitor
 
     /**
      * Record data transfer volume
-     * 
+     *
      * @param int $bytesTransferred Number of bytes transferred
      * @param string $strategy Strategy used
      * @param array $context Additional context
@@ -143,7 +143,7 @@ class PerformanceMonitor
         if (!$this->enabled) {
             return;
         }
-        
+
         $this->metrics['data_transfers'][] = [
             'bytes_transferred' => $bytesTransferred,
             'strategy' => $strategy,
@@ -154,7 +154,7 @@ class PerformanceMonitor
 
     /**
      * Get comprehensive performance report
-     * 
+     *
      * @return array Performance analysis report
      */
     public function getPerformanceReport(): array
@@ -162,7 +162,7 @@ class PerformanceMonitor
         if (!$this->enabled) {
             return ['monitoring_disabled' => true];
         }
-        
+
         return [
             'summary' => $this->generateSummary(),
             'query_optimization' => $this->analyzeQueryOptimization(),
@@ -175,7 +175,7 @@ class PerformanceMonitor
 
     /**
      * Generate performance summary
-     * 
+     *
      * @return array Summary metrics
      */
     private function generateSummary(): array
@@ -184,7 +184,7 @@ class PerformanceMonitor
         $totalDuration = array_sum(array_column($this->metrics['operations'], 'duration'));
         $totalQueries = array_sum(array_column($this->metrics['operations'], 'queries_executed'));
         $totalMemory = array_sum(array_column($this->metrics['operations'], 'memory_used'));
-        
+
         return [
             'total_operations' => $totalOperations,
             'total_duration' => $totalDuration,
@@ -198,7 +198,7 @@ class PerformanceMonitor
 
     /**
      * Analyze query optimization effectiveness
-     * 
+     *
      * @return array Query optimization analysis
      */
     private function analyzeQueryOptimization(): array
@@ -206,11 +206,11 @@ class PerformanceMonitor
         if (empty($this->metrics['query_reductions'])) {
             return ['no_data' => true];
         }
-        
+
         $reductions = $this->metrics['query_reductions'];
         $totalReduction = array_sum(array_column($reductions, 'reduction'));
         $averageReduction = array_sum(array_column($reductions, 'reduction_percentage')) / count($reductions);
-        
+
         return [
             'total_queries_saved' => $totalReduction,
             'average_reduction_percentage' => $averageReduction,
@@ -222,7 +222,7 @@ class PerformanceMonitor
 
     /**
      * Analyze strategy effectiveness
-     * 
+     *
      * @return array Strategy analysis
      */
     private function analyzeStrategyEffectiveness(): array
@@ -230,10 +230,10 @@ class PerformanceMonitor
         if (empty($this->metrics['strategy_selections'])) {
             return ['no_data' => true];
         }
-        
+
         $strategies = array_column($this->metrics['strategy_selections'], 'selected_strategy');
         $strategyCounts = array_count_values($strategies);
-        
+
         return [
             'strategy_usage' => $strategyCounts,
             'most_used_strategy' => array_keys($strategyCounts, max($strategyCounts))[0],
@@ -243,7 +243,7 @@ class PerformanceMonitor
 
     /**
      * Analyze data transfer patterns
-     * 
+     *
      * @return array Data transfer analysis
      */
     private function analyzeDataTransfer(): array
@@ -251,11 +251,11 @@ class PerformanceMonitor
         if (empty($this->metrics['data_transfers'])) {
             return ['no_data' => true];
         }
-        
+
         $transfers = $this->metrics['data_transfers'];
         $totalBytes = array_sum(array_column($transfers, 'bytes_transferred'));
         $averageBytes = $totalBytes / count($transfers);
-        
+
         return [
             'total_bytes_transferred' => $totalBytes,
             'average_bytes_per_operation' => $averageBytes,
@@ -267,7 +267,7 @@ class PerformanceMonitor
 
     /**
      * Analyze response times
-     * 
+     *
      * @return array Response time analysis
      */
     private function analyzeResponseTimes(): array
@@ -275,15 +275,15 @@ class PerformanceMonitor
         if (empty($this->metrics['operations'])) {
             return ['no_data' => true];
         }
-        
+
         $durations = array_column($this->metrics['operations'], 'duration');
         sort($durations);
-        
+
         $count = count($durations);
-        $median = $count % 2 === 0 
-            ? ($durations[$count/2 - 1] + $durations[$count/2]) / 2
-            : $durations[floor($count/2)];
-        
+        $median = $count % 2 === 0
+            ? ($durations[$count / 2 - 1] + $durations[$count / 2]) / 2
+            : $durations[floor($count / 2)];
+
         return [
             'average_response_time' => array_sum($durations) / $count,
             'median_response_time' => $median,
@@ -295,50 +295,52 @@ class PerformanceMonitor
 
     /**
      * Generate optimization recommendations
-     * 
+     *
      * @return array Recommendations for improvement
      */
     private function generateRecommendations(): array
     {
         $recommendations = [];
-        
+
         // Analyze query patterns
         if (!empty($this->metrics['query_reductions'])) {
-            $avgReduction = array_sum(array_column($this->metrics['query_reductions'], 'reduction_percentage')) 
+            $avgReduction = array_sum(array_column($this->metrics['query_reductions'], 'reduction_percentage'))
                           / count($this->metrics['query_reductions']);
-            
+
             if ($avgReduction < 50) {
                 $recommendations[] = "Query reduction is below 50%. Consider reviewing strategy selection criteria.";
             }
         }
-        
+
         // Analyze response times
         if (!empty($this->metrics['operations'])) {
-            $avgDuration = array_sum(array_column($this->metrics['operations'], 'duration')) 
+            $avgDuration = array_sum(array_column($this->metrics['operations'], 'duration'))
                          / count($this->metrics['operations']);
-            
+
             if ($avgDuration > 0.1) { // 100ms
                 $recommendations[] = "Average response time is high. Consider optimizing database indexes or query strategies.";
             }
         }
-        
+
         // Analyze strategy usage
         if (!empty($this->metrics['strategy_selections'])) {
             $strategies = array_column($this->metrics['strategy_selections'], 'selected_strategy');
             $strategyCounts = array_count_values($strategies);
-            
-            if (isset($strategyCounts['individual_loading']) && 
-                $strategyCounts['individual_loading'] / count($strategies) > 0.5) {
+
+            if (
+                isset($strategyCounts['individual_loading']) &&
+                $strategyCounts['individual_loading'] / count($strategies) > 0.5
+            ) {
                 $recommendations[] = "High usage of individual loading strategy. Review batch loading thresholds.";
             }
         }
-        
+
         return $recommendations;
     }
 
     /**
      * Record operation metrics
-     * 
+     *
      * @param array $metrics Metrics to record
      * @return void
      */
@@ -362,7 +364,7 @@ class PerformanceMonitor
 
     /**
      * Reset all metrics
-     * 
+     *
      * @return void
      */
     public function resetMetrics(): void
@@ -377,7 +379,7 @@ class PerformanceMonitor
 
     /**
      * Enable or disable monitoring
-     * 
+     *
      * @param bool $enabled Whether to enable monitoring
      * @return void
      */

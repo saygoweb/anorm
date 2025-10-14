@@ -61,11 +61,11 @@ class OneHasManyBatchLoader_Test extends TestCase
     {
         $users = DataMapper::find(UserModel::class, $this->pdo)->some();
         $userArray = iterator_to_array($users);
-        
+
         if (count($userArray) > 0) {
             $result = $this->batchLoader->batchLoad($userArray, 'posts');
             $this->assertIsArray($result);
-            
+
             // Results should be keyed by primary key values and contain arrays
             foreach ($result as $key => $value) {
                 $this->assertIsInt($key);
@@ -83,7 +83,7 @@ class OneHasManyBatchLoader_Test extends TestCase
     {
         $users = DataMapper::find(UserModel::class, $this->pdo)->some();
         $userArray = iterator_to_array($users);
-        
+
         if (count($userArray) > 0) {
             // Create mock batch results
             $batchResults = [];
@@ -98,9 +98,9 @@ class OneHasManyBatchLoader_Test extends TestCase
                 }
                 $batchResults[$user->id] = $posts;
             }
-            
+
             $this->batchLoader->distributeBatchResults($userArray, $batchResults, 'posts');
-            
+
             // Verify that the relationship property is set
             foreach ($userArray as $user) {
                 if (isset($batchResults[$user->id])) {
@@ -121,11 +121,11 @@ class OneHasManyBatchLoader_Test extends TestCase
     {
         $users = DataMapper::find(UserModel::class, $this->pdo)->some();
         $userArray = iterator_to_array($users);
-        
+
         if (count($userArray) > 0) {
             // Test with empty batch results
             $this->batchLoader->distributeBatchResults($userArray, [], 'posts');
-            
+
             // All users should have empty arrays for posts
             foreach ($userArray as $user) {
                 $this->assertIsArray($user->posts);
@@ -174,7 +174,7 @@ class OneHasManyBatchLoader_Test extends TestCase
             $model->id = null; // Null primary key
             $mockModels[] = $model;
         }
-        
+
         $result = $this->batchLoader->batchLoad($mockModels, 'posts');
         $this->assertEquals([], $result);
     }
@@ -183,11 +183,11 @@ class OneHasManyBatchLoader_Test extends TestCase
     {
         $users = DataMapper::find(UserModel::class, $this->pdo)->some();
         $userArray = iterator_to_array($users);
-        
+
         if (count($userArray) > 0) {
             // Test with non-existent relationship
             $this->batchLoader->distributeBatchResults($userArray, [], 'nonexistent_relationship');
-            
+
             // Should not throw an exception and should handle gracefully
             $this->assertTrue(true); // If we get here, the test passed
         } else {

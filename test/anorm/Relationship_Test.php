@@ -67,10 +67,10 @@ class Relationship_Test extends TestCase
     {
         $user = new UserModel($this->pdo);
         $user->read(1); // John Doe
-        
+
         // Load posts relationship
         $user->loadRelated('posts');
-        
+
         $this->assertIsArray($user->posts);
         $this->assertCount(2, $user->posts); // John has 2 posts
         $this->assertInstanceOf(PostModel::class, $user->posts[0]);
@@ -94,16 +94,18 @@ class Relationship_Test extends TestCase
     {
         $post = new PostModel($this->pdo);
         $post->read(1); // First Post
-        
+
         // Load tags relationship
         $post->loadRelated('tags');
-        
+
         $this->assertIsArray($post->tags);
         $this->assertCount(2, $post->tags); // First post has 2 tags
         $this->assertInstanceOf(TagModel::class, $post->tags[0]);
-        
+
         // Check tag names
-        $tagNames = array_map(function($tag) { return $tag->name; }, $post->tags);
+        $tagNames = array_map(function ($tag) {
+            return $tag->name;
+        }, $post->tags);
         $this->assertContains('technology', $tagNames);
         $this->assertContains('programming', $tagNames);
     }
@@ -112,14 +114,14 @@ class Relationship_Test extends TestCase
     {
         $user = new UserModel($this->pdo);
         $user->read(1); // John Doe
-        
+
         // Load all relationships at once
         $user->loadAllRelated();
-        
+
         $this->assertIsArray($user->posts);
         $this->assertInstanceOf(CompanyModel::class, $user->company);
         $this->assertIsArray($user->comments);
-        
+
         $this->assertEquals('Tech Corp', $user->company->name);
         $this->assertCount(2, $user->posts);
     }
@@ -144,14 +146,16 @@ class Relationship_Test extends TestCase
     {
         $user = new UserModel($this->pdo);
         $user->read(1); // John Doe
-        
+
         // Load posts
         $user->loadRelated('posts');
-        
+
         // Check that we get both published and draft posts
         $this->assertCount(2, $user->posts);
-        
-        $statuses = array_map(function($post) { return $post->status; }, $user->posts);
+
+        $statuses = array_map(function ($post) {
+            return $post->status;
+        }, $user->posts);
         $this->assertContains('published', $statuses);
         $this->assertContains('draft', $statuses);
     }
@@ -164,10 +168,10 @@ class Relationship_Test extends TestCase
         $user->email = 'test@example.com';
         $user->company_id = null;
         $user->write();
-        
+
         // Load company relationship
         $user->loadRelated('company');
-        
+
         $this->assertNull($user->company);
     }
 
@@ -179,10 +183,10 @@ class Relationship_Test extends TestCase
         $user->email = 'new@example.com';
         $user->company_id = 1;
         $user->write();
-        
+
         // Load posts relationship
         $user->loadRelated('posts');
-        
+
         $this->assertIsArray($user->posts);
         $this->assertEmpty($user->posts);
     }
