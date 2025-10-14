@@ -8,14 +8,4 @@ parameters:
         - test/anorm/TestReplaceSchema.sql
         - test/tools/ModelMakerSchema.sql
         - vendor
-    ignoreErrors:
-        # Allow dynamic properties in test models
-        - '#Access to an undefined property [a-zA-Z0-9\\_]+::\$[a-zA-Z0-9_]+#'
-        # Allow undefined methods in test environment
-        - '#Call to an undefined method [a-zA-Z0-9\\_]+::[a-zA-Z0-9_]+\(\)#'
-        # Ignore missing array typehints
-        -
-            identifier: missingType.iterableValue
-        # Ignore missing generic typehints
-        -
-            identifier: missingType.generics
+    # ignoreErrors section removed - all previously ignored errors have been fixed!
