@@ -17,7 +17,7 @@ class DynamicPostModel extends Model
         $mapper = DataMapper::createByClass($pdo, $this);
         $mapper->table = 'dynamic_posts';
         $mapper->mode = DataMapper::MODE_DYNAMIC; // Enable dynamic schema creation
-        
+
         // Set up column mapping
         $mapper->map = [
             'id' => 'id',
@@ -25,9 +25,9 @@ class DynamicPostModel extends Model
             'content' => 'content',
             'user_id' => 'user_id'
         ];
-        
+
         parent::__construct($pdo, $mapper);
-        
+
         // Define relationships - these will trigger foreign key creation
         $this->belongsTo('Anorm\Test\DynamicUserModel', 'user_id', 'id', 'user');
         $this->hasManyThrough('Anorm\Test\DynamicTagModel', 'post_id', 'tag_id', 'dynamic_post_tags', 'id', 'tags');
@@ -42,7 +42,7 @@ class DynamicPostModel extends Model
     // Relationship properties
     /** @var DynamicUserModel */
     public $user;
-    
+
     /** @var DynamicTagModel[] */
     public $tags;
 }

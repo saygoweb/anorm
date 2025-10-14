@@ -17,15 +17,15 @@ class DynamicTagModel extends Model
         $mapper = DataMapper::createByClass($pdo, $this);
         $mapper->table = 'dynamic_tags';
         $mapper->mode = DataMapper::MODE_DYNAMIC; // Enable dynamic schema creation
-        
+
         // Set up column mapping
         $mapper->map = [
             'id' => 'id',
             'name' => 'name'
         ];
-        
+
         parent::__construct($pdo, $mapper);
-        
+
         // Define relationships
         $this->hasManyThrough('Anorm\Test\DynamicPostModel', 'tag_id', 'post_id', 'dynamic_post_tags', 'id', 'posts');
     }

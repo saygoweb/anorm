@@ -3,6 +3,7 @@
 namespace Anorm\Relationship;
 
 use Anorm\DataMapper;
+use Anorm\Relationship\BatchLoader\ManyHasManyBatchLoader;
 
 /**
  * Many-to-Many relationship
@@ -12,10 +13,10 @@ class ManyHasMany extends Relationship
 {
     /** @var string The join table name */
     protected $joinTable;
-    
+
     /** @var string The foreign key in the join table for this model */
     protected $joinForeignKey;
-    
+
     /** @var string The foreign key in the join table for the related model */
     protected $joinRelatedKey;
 
@@ -61,7 +62,7 @@ class ManyHasMany extends Relationship
 
     /**
      * Load the related models for a many-to-many relationship
-     * 
+     *
      * @param object $sourceModel The model instance that owns the relationship
      * @param \PDO $pdo The database connection
      * @return array Array of related model instances
@@ -70,7 +71,7 @@ class ManyHasMany extends Relationship
     {
         $relatedClass = $this->relatedModelClass;
         $sourceValue = $sourceModel->{$this->primaryKey};
-        
+
         if ($sourceValue === null) {
             return [];
         }
@@ -78,7 +79,7 @@ class ManyHasMany extends Relationship
         // Create an instance of the related model to get its mapper
         $relatedInstance = new $relatedClass($pdo);
         $mapper = $relatedInstance->_mapper;
-        
+
         // Build the query to find related models through the join table
         // Use database column names directly
         $sql = "SELECT r.* FROM `{$mapper->table}` r
@@ -87,13 +88,13 @@ class ManyHasMany extends Relationship
 
         $result = $mapper->query($sql, [$sourceValue]);
         $relatedModels = [];
-        
+
         while ($data = $result->fetch(\PDO::FETCH_ASSOC)) {
             $relatedModel = new $relatedClass($pdo);
             $relatedModel->_mapper->readArray($relatedModel, $data);
             $relatedModels[] = $relatedModel;
         }
-        
+
         return $relatedModels;
     }
 
@@ -106,8 +107,9 @@ class ManyHasMany extends Relationship
      */
     public function generateJoinClause($sourceTable, $relatedTable)
     {
-        return "LEFT JOIN `{$this->joinTable}` ON `{$sourceTable}`.`{$this->primaryKey}` = `{$this->joinTable}`.`{$this->joinForeignKey}` " .
-               "LEFT JOIN `{$relatedTable}` ON `{$this->joinTable}`.`{$this->joinRelatedKey}` = `{$relatedTable}`.`{$this->primaryKey}`";
+        $firstJoin = "LEFT JOIN `{$this->joinTable}` ON `{$sourceTable}`.`{$this->primaryKey}` = `{$this->joinTable}`.`{$this->joinForeignKey}`";
+        $secondJoin = "LEFT JOIN `{$relatedTable}` ON `{$this->joinTable}`.`{$this->joinRelatedKey}` = `{$relatedTable}`.`{$this->primaryKey}`";
+        return $firstJoin . ' ' . $secondJoin;
     }
 
     /**
@@ -160,5 +162,63 @@ class ManyHasMany extends Relationship
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
 
         return $sql;
+    }
+
+    /**
+     * Load relationships for multiple source models in a single batch operation
+     *
+     * @param array $sourceModels Array of model instances that need relationships loaded
+     * @param \PDO $pdo Database connection
+     * @param array|null $fieldSelection Optional field selection for optimization
+     * @return array Associative array of loaded relationship data, keyed by source model identifier
+     */
+    public function batchLoad(array $sourceModels, \PDO $pdo, ?array $fieldSelection = null): array
+    {
+        $batchLoader = new ManyHasManyBatchLoader();
+        return $batchLoader->batchLoad($sourceModels, $this->propertyName, $fieldSelection);
+    }
+
+    /**
+     * Distribute batch-loaded results to their corresponding source models
+     *
+     * @param array $sourceModels Array of model instances to receive the loaded data
+     * @param array $batchResults Results from batchLoad(), keyed by source model identifier
+     * @return void
+     */
+    public function distributeBatchResults(array $sourceModels, array $batchResults): void
+    {
+        $batchLoader = new ManyHasManyBatchLoader();
+        $batchLoader->distributeBatchResults($sourceModels, $batchResults, $this->propertyName);
+    }
+
+    /**
+     * Estimate the data size for this relationship with given parameters
+     *
+     * @param int $sourceCount Number of source models
+     * @param array|null $fieldSelection Specific fields to load, or null for all fields
+     * @return int Estimated data size in bytes
+     */
+    public function estimateDataSize(int $sourceCount, ?array $fieldSelection = null): int
+    {
+        // Estimate based on many-to-many cardinality
+        $avgRelatedRecords = 3; // Conservative estimate for many-to-many
+        $avgRecordSize = 1024; // 1KB per record estimate
+
+        if ($fieldSelection !== null && !empty($fieldSelection)) {
+            // Estimate size for selected fields only
+            $avgRecordSize = count($fieldSelection) * 50; // 50 bytes per field estimate
+        }
+
+        return (int) ($sourceCount * $avgRelatedRecords * $avgRecordSize);
+    }
+
+    /**
+     * Get the cardinality type of this relationship
+     *
+     * @return string One of: 'one-to-one', 'one-to-many', 'many-to-one', 'many-to-many'
+     */
+    public function getCardinality(): string
+    {
+        return 'many-to-many';
     }
 }

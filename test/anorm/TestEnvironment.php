@@ -20,11 +20,15 @@ class TestEnvironment
 
         self::$envConfig = [];
 
-        // Look for .env file in project root (up from test/anorm/)
+        // Look for .env.devcontainer file first (for devcontainer environments)
+        $devcontainerEnvPath = __DIR__ . '/../../.env.devcontainer';
         $envPath = __DIR__ . '/../../.env';
 
-        if (file_exists($envPath)) {
-            $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        // Prefer devcontainer env if it exists, otherwise fall back to regular .env
+        $envFileToUse = file_exists($devcontainerEnvPath) ? $devcontainerEnvPath : $envPath;
+
+        if (file_exists($envFileToUse)) {
+            $lines = file($envFileToUse, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 
             foreach ($lines as $line) {
                 // Skip comments and empty lines
@@ -40,8 +44,10 @@ class TestEnvironment
                     $value = trim($value);
 
                     // Remove quotes if present
-                    if (($value[0] === '"' && $value[-1] === '"') ||
-                        ($value[0] === "'" && $value[-1] === "'")) {
+                    if (
+                        ($value[0] === '"' && $value[-1] === '"') ||
+                        ($value[0] === "'" && $value[-1] === "'")
+                    ) {
                         $value = substr($value, 1, -1);
                     }
 

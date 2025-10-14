@@ -618,7 +618,7 @@ class QueryBuilder_Mango_Test extends TestCase
         for ($i = 1; $i <= 5; $i++) {
             $model = new SomeTableModel();
             $model->name = "TestUser{$i}";
-            $model->dtc = "2023-01-" . str_pad($i + 10, 2, '0', STR_PAD_LEFT);
+            $model->dtc = "2023-01-" . str_pad((string) ($i + 10), 2, '0', STR_PAD_LEFT);
             $model->write();
             $extraModels[] = $model;
         }
@@ -638,7 +638,9 @@ class QueryBuilder_Mango_Test extends TestCase
             foreach ($generator as $model) {
                 $actualNames[] = $model->name;
                 $count++;
-                if ($count >= 3) break; // Get 3 records to verify skip worked
+                if ($count >= 3) {
+                    break; // Get 3 records to verify skip worked
+                }
             }
 
             // Should skip TestUser1, TestUser2 and get TestUser3, TestUser4, TestUser5

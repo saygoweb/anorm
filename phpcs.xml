@@ -27,6 +27,32 @@
     <!-- Show sniff codes in all reports -->
     <arg value="s"/>
 
+    <!-- Set line length limit to 150 characters for src/, 200 for test/ -->
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="150"/>
+            <property name="absoluteLineLimit" value="200"/>
+        </properties>
+        <!-- Stricter line length for src/ files -->
+        <include-pattern>src/*</include-pattern>
+        <type>error</type>
+    </rule>
+
+    <!-- More lenient line length for test files -->
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="200"/>
+            <property name="absoluteLineLimit" value="250"/>
+        </properties>
+        <include-pattern>test/*</include-pattern>
+        <type>warning</type>
+    </rule>
+
+    <!-- Make constant visibility an error -->
+    <rule ref="PSR12.Properties.ConstantVisibility">
+        <type>error</type>
+    </rule>
+
     <!-- Additional rules -->
     <rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
     <rule ref="Generic.Commenting.Todo"/>
@@ -42,6 +68,31 @@
     
     <!-- Relaxed rules for test files -->
     <rule ref="PSR1.Methods.CamelCapsMethodName">
+        <exclude-pattern>test/*</exclude-pattern>
+    </rule>
+
+    <!-- Allow underscores in test class names -->
+    <rule ref="Squiz.Classes.ValidClassName">
+        <exclude-pattern>test/*</exclude-pattern>
+    </rule>
+
+    <!-- Relax namespace requirements for legacy test files -->
+    <rule ref="PSR1.Classes.ClassDeclaration.MissingNamespace">
+        <exclude-pattern>test/*</exclude-pattern>
+    </rule>
+
+    <!-- Allow multiple classes per file in legacy test files -->
+    <rule ref="PSR1.Classes.ClassDeclaration.MultipleClasses">
+        <exclude-pattern>test/*</exclude-pattern>
+    </rule>
+
+    <!-- Allow missing visibility declarations in legacy test files -->
+    <rule ref="Squiz.Scope.MethodScope.Missing">
+        <exclude-pattern>test/*</exclude-pattern>
+    </rule>
+
+    <!-- Allow side effects in legacy test files -->
+    <rule ref="PSR1.Files.SideEffects.FoundWithSymbols">
         <exclude-pattern>test/*</exclude-pattern>
     </rule>
 </ruleset>

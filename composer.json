@@ -31,9 +31,9 @@
         "test:coverage": "phpunit --coverage-html build/coverage --coverage-text",
         "test:quick": "phpunit -c phpunit-no-coverage.xml",
         "test:ci": "phpunit --coverage-clover=build/logs/clover.xml",
-        "cs:check": "phpcs --standard=PSR12 src/ test/ --ignore=test/anorm/TestSchema.sql,test/anorm/TestReplaceSchema.sql,test/tools/ModelMakerSchema.sql",
-        "cs:fix": "phpcbf --standard=PSR12 src/ test/ --ignore=test/anorm/TestSchema.sql,test/anorm/TestReplaceSchema.sql,test/tools/ModelMakerSchema.sql",
-        "analyze": "phpstan analyse src/ test/ --level=5",
+        "cs:check": "phpcs",
+        "cs:fix": "phpcbf",
+        "analyze": "phpstan analyse src/ test/ --level=5 --memory-limit=512M",
         "quality": [
             "@cs:check",
             "@analyze"

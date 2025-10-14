@@ -10,16 +10,16 @@ abstract class Relationship
 {
     /** @var string The class name of the related model */
     protected $relatedModelClass;
-    
+
     /** @var string The property name where the relationship will be stored */
     protected $propertyName;
-    
+
     /** @var string The foreign key column name */
     protected $foreignKey;
-    
+
     /** @var string The primary key column name */
     protected $primaryKey;
-    
+
     /** @var array Additional options for the relationship */
     protected $options;
 
@@ -111,6 +111,45 @@ abstract class Relationship
      * This method must be implemented by each relationship type
      */
     abstract public function load($sourceModel, \PDO $pdo);
+
+    /**
+     * Load relationships for multiple source models in a single batch operation
+     * This method must be implemented by each relationship type for optimization
+     *
+     * @param array $sourceModels Array of model instances that need relationships loaded
+     * @param \PDO $pdo Database connection
+     * @param array|null $fieldSelection Optional field selection for optimization
+     * @return array Associative array of loaded relationship data, keyed by source model identifier
+     */
+    abstract public function batchLoad(array $sourceModels, \PDO $pdo, ?array $fieldSelection = null): array;
+
+    /**
+     * Distribute batch-loaded results to their corresponding source models
+     * This method must be implemented by each relationship type
+     *
+     * @param array $sourceModels Array of model instances to receive the loaded data
+     * @param array $batchResults Results from batchLoad(), keyed by source model identifier
+     * @return void
+     */
+    abstract public function distributeBatchResults(array $sourceModels, array $batchResults): void;
+
+    /**
+     * Estimate the data size for this relationship with given parameters
+     * Used by strategy selection to choose optimal loading approach
+     *
+     * @param int $sourceCount Number of source models
+     * @param array|null $fieldSelection Specific fields to load, or null for all fields
+     * @return int Estimated data size in bytes
+     */
+    abstract public function estimateDataSize(int $sourceCount, ?array $fieldSelection = null): int;
+
+    /**
+     * Get the cardinality type of this relationship
+     * Used by strategy selection for optimization decisions
+     *
+     * @return string One of: 'one-to-one', 'one-to-many', 'many-to-one', 'many-to-many'
+     */
+    abstract public function getCardinality(): string;
 
     /**
      * Generate the appropriate JOIN clause for this relationship

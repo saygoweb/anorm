@@ -402,7 +402,7 @@ class MangoQueryParser
     private function combineConditions(array $conditions, string $operator): SqlCondition
     {
         // Filter out empty conditions
-        $conditions = array_filter($conditions, function($condition) {
+        $conditions = array_filter($conditions, function ($condition) {
             return !$condition->isEmpty();
         });
 
@@ -507,6 +507,6 @@ class MangoQueryParser
         }
 
         $paramName = $this->generateParamName();
-        return new SqlCondition("JSON_LENGTH({$columnName}) = {$paramName}", [$paramName => (int)$value]);
+        return new SqlCondition("JSON_LENGTH({$columnName}) = {$paramName}", [$paramName => (int) $value]);
     }
 }

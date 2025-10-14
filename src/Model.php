@@ -1,5 +1,7 @@
 <?php
 
+// phpcs:disable PSR2.Classes.PropertyDeclaration.Underscore
+
 namespace Anorm;
 
 use Anorm\Relationship\RelationshipManager;
@@ -15,12 +17,67 @@ class Model
     /** @var \PDO */
     protected $_pdo;
 
+    /** @var array|null Fields that have been loaded (for partial loading) */
+    private $_loadedFields = null;
+
     public function __construct(\PDO $pdo, DataMapper $mapper)
     {
         $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         $this->_mapper = $mapper;
         $this->_pdo = $pdo;
         $this->_relationshipManager = new RelationshipManager($this, $pdo);
+    }
+
+    /**
+     * Get the PDO connection
+     * @return \PDO
+     */
+    public function getPdo(): \PDO
+    {
+        return $this->_pdo;
+    }
+
+    /**
+     * Set which fields have been loaded (for partial loading)
+     * @param array|null $fields Array of field names that were loaded, or null to reset
+     * @return void
+     */
+    public function setLoadedFields(?array $fields): void
+    {
+        $this->_loadedFields = $fields;
+    }
+
+    /**
+     * Check if a specific field has been loaded
+     * @param mixed $fieldName Name of the field to check
+     * @return bool True if field is loaded, false otherwise
+     */
+    public function isFieldLoaded($fieldName): bool
+    {
+        // If no partial loading is active, all fields are considered loaded
+        if ($this->_loadedFields === null) {
+            return true;
+        }
+
+        return in_array($fieldName, $this->_loadedFields, true);
+    }
+
+    /**
+     * Get the list of loaded fields
+     * @return array|null Array of loaded field names, or null if all fields are loaded
+     */
+    public function getLoadedFields(): ?array
+    {
+        return $this->_loadedFields;
+    }
+
+    /**
+     * Check if this model is partially loaded
+     * @return bool True if only specific fields were loaded
+     */
+    public function isPartiallyLoaded(): bool
+    {
+        return $this->_loadedFields !== null;
     }
 
     /**
@@ -37,7 +94,7 @@ class Model
     }
 
     /**
-     * @param int $id The primary key id of the model to read.
+     * @param int|string $id The primary key id of the model to read.
      * @return bool Returns false if not found.
      */
     public function read($id)
@@ -46,7 +103,7 @@ class Model
     }
 
     /**
-     * @param int $id The primary key id of the model to read.
+     * @param int|string $id The primary key id of the model to read.
      * @return bool Returns true if found, throws \Exception if not found.
      * @throws \Exception if not found.
      */
@@ -57,9 +114,7 @@ class Model
             $className = get_class($this);
             $className = str_replace('Model', '', $className);
             $tokens = explode('\\', $className);
-            if ($tokens && count($tokens) > 0) {
-                $className = $tokens[count($tokens) - 1];
-            }
+            $className = end($tokens); // Get the last element (class name without namespace)
             throw new \Exception("$className id '$id' not found");
         }
         return $result;
@@ -128,13 +183,28 @@ class Model
      *     - on_update: 'RESTRICT', 'CASCADE', 'SET NULL', 'NO ACTION' (default: 'CASCADE')
      *     - constraint_name: custom constraint name (auto-generated if not provided)
      */
-    protected function hasManyThrough($relatedModelClass, $joinForeignKey, $joinRelatedKey, $joinTable, $primaryKey = 'id', $propertyName = null, $options = [])
-    {
+    protected function hasManyThrough(
+        $relatedModelClass,
+        $joinForeignKey,
+        $joinRelatedKey,
+        $joinTable,
+        $primaryKey = 'id',
+        $propertyName = null,
+        $options = []
+    ) {
         // Use explicit property name or generate from class name
         if ($propertyName === null) {
             $propertyName = $this->getPropertyNameFromClass($relatedModelClass);
         }
-        $this->_relationshipManager->hasManyThrough($relatedModelClass, $propertyName, $joinForeignKey, $joinRelatedKey, $joinTable, $primaryKey, $options);
+        $this->_relationshipManager->hasManyThrough(
+            $relatedModelClass,
+            $propertyName,
+            $joinForeignKey,
+            $joinRelatedKey,
+            $joinTable,
+            $primaryKey,
+            $options
+        );
     }
 
     /**

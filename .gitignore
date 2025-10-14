@@ -5,3 +5,4 @@
 /ai/
 
 *.cache
+.env.devcontainer

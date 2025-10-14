@@ -1,5 +1,7 @@
 <?php
 
+// phpcs:disable PSR2.Methods.MethodDeclaration.Underscore
+
 namespace Anorm;
 
 class TableMaker
@@ -11,13 +13,13 @@ class TableMaker
         return $maker->_fix();
     }
 
-    /** @var \PDOException The exception that requires the database schema to be fixed. */
+    /** @var \Exception The exception that requires the database schema to be fixed. */
     public $exception;
 
     /** @var DataMapper The DataMapper */
     private $mapper;
 
-    /** @var Model An optional model instance */
+    /** @var Model|null An optional model instance */
     private $model;
 
     public function __construct(\Exception $exception, DataMapper $mapper, $model)
@@ -52,7 +54,7 @@ class TableMaker
     private function createTable()
     {
         // Regex the message to get the name of the table
-        $matches = array();
+        $matches = [];
         if (!\preg_match("/'([^\.']*)\.([^\.']*)'/", $this->exception->getMessage(), $matches)) {
             throw new \Exception('Anorm: Could not parse PDOException', 0, $this->exception);
         }
@@ -77,7 +79,7 @@ class TableMaker
     private function createColumn()
     {
         // Regex the message to get the name of the table
-        $matches = array();
+        $matches = [];
         if (!\preg_match("/column '([^\.']*)'/", $this->exception->getMessage(), $matches)) {
             throw new \Exception('Anorm: Could not parse PDOException', 0, $this->exception);
         }
@@ -121,9 +123,6 @@ class TableMaker
         }
 
         $relationshipManager = $this->model->_relationshipManager;
-        if (!$relationshipManager) {
-            return;
-        }
 
         // Get all relationships defined in the model
         $relationships = $relationshipManager->getRelationships();
@@ -143,9 +142,6 @@ class TableMaker
         }
 
         $relationshipManager = $this->model->_relationshipManager;
-        if (!$relationshipManager) {
-            return;
-        }
 
         // Get all relationships and create foreign keys for them
         $relationships = $relationshipManager->getRelationships();

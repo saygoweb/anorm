@@ -4,8 +4,8 @@ namespace Anorm;
 
 class DataMapper
 {
-    const MODE_DYNAMIC = 'dynamic';
-    const MODE_STATIC  = 'static';
+    public const MODE_DYNAMIC = 'dynamic';
+    public const MODE_STATIC  = 'static';
 
     public $mode = self::MODE_STATIC;
 
@@ -55,7 +55,7 @@ class DataMapper
         $className = get_class($c);
         $parts = explode('\\', $className);
         $partCount = count($parts);
-        if ($partCount > 0) {
+        if ($partCount > 1) {
             $className = $parts[$partCount - 1];
         }
         $parts = self::splitUpper($className);
@@ -75,20 +75,20 @@ class DataMapper
 
     public static function splitUpper($s)
     {
-        $matches = array();
+        $matches = [];
         $matchCount = preg_match_all('/[A-Z][a-z0-9]*/', $s, $matches);
         if ($matchCount > 0) {
             return $matches[0];
         }
-        return array();
+        return [];
     }
 
     public static function propertyName($s)
     {
-        $matches = array();
+        $matches = [];
         $matchCount = preg_match_all('/^([a-z0-9]+)((?:[A-Z][a-z0-9]*)*)/', $s, $matches);
         $propertyName = '';
-        if ($matchCount == 1 && count($matches) == 3) {
+        if ($matchCount == 1) {
             $propertyName .= strtolower($matches[1][0]);
             $parts = self::splitUpper($matches[2][0]);
             foreach ($parts as $part) {
@@ -218,8 +218,8 @@ class DataMapper
     }
 
     /**
-     * @var string $sql string SQL query
-     * @var array $data array of values for bound parameters
+     * @param string $sql SQL query
+     * @param array|null $data array of values for bound parameters
      * @return \PDOStatement
      */
     public function query($sql, $data = null)
@@ -232,8 +232,8 @@ class DataMapper
     }
 
     /**
-     * @var $c A reference to the model
-     * @var $result The result returned from a prior call to query
+     * @param mixed $c A reference to the model
+     * @param \PDOStatement $result The result returned from a prior call to query
      * @see query
      */
     public function readRow(&$c, \PDOStatement $result)
@@ -242,7 +242,7 @@ class DataMapper
         return $this->readArray($c, $data);
     }
 
-    public function readArray(&$c, $data, $exclude = array())
+    public function readArray(&$c, $data, $exclude = [])
     {
         if (!$data) {
             return false;
