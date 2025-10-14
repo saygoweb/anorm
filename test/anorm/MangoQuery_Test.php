@@ -158,8 +158,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_SimpleEquality()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -171,8 +170,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_ComparisonOperators()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -187,8 +185,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_InOperator()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -200,8 +197,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_AndOperator()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -218,8 +214,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_OrOperator()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -236,8 +231,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_Fields()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -250,8 +244,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_Sort()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -269,8 +262,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_RegexOperator()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -284,8 +276,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_BeginsWithOperator()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -299,8 +290,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_AllOperator()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -318,8 +308,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_SizeOperator()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -333,8 +322,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_NorOperator()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -354,8 +342,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_ElemMatchOperator()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -371,8 +358,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_Phase2OperatorsWithoutDollarPrefix()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -390,8 +376,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_InvalidRegexValue()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -402,8 +387,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_InvalidBeginsWithValue()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -414,8 +398,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_InvalidAllValue()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -426,8 +409,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_InvalidSizeValue()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -438,8 +420,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_InvalidElemMatchValue()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -450,8 +431,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_EmptySelector()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -462,8 +442,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_EmptyFields()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -473,8 +452,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_EmptySort()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -484,8 +462,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_NullValueComparisons()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -500,8 +477,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_EmptyInArray()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -512,8 +488,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_EmptyNotInArray()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -524,8 +499,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_ExistsOperator()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -540,8 +514,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_InvalidAndOperator()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -552,8 +525,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_InvalidOrOperator()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -564,8 +536,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_InvalidNotOperator()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -576,8 +547,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_InvalidNorOperator()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -588,8 +558,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_UnsupportedOperator()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -600,8 +569,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_UnsupportedFieldOperator()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -612,8 +580,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_InvalidInValue()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -624,8 +591,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_InvalidNinValue()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -636,8 +602,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_ComplexElemMatch()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -652,8 +617,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_SortStringFormat()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 
@@ -665,8 +629,7 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQueryParser_FieldMapping()
     {
-        $pdo = TestEnvironment::pdo();
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         $mapper = $model->_mapper;
         $parser = new MangoQueryParser($mapper);
 

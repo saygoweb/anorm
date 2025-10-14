@@ -10,6 +10,7 @@ class QueryBuilder
 {
     public $boundData = null;
 
+    /** @var string Method used for creating instances @phpstan-ignore-next-line */
     private $method;
 
     private $instance;

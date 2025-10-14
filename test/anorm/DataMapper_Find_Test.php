@@ -27,7 +27,7 @@ class DataMapperFindTest extends TestCase
         $pdo->query($sql);
 
         // Write some data for this test suite
-        $model = new SomeTableModel($pdo);
+        $model = new SomeTableModel();
         for ($i = 0; $i < 10; ++$i) {
             $model->name = "Name $i";
             $model->someId = null;
@@ -93,7 +93,6 @@ class DataMapperFindTest extends TestCase
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage("QueryBuilder: Expected one not found from 'SELECT * FROM `some_table` WHERE `name`=:name LIMIT 0, 1'");
 
-        /** @var SomeTableModel */
         DataMapper::find(SomeTableModel::class, $this->pdo)
             ->where("`name`=:name", [':name' => 'Bogus Name'])
             ->oneOrThrow();

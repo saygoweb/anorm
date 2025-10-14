@@ -94,7 +94,7 @@ class Model
     }
 
     /**
-     * @param int $id The primary key id of the model to read.
+     * @param int|string $id The primary key id of the model to read.
      * @return bool Returns false if not found.
      */
     public function read($id)
@@ -103,7 +103,7 @@ class Model
     }
 
     /**
-     * @param int $id The primary key id of the model to read.
+     * @param int|string $id The primary key id of the model to read.
      * @return bool Returns true if found, throws \Exception if not found.
      * @throws \Exception if not found.
      */

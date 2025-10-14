@@ -59,7 +59,7 @@ class OneHasManyBatchLoader implements BatchLoaderInterface
 
         // Handle field selection (basic implementation for now)
         $selectClause = '*';
-        if ($fieldSelection && !empty($fieldSelection)) {
+        if (!empty($fieldSelection)) {
             // For now, still select all fields to avoid parameter binding issues
             // Field selection optimization will be implemented in Phase 3
             $selectClause = '*';

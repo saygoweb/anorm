@@ -125,13 +125,6 @@ class BatchLoadingPerformance_Test extends TestCase
         return (int) $row['Value'];
     }
 
-    private function countUsers(): int
-    {
-        $result = $this->pdo->query("SELECT COUNT(*) as count FROM users");
-        $row = $result->fetch(\PDO::FETCH_ASSOC);
-        return (int) $row['count'];
-    }
-
     private function createAdditionalTestData(): void
     {
         // Create some additional users and posts for testing

@@ -19,7 +19,7 @@ class RelationshipCache
     /** @var int Maximum number of items to cache */
     private $maxSize;
 
-    /** @var array Cache statistics */
+    /** @var array<string, int> Cache statistics */
     private $stats = [
         'hits' => 0,
         'misses' => 0,

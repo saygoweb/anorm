@@ -101,7 +101,7 @@ class DataMapperCrudTest extends TestCase
     function testBogusRead_Fails()
     {
         $model = new SomeTableModel();
-        $result = $model->read('1');
+        $result = $model->read(1);
         $this->assertFalse($result);
     }
 
@@ -109,14 +109,14 @@ class DataMapperCrudTest extends TestCase
     {
         $model = new SomeTableModel();
         $this->expectException(\Exception::class);
-        $result = $model->readOrThrow('1');
+        $model->readOrThrow(1);
     }
 
     function testBogusReadOrThrow_MessageOk()
     {
         $model = new SomeTableModel();
         try {
-            $result = $model->readOrThrow('1');
+            $model->readOrThrow(1);
         } catch (\Exception $e) {
             $this->assertEquals("SomeTable id '1' not found", $e->getMessage());
         }

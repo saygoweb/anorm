@@ -618,7 +618,7 @@ class QueryBuilder_Mango_Test extends TestCase
         for ($i = 1; $i <= 5; $i++) {
             $model = new SomeTableModel();
             $model->name = "TestUser{$i}";
-            $model->dtc = "2023-01-" . str_pad($i + 10, 2, '0', STR_PAD_LEFT);
+            $model->dtc = "2023-01-" . str_pad((string)($i + 10), 2, '0', STR_PAD_LEFT);
             $model->write();
             $extraModels[] = $model;
         }

@@ -13,13 +13,13 @@ class TableMaker
         return $maker->_fix();
     }
 
-    /** @var \PDOException The exception that requires the database schema to be fixed. */
+    /** @var \Exception The exception that requires the database schema to be fixed. */
     public $exception;
 
     /** @var DataMapper The DataMapper */
     private $mapper;
 
-    /** @var Model An optional model instance */
+    /** @var Model|null An optional model instance */
     private $model;
 
     public function __construct(\Exception $exception, DataMapper $mapper, $model)
