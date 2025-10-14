@@ -114,9 +114,7 @@ class Model
             $className = get_class($this);
             $className = str_replace('Model', '', $className);
             $tokens = explode('\\', $className);
-            if ($tokens && count($tokens) > 0) {
-                $className = $tokens[count($tokens) - 1];
-            }
+            $className = end($tokens); // Get the last element (class name without namespace)
             throw new \Exception("$className id '$id' not found");
         }
         return $result;

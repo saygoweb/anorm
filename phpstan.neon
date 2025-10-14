@@ -8,4 +8,6 @@ parameters:
         - test/anorm/TestReplaceSchema.sql
         - test/tools/ModelMakerSchema.sql
         - vendor
-    # ignoreErrors section removed - all previously ignored errors have been fixed!
+    ignoreErrors:
+        # Ignore missing Moment\Moment class in tests (external dependency)
+        - '#Instantiated class Moment\\Moment not found#'
