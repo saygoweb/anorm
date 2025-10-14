@@ -123,9 +123,6 @@ class TableMaker
         }
 
         $relationshipManager = $this->model->_relationshipManager;
-        if (!$relationshipManager) {
-            return;
-        }
 
         // Get all relationships defined in the model
         $relationships = $relationshipManager->getRelationships();
@@ -145,9 +142,6 @@ class TableMaker
         }
 
         $relationshipManager = $this->model->_relationshipManager;
-        if (!$relationshipManager) {
-            return;
-        }
 
         // Get all relationships and create foreign keys for them
         $relationships = $relationshipManager->getRelationships();
