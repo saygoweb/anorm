@@ -118,7 +118,7 @@ class PerformanceMonitor_Test extends TestCase
 
         foreach ($durations as $i => $duration) {
             $this->monitor->startOperation("op_{$i}");
-            usleep((int)($duration * 1000000)); // Convert to microseconds
+            usleep((int) ($duration * 1000000)); // Convert to microseconds
             $this->monitor->endOperation("op_{$i}");
         }
 
