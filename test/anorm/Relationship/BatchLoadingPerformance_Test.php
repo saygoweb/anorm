@@ -141,7 +141,8 @@ class BatchLoadingPerformance_Test extends TestCase
             // Create a few posts for each user
             for ($j = 1; $j <= 3; $j++) {
                 $postId = ($i - 4) * 3 + $j + 100; // Avoid ID conflicts
-                $this->pdo->exec("INSERT INTO posts (id, title, content, user_id, status) VALUES ({$postId}, 'Post {$j} by User {$i}', 'Content for post {$j}', {$i}, 'published')");
+                $sql = "INSERT INTO posts (id, title, content, user_id, status) VALUES ({$postId}, 'Post {$j} by User {$i}', 'Content for post {$j}', {$i}, 'published')";
+                $this->pdo->exec($sql);
             }
         }
     }

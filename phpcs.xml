@@ -27,6 +27,14 @@
     <!-- Show sniff codes in all reports -->
     <arg value="s"/>
 
+    <!-- Set line length limit to 150 characters -->
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="150"/>
+            <property name="absoluteLineLimit" value="200"/>
+        </properties>
+    </rule>
+
     <!-- Additional rules -->
     <rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
     <rule ref="Generic.Commenting.Todo"/>

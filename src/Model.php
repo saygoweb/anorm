@@ -185,13 +185,28 @@ class Model
      *     - on_update: 'RESTRICT', 'CASCADE', 'SET NULL', 'NO ACTION' (default: 'CASCADE')
      *     - constraint_name: custom constraint name (auto-generated if not provided)
      */
-    protected function hasManyThrough($relatedModelClass, $joinForeignKey, $joinRelatedKey, $joinTable, $primaryKey = 'id', $propertyName = null, $options = [])
-    {
+    protected function hasManyThrough(
+        $relatedModelClass,
+        $joinForeignKey,
+        $joinRelatedKey,
+        $joinTable,
+        $primaryKey = 'id',
+        $propertyName = null,
+        $options = []
+    ) {
         // Use explicit property name or generate from class name
         if ($propertyName === null) {
             $propertyName = $this->getPropertyNameFromClass($relatedModelClass);
         }
-        $this->_relationshipManager->hasManyThrough($relatedModelClass, $propertyName, $joinForeignKey, $joinRelatedKey, $joinTable, $primaryKey, $options);
+        $this->_relationshipManager->hasManyThrough(
+            $relatedModelClass,
+            $propertyName,
+            $joinForeignKey,
+            $joinRelatedKey,
+            $joinTable,
+            $primaryKey,
+            $options
+        );
     }
 
     /**

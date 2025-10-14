@@ -157,12 +157,15 @@ class BatchLoadingIntegration_Test extends TestCase
     {
         // Create additional users (IDs 4-15)
         for ($i = 4; $i <= 15; $i++) {
-            $this->pdo->exec("INSERT IGNORE INTO users (id, name, email, company_id) VALUES ({$i}, 'Test User {$i}', 'user{$i}@test.com', " . (($i % 2) + 1) . ")");
+            $this->pdo->exec(
+                "INSERT IGNORE INTO users (id, name, email, company_id) VALUES ({$i}, 'Test User {$i}', 'user{$i}@test.com', " . (($i % 2) + 1) . ")"
+            );
 
             // Create posts for each user
             for ($j = 1; $j <= 2; $j++) {
                 $postId = ($i - 1) * 10 + $j + 100; // Unique post IDs starting from 101
-                $this->pdo->exec("INSERT IGNORE INTO posts (id, title, content, user_id, status) VALUES ({$postId}, 'Post {$j} by User {$i}', 'Test content for post {$j}', {$i}, 'published')");
+                $sql = "INSERT IGNORE INTO posts (id, title, content, user_id, status) VALUES ({$postId}, 'Post {$j} by User {$i}', 'Test content for post {$j}', {$i}, 'published')";
+                $this->pdo->exec($sql);
             }
         }
     }

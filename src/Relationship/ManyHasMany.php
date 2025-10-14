@@ -107,7 +107,9 @@ class ManyHasMany extends Relationship
      */
     public function generateJoinClause($sourceTable, $relatedTable)
     {
-        return "LEFT JOIN `{$this->joinTable}` ON `{$sourceTable}`.`{$this->primaryKey}` = `{$this->joinTable}`.`{$this->joinForeignKey}` LEFT JOIN `{$relatedTable}` ON `{$this->joinTable}`.`{$this->joinRelatedKey}` = `{$relatedTable}`.`{$this->primaryKey}`";
+        $firstJoin = "LEFT JOIN `{$this->joinTable}` ON `{$sourceTable}`.`{$this->primaryKey}` = `{$this->joinTable}`.`{$this->joinForeignKey}`";
+        $secondJoin = "LEFT JOIN `{$relatedTable}` ON `{$this->joinTable}`.`{$this->joinRelatedKey}` = `{$relatedTable}`.`{$this->primaryKey}`";
+        return $firstJoin . ' ' . $secondJoin;
     }
 
     /**
