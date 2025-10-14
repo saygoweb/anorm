@@ -1,5 +1,7 @@
 <?php
 
+// phpcs:disable PSR2.Methods.MethodDeclaration.Underscore
+
 namespace Anorm;
 
 class TableMaker

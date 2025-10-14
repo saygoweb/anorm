@@ -305,8 +305,7 @@ class Relationship_Test extends TestCase
         // Test many-to-many join clause
         $tagsRelationship = $postRelationships['tags'];
         $joinClause = $tagsRelationship->generateJoinClause('posts', 'tags');
-        $expectedClause = 'LEFT JOIN `post_tags` ON `posts`.`id` = `post_tags`.`post_id` ' .
-                         'LEFT JOIN `tags` ON `post_tags`.`tag_id` = `tags`.`id`';
+        $expectedClause = 'LEFT JOIN `post_tags` ON `posts`.`id` = `post_tags`.`post_id` LEFT JOIN `tags` ON `post_tags`.`tag_id` = `tags`.`id`';
         $this->assertEquals($expectedClause, $joinClause);
     }
 }

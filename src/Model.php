@@ -1,5 +1,7 @@
 <?php
 
+// phpcs:disable PSR2.Classes.PropertyDeclaration.Underscore
+
 namespace Anorm;
 
 use Anorm\Relationship\RelationshipManager;

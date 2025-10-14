@@ -49,4 +49,24 @@
     <rule ref="Squiz.Classes.ValidClassName">
         <exclude-pattern>test/*</exclude-pattern>
     </rule>
+
+    <!-- Relax namespace requirements for legacy test files -->
+    <rule ref="PSR1.Classes.ClassDeclaration.MissingNamespace">
+        <exclude-pattern>test/*</exclude-pattern>
+    </rule>
+
+    <!-- Allow multiple classes per file in legacy test files -->
+    <rule ref="PSR1.Classes.ClassDeclaration.MultipleClasses">
+        <exclude-pattern>test/*</exclude-pattern>
+    </rule>
+
+    <!-- Allow missing visibility declarations in legacy test files -->
+    <rule ref="Squiz.Scope.MethodScope.Missing">
+        <exclude-pattern>test/*</exclude-pattern>
+    </rule>
+
+    <!-- Allow side effects in legacy test files -->
+    <rule ref="PSR1.Files.SideEffects.FoundWithSymbols">
+        <exclude-pattern>test/*</exclude-pattern>
+    </rule>
 </ruleset>
