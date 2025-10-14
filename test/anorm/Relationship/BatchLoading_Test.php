@@ -9,6 +9,40 @@ class BatchLoading_Test extends TestCase
 {
     private $pdo;
 
+    public static function setUpBeforeClass(): void
+    {
+        TestEnvironment::connect(); // Connect to database
+        $pdo = TestEnvironment::pdo();
+
+        // Create relationship test tables (schema file handles cleanup)
+        $sql = file_get_contents(__DIR__ . '/../RelationshipTestSchema.sql');
+
+        // Remove comments and split by semicolon
+        $lines = explode("\n", $sql);
+        $cleanSql = '';
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if (!empty($line) && strpos($line, '#') !== 0) {
+                $cleanSql .= $line . "\n";
+            }
+        }
+
+        $statements = explode(';', $cleanSql);
+
+        foreach ($statements as $statement) {
+            $statement = trim($statement);
+            if (!empty($statement)) {
+                try {
+                    $pdo->exec($statement);
+                } catch (\PDOException $e) {
+                    echo "SQL Error: " . $e->getMessage() . "\n";
+                    echo "Statement: " . $statement . "\n";
+                    throw $e;
+                }
+            }
+        }
+    }
+
     protected function setUp(): void
     {
         $this->pdo = TestEnvironment::pdo();
