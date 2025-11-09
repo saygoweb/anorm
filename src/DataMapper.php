@@ -131,7 +131,8 @@ class DataMapper
                     $value = 'NULL';
                 } else {
                     if (array_key_exists($field, $this->transformers)) {
-                        $value = $this->pdo->quote($this->transformers[$field]->txModelToDatabase($c->$property));
+                        $transformedValue = $this->transformers[$field]->txModelToDatabase($c->$property);
+                        $value = $transformedValue === null ? 'NULL' : $this->pdo->quote($transformedValue);
                     } else {
                         $value = $this->pdo->quote($c->$property);
                     }
@@ -159,7 +160,8 @@ class DataMapper
                     $value = 'NULL';
                 } else {
                     if (array_key_exists($field, $this->transformers)) {
-                        $value = $this->pdo->quote($this->transformers[$field]->txModelToDatabase($c->$property));
+                        $transformedValue = $this->transformers[$field]->txModelToDatabase($c->$property);
+                        $value = $transformedValue === null ? 'NULL' : $this->pdo->quote($transformedValue);
                     } else {
                         $value = $this->pdo->quote($c->$property);
                     }
