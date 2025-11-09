@@ -9,8 +9,6 @@ services:
       MARIADB_DATABASE: anorm_test
       MARIADB_USER: dev
       MARIADB_PASSWORD: dev
-    ports:
-      - "3306:3306"
     volumes:
       - test_db_data:/var/lib/mysql
 
