@@ -20,7 +20,7 @@ services:
       PMA_USER: dev
       PMA_PASSWORD: dev
     ports:
-      - "8080:80"
+      - "8086:80"
     depends_on:
       - db
 
