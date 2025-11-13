@@ -13,23 +13,24 @@ use Anorm\Transform\FunctionTransform;
 /**
  * Test model to demonstrate the transformer null bug
  */
-class TransformerNullTestModel extends Model {
+class TransformerNullTestModel extends Model
+{
     public function __construct()
     {
         $pdo = Anorm::pdo();
         parent::__construct($pdo, DataMapper::createByClass($pdo, $this));
         $this->_mapper->modelPrimaryKey = 'testId';
-        
+
         // Create a transformer that returns null when the input is 'MAKE_NULL'
         // Note: transformers are keyed by field name (test_value), not property name (testValue)
         $this->_mapper->transformers['test_value'] = new FunctionTransform(
-            function($value) { 
+            function ($value) {
                 // Database to model: return the value as-is
-                return $value; 
+                return $value;
             },
-            function($value) { 
+            function ($value) {
                 // Model to database: return null if value is 'MAKE_NULL'
-                return $value === 'MAKE_NULL' ? null : $value; 
+                return $value === 'MAKE_NULL' ? null : $value;
             }
         );
     }
@@ -50,7 +51,7 @@ class DataMapper_TransformerNull_Test extends TestCase
         TestEnvironment::connect();
         $this->pdo = TestEnvironment::pdo();
     }
-    
+
     public static function setUpBeforeClass(): void
     {
         $pdo = TestEnvironment::pdo();
@@ -80,22 +81,24 @@ class DataMapper_TransformerNull_Test extends TestCase
         $model = new TransformerNullTestModel();
         $model->name = 'Test Record';
         $model->testValue = 'MAKE_NULL'; // This will trigger the transformer to return null
-        
+
         // Write the model to the database
         $id = $model->write();
         $this->assertNotNull($id, 'Model should be written successfully');
-        
+
         // Read the record directly from the database to check the actual stored value
         $stmt = $this->pdo->prepare('SELECT test_value FROM transformer_null_test WHERE test_id = ?');
         $stmt->execute([$id]);
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
-        
+
         $this->assertNotFalse($result, 'Record should exist in database');
-        
+
         // The bug: currently this will fail because the transformer's null return value
         // gets quoted as a string instead of being treated as SQL NULL
-        $this->assertNull($result['test_value'], 
-            'When transformer returns null, the database should store NULL, not a quoted string');
+        $this->assertNull(
+            $result['test_value'],
+            'When transformer returns null, the database should store NULL, not a quoted string'
+        );
     }
 
     /**
@@ -107,19 +110,22 @@ class DataMapper_TransformerNull_Test extends TestCase
         $model = new TransformerNullTestModel();
         $model->name = 'Test Record 2';
         $model->testValue = 'normal_value'; // This will pass through the transformer unchanged
-        
+
         // Write the model to the database
         $id = $model->write();
         $this->assertNotNull($id, 'Model should be written successfully');
-        
+
         // Read the record directly from the database to check the actual stored value
         $stmt = $this->pdo->prepare('SELECT test_value FROM transformer_null_test WHERE test_id = ?');
         $stmt->execute([$id]);
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
-        
+
         $this->assertNotFalse($result, 'Record should exist in database');
-        $this->assertEquals('normal_value', $result['test_value'], 
-            'Normal transformer values should be stored correctly');
+        $this->assertEquals(
+            'normal_value',
+            $result['test_value'],
+            'Normal transformer values should be stored correctly'
+        );
     }
 
     /**
@@ -143,8 +149,10 @@ class DataMapper_TransformerNull_Test extends TestCase
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 
         $this->assertNotFalse($result, 'Record should exist in database');
-        $this->assertNull($result['test_value'],
-            'When model property is null, the database should store NULL');
+        $this->assertNull(
+            $result['test_value'],
+            'When model property is null, the database should store NULL'
+        );
     }
 
     /**
@@ -179,7 +187,9 @@ class DataMapper_TransformerNull_Test extends TestCase
 
         // The bug: currently this will fail because the transformer's null return value
         // gets quoted as a string instead of being treated as SQL NULL during UPDATE
-        $this->assertNull($result['test_value'],
-            'When transformer returns null during UPDATE, the database should store NULL, not a quoted string');
+        $this->assertNull(
+            $result['test_value'],
+            'When transformer returns null during UPDATE, the database should store NULL, not a quoted string'
+        );
     }
 }

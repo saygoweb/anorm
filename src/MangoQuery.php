@@ -8,53 +8,43 @@ namespace Anorm;
  */
 class MangoQuery
 {
-    private array $selector;
-    private ?array $fields;
-    private ?array $sort;
-    private ?int $limit;
-    private ?int $skip;
-    private ?string $useIndex;
+    // Mango Query field constants
+    public const MANGO_SELECTOR = 'selector';
+    public const MANGO_FIELDS = 'fields';
+    public const MANGO_SORT = 'sort';
+    public const MANGO_LIMIT = 'limit';
+    public const MANGO_SKIP = 'skip';
+    public const MANGO_USE_INDEX = 'use_index';
 
-    public function __construct(array $mangoQuery)
+    public array $selector;
+    public ?array $fields;
+    public ?array $sort;
+    public ?int $limit;
+    public ?int $skip;
+    public ?string $useIndex;
+
+    public function __construct()
     {
-        $this->validateMangoQuery($mangoQuery);
-
-        $this->selector = $mangoQuery['selector'] ?? [];
-        $this->fields = $mangoQuery['fields'] ?? null;
-        $this->sort = $mangoQuery['sort'] ?? null;
-        $this->limit = $mangoQuery['limit'] ?? null;
-        $this->skip = $mangoQuery['skip'] ?? null;
-        $this->useIndex = $mangoQuery['use_index'] ?? null;
     }
 
-    public function getSelector(): array
+    /**
+     * Create a MangoQuery instance from an array
+     *
+     * @param array $mangoQuery The Mango Query array
+     * @return self
+     */
+    public static function fromArray(array $mangoQuery): self
     {
-        return $this->selector;
-    }
+        $query  = new MangoQuery();
+        $query->validateMangoQuery($mangoQuery);
 
-    public function getFields(): ?array
-    {
-        return $this->fields;
-    }
-
-    public function getSort(): ?array
-    {
-        return $this->sort;
-    }
-
-    public function getLimit(): ?int
-    {
-        return $this->limit;
-    }
-
-    public function getSkip(): ?int
-    {
-        return $this->skip;
-    }
-
-    public function getUseIndex(): ?string
-    {
-        return $this->useIndex;
+        $query->selector = $mangoQuery[self::MANGO_SELECTOR] ?? [];
+        $query->fields = $mangoQuery[self::MANGO_FIELDS] ?? null;
+        $query->sort = $mangoQuery[self::MANGO_SORT] ?? null;
+        $query->limit = $mangoQuery[self::MANGO_LIMIT] ?? null;
+        $query->skip = $mangoQuery[self::MANGO_SKIP] ?? null;
+        $query->useIndex = $mangoQuery[self::MANGO_USE_INDEX] ?? null;
+        return $query;
     }
 
     /**
@@ -63,36 +53,36 @@ class MangoQuery
     private function validateMangoQuery(array $mangoQuery): void
     {
         // Selector is required if provided
-        if (isset($mangoQuery['selector']) && !is_array($mangoQuery['selector'])) {
+        if (isset($mangoQuery[self::MANGO_SELECTOR]) && !is_array($mangoQuery[self::MANGO_SELECTOR])) {
             throw new \InvalidArgumentException('Mango query selector must be an array');
         }
 
         // Fields must be an array if provided
-        if (isset($mangoQuery['fields']) && !is_array($mangoQuery['fields'])) {
+        if (isset($mangoQuery[self::MANGO_FIELDS]) && !is_array($mangoQuery[self::MANGO_FIELDS])) {
             throw new \InvalidArgumentException('Mango query fields must be an array');
         }
 
         // Sort must be an array if provided
-        if (isset($mangoQuery['sort']) && !is_array($mangoQuery['sort'])) {
+        if (isset($mangoQuery[self::MANGO_SORT]) && !is_array($mangoQuery[self::MANGO_SORT])) {
             throw new \InvalidArgumentException('Mango query sort must be an array');
         }
 
         // Limit must be a positive integer if provided
-        if (isset($mangoQuery['limit'])) {
-            if (!is_int($mangoQuery['limit']) || $mangoQuery['limit'] < 0) {
+        if (isset($mangoQuery[self::MANGO_LIMIT])) {
+            if (!is_int($mangoQuery[self::MANGO_LIMIT]) || $mangoQuery[self::MANGO_LIMIT] < 0) {
                 throw new \InvalidArgumentException('Mango query limit must be a non-negative integer');
             }
         }
 
         // Skip must be a non-negative integer if provided
-        if (isset($mangoQuery['skip'])) {
-            if (!is_int($mangoQuery['skip']) || $mangoQuery['skip'] < 0) {
+        if (isset($mangoQuery[self::MANGO_SKIP])) {
+            if (!is_int($mangoQuery[self::MANGO_SKIP]) || $mangoQuery[self::MANGO_SKIP] < 0) {
                 throw new \InvalidArgumentException('Mango query skip must be a non-negative integer');
             }
         }
 
         // use_index must be a string if provided
-        if (isset($mangoQuery['use_index']) && !is_string($mangoQuery['use_index'])) {
+        if (isset($mangoQuery[self::MANGO_USE_INDEX]) && !is_string($mangoQuery[self::MANGO_USE_INDEX])) {
             throw new \InvalidArgumentException('Mango query use_index must be a string');
         }
     }

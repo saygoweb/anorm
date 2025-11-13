@@ -5,6 +5,7 @@ require_once(__DIR__ . '/../../vendor/autoload.php');
 use PHPUnit\Framework\TestCase;
 use Anorm\QueryBuilder;
 use Anorm\DataMapper;
+use Anorm\MangoQuery;
 use Anorm\Test\SomeTableModel;
 use Anorm\Test\TestEnvironment;
 
@@ -54,9 +55,9 @@ class QueryBuilder_Mango_Test extends TestCase
     public function testQueryBuilder_BasicMangoQuery()
     {
         $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
-            ->fromMango([
-                'selector' => ['name' => 'Alice']
-            ])
+            ->byMango(MangoQuery::fromArray([
+                MangoQuery::MANGO_SELECTOR => ['name' => 'Alice']
+            ]))
             ->some();
 
         $count = 0;
@@ -71,10 +72,10 @@ class QueryBuilder_Mango_Test extends TestCase
     public function testQueryBuilder_MangoQueryWithFields()
     {
         $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
-            ->fromMango([
-                'selector' => ['name' => 'Bob'],
-                'fields' => ['name', 'someId']
-            ])
+            ->byMango(MangoQuery::fromArray([
+                MangoQuery::MANGO_SELECTOR => ['name' => 'Bob'],
+                MangoQuery::MANGO_FIELDS => ['name', 'someId']
+            ]))
             ->some();
 
         $count = 0;
@@ -92,10 +93,10 @@ class QueryBuilder_Mango_Test extends TestCase
     public function testQueryBuilder_MangoQueryWithSort()
     {
         $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
-            ->fromMango([
-                'selector' => [],
-                'sort' => [['name' => 'desc']]
-            ])
+            ->byMango(MangoQuery::fromArray([
+                MangoQuery::MANGO_SELECTOR => [],
+                MangoQuery::MANGO_SORT => [['name' => 'desc']]
+            ]))
             ->some();
 
         $expectedNames = ['charlie', 'bob', 'alice'];
@@ -111,11 +112,11 @@ class QueryBuilder_Mango_Test extends TestCase
     public function testQueryBuilder_MangoQueryWithLimit()
     {
         $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
-            ->fromMango([
-                'selector' => [],
-                'sort' => [['name' => 'asc']],
-                'limit' => 2
-            ])
+            ->byMango(MangoQuery::fromArray([
+                MangoQuery::MANGO_SELECTOR => [],
+                MangoQuery::MANGO_SORT => [['name' => 'asc']],
+                MangoQuery::MANGO_LIMIT => 2
+            ]))
             ->some();
 
         $expectedNames = ['alice', 'bob'];
@@ -131,12 +132,12 @@ class QueryBuilder_Mango_Test extends TestCase
     public function testQueryBuilder_MangoQueryWithSkip()
     {
         $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
-            ->fromMango([
-                'selector' => [],
-                'sort' => [['name' => 'asc']],
-                'limit' => 2,
-                'skip' => 1
-            ])
+            ->byMango(MangoQuery::fromArray([
+                MangoQuery::MANGO_SELECTOR => [],
+                MangoQuery::MANGO_SORT => [['name' => 'asc']],
+                MangoQuery::MANGO_LIMIT => 2,
+                MangoQuery::MANGO_SKIP => 1
+            ]))
             ->some();
 
         $expectedNames = ['bob', 'charlie'];
@@ -152,12 +153,12 @@ class QueryBuilder_Mango_Test extends TestCase
     public function testQueryBuilder_MangoQueryWithComparisonOperators()
     {
         $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
-            ->fromMango([
-                'selector' => [
+            ->byMango(MangoQuery::fromArray([
+                MangoQuery::MANGO_SELECTOR => [
                     'dtc' => ['$gte' => '2023-02-01']
                 ],
-                'sort' => [['name' => 'asc']]
-            ])
+                MangoQuery::MANGO_SORT => [['name' => 'asc']]
+            ]))
             ->some();
 
         $expectedNames = ['bob', 'charlie'];
@@ -173,12 +174,12 @@ class QueryBuilder_Mango_Test extends TestCase
     public function testQueryBuilder_MangoQueryWithInOperator()
     {
         $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
-            ->fromMango([
-                'selector' => [
+            ->byMango(MangoQuery::fromArray([
+                MangoQuery::MANGO_SELECTOR => [
                     'name' => ['$in' => ['Alice', 'Charlie']]
                 ],
-                'sort' => [['name' => 'asc']]
-            ])
+                MangoQuery::MANGO_SORT => [['name' => 'asc']]
+            ]))
             ->some();
 
         $expectedNames = ['alice', 'charlie'];
@@ -194,14 +195,14 @@ class QueryBuilder_Mango_Test extends TestCase
     public function testQueryBuilder_MangoQueryWithAndOperator()
     {
         $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
-            ->fromMango([
-                'selector' => [
+            ->byMango(MangoQuery::fromArray([
+                MangoQuery::MANGO_SELECTOR => [
                     '$and' => [
                         ['name' => ['$in' => ['Alice', 'Bob']]],
                         ['dtc' => ['$gte' => '2023-01-15']]
                     ]
                 ]
-            ])
+            ]))
             ->some();
 
         $count = 0;
@@ -216,15 +217,15 @@ class QueryBuilder_Mango_Test extends TestCase
     public function testQueryBuilder_MangoQueryWithOrOperator()
     {
         $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
-            ->fromMango([
-                'selector' => [
+            ->byMango(MangoQuery::fromArray([
+                MangoQuery::MANGO_SELECTOR => [
                     '$or' => [
                         ['name' => 'Alice'],
                         ['name' => 'Charlie']
                     ]
                 ],
-                'sort' => [['name' => 'asc']]
-            ])
+                MangoQuery::MANGO_SORT => [['name' => 'asc']]
+            ]))
             ->some();
 
         $expectedNames = ['alice', 'charlie'];
@@ -237,32 +238,15 @@ class QueryBuilder_Mango_Test extends TestCase
         $this->assertEquals(2, $index);
     }
 
-    public function testQueryBuilder_MangoAlias()
-    {
-        $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
-            ->mango([
-                'selector' => ['name' => 'Alice']
-            ])
-            ->some();
-
-        $count = 0;
-        foreach ($generator as $model) {
-            $this->assertEquals('alice', $model->name);
-            $count++;
-        }
-
-        $this->assertEquals(1, $count);
-    }
-
     public function testQueryBuilder_OperatorsWithoutDollarPrefix()
     {
         $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
-            ->fromMango([
-                'selector' => [
+            ->byMango(MangoQuery::fromArray([
+                MangoQuery::MANGO_SELECTOR => [
                     'name' => ['in' => ['Alice', 'Bob']],
                     'dtc' => ['gte' => '2023-01-15']
                 ]
-            ])
+            ]))
             ->some();
 
         $count = 0;
@@ -295,11 +279,11 @@ class QueryBuilder_Mango_Test extends TestCase
     public function testQueryBuilder_MangoQueryWithRegexOperator()
     {
         $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
-            ->fromMango([
-                'selector' => [
+            ->byMango(MangoQuery::fromArray([
+                MangoQuery::MANGO_SELECTOR => [
                     'name' => ['$regex' => '^[Aa].*']  // Names starting with A or a
                 ]
-            ])
+            ]))
             ->some();
 
         $count = 0;
@@ -314,11 +298,11 @@ class QueryBuilder_Mango_Test extends TestCase
     public function testQueryBuilder_MangoQueryWithBeginsWithOperator()
     {
         $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
-            ->fromMango([
-                'selector' => [
+            ->byMango(MangoQuery::fromArray([
+                MangoQuery::MANGO_SELECTOR => [
                     'name' => ['$beginsWith' => 'B']  // Names starting with B
                 ]
-            ])
+            ]))
             ->some();
 
         $count = 0;
@@ -333,14 +317,14 @@ class QueryBuilder_Mango_Test extends TestCase
     public function testQueryBuilder_MangoQueryWithNorOperator()
     {
         $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
-            ->fromMango([
-                'selector' => [
+            ->byMango(MangoQuery::fromArray([
+                MangoQuery::MANGO_SELECTOR => [
                     '$nor' => [
                         ['name' => 'Alice'],
                         ['name' => 'Bob']
                     ]
                 ]
-            ])
+            ]))
             ->some();
 
         $count = 0;
@@ -355,11 +339,11 @@ class QueryBuilder_Mango_Test extends TestCase
     public function testQueryBuilder_MangoQueryWithPhase2OperatorsWithoutDollarPrefix()
     {
         $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
-            ->fromMango([
-                'selector' => [
+            ->byMango(MangoQuery::fromArray([
+                MangoQuery::MANGO_SELECTOR => [
                     'name' => ['beginswith' => 'C']  // Names starting with C (without $ prefix)
                 ]
-            ])
+            ]))
             ->some();
 
         $count = 0;
@@ -380,11 +364,11 @@ class QueryBuilder_Mango_Test extends TestCase
         $model->write();
 
         $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
-            ->fromMango([
-                'selector' => [
+            ->byMango(MangoQuery::fromArray([
+                MangoQuery::MANGO_SELECTOR => [
                     'dtc' => null  // Find records with null dtc
                 ]
-            ])
+            ]))
             ->some();
 
         $count = 0;
@@ -400,11 +384,11 @@ class QueryBuilder_Mango_Test extends TestCase
     public function testQueryBuilder_MangoQueryWithExistsOperator()
     {
         $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
-            ->fromMango([
-                'selector' => [
+            ->byMango(MangoQuery::fromArray([
+                MangoQuery::MANGO_SELECTOR => [
                     'dtc' => ['$exists' => true]  // Find records where dtc is not null
                 ]
-            ])
+            ]))
             ->some();
 
         $count = 0;
@@ -419,11 +403,11 @@ class QueryBuilder_Mango_Test extends TestCase
     public function testQueryBuilder_MangoQueryWithNotExistsOperator()
     {
         $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
-            ->fromMango([
-                'selector' => [
+            ->byMango(MangoQuery::fromArray([
+                MangoQuery::MANGO_SELECTOR => [
                     'category' => ['$exists' => false]  // Find records where category is null
                 ]
-            ])
+            ]))
             ->some();
 
         $count = 0;
@@ -438,12 +422,12 @@ class QueryBuilder_Mango_Test extends TestCase
     public function testQueryBuilder_MangoQueryWithNotEqualOperator()
     {
         $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
-            ->fromMango([
-                'selector' => [
+            ->byMango(MangoQuery::fromArray([
+                MangoQuery::MANGO_SELECTOR => [
                     'name' => ['$ne' => 'Alice']
                 ],
-                'sort' => [['name' => 'asc']]
-            ])
+                MangoQuery::MANGO_SORT => [['name' => 'asc']]
+            ]))
             ->some();
 
         $expectedNames = ['bob', 'charlie'];
@@ -459,11 +443,11 @@ class QueryBuilder_Mango_Test extends TestCase
     public function testQueryBuilder_MangoQueryWithNotInOperator()
     {
         $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
-            ->fromMango([
-                'selector' => [
+            ->byMango(MangoQuery::fromArray([
+                MangoQuery::MANGO_SELECTOR => [
                     'name' => ['$nin' => ['Alice', 'Bob']]
                 ]
-            ])
+            ]))
             ->some();
 
         $count = 0;
@@ -478,8 +462,8 @@ class QueryBuilder_Mango_Test extends TestCase
     public function testQueryBuilder_MangoQueryWithComplexAndOr()
     {
         $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
-            ->fromMango([
-                'selector' => [
+            ->byMango(MangoQuery::fromArray([
+                MangoQuery::MANGO_SELECTOR => [
                     '$or' => [
                         [
                             '$and' => [
@@ -490,8 +474,8 @@ class QueryBuilder_Mango_Test extends TestCase
                         ['name' => 'Charlie']
                     ]
                 ],
-                'sort' => [['name' => 'asc']]
-            ])
+                MangoQuery::MANGO_SORT => [['name' => 'asc']]
+            ]))
             ->some();
 
         $expectedNames = ['alice', 'charlie'];
@@ -507,13 +491,13 @@ class QueryBuilder_Mango_Test extends TestCase
     public function testQueryBuilder_MangoQueryWithNotOperator()
     {
         $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
-            ->fromMango([
-                'selector' => [
+            ->byMango(MangoQuery::fromArray([
+                MangoQuery::MANGO_SELECTOR => [
                     '$not' => [
                         'name' => ['$in' => ['Alice', 'Bob']]
                     ]
                 ]
-            ])
+            ]))
             ->some();
 
         $count = 0;
@@ -528,10 +512,10 @@ class QueryBuilder_Mango_Test extends TestCase
     public function testQueryBuilder_MangoQueryEmptySelector()
     {
         $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
-            ->fromMango([
-                'selector' => [],  // Empty selector should return all records
-                'limit' => 2
-            ])
+            ->byMango(MangoQuery::fromArray([
+                MangoQuery::MANGO_SELECTOR => [],  // Empty selector should return all records
+                MangoQuery::MANGO_LIMIT => 2
+            ]))
             ->some();
 
         $count = 0;
@@ -547,10 +531,10 @@ class QueryBuilder_Mango_Test extends TestCase
     {
         // Test that use_index doesn't break the query (even though it's not implemented)
         $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
-            ->fromMango([
-                'selector' => ['name' => 'Alice'],
-                'use_index' => 'name_index'  // This should be ignored for now
-            ])
+            ->byMango(MangoQuery::fromArray([
+                MangoQuery::MANGO_SELECTOR => ['name' => 'Alice'],
+                MangoQuery::MANGO_USE_INDEX => 'name_index'  // This should be ignored for now
+            ]))
             ->some();
 
         $count = 0;
@@ -565,14 +549,14 @@ class QueryBuilder_Mango_Test extends TestCase
     public function testQueryBuilder_MangoQueryWithAllProperties()
     {
         $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
-            ->fromMango([
-                'selector' => ['dtc' => ['$gte' => '2023-01-01']],
-                'fields' => ['name', 'dtc'],
-                'sort' => [['dtc' => 'desc']],
-                'limit' => 2,
-                'skip' => 1,
-                'use_index' => 'dtc_index'
-            ])
+            ->byMango(MangoQuery::fromArray([
+                MangoQuery::MANGO_SELECTOR => ['dtc' => ['$gte' => '2023-01-01']],
+                MangoQuery::MANGO_FIELDS => ['name', 'dtc'],
+                MangoQuery::MANGO_SORT => [['dtc' => 'desc']],
+                MangoQuery::MANGO_LIMIT => 2,
+                MangoQuery::MANGO_SKIP => 1,
+                MangoQuery::MANGO_USE_INDEX => 'dtc_index'
+            ]))
             ->some();
 
         $expectedNames = ['bob', 'alice']; // Charlie (2023-03-01), Bob (2023-02-01), skip Charlie, get Bob and Alice
@@ -592,11 +576,11 @@ class QueryBuilder_Mango_Test extends TestCase
         // Test the edge case where skip is given but limit is not
         // This should use PHP_INT_MAX as the limit internally
         $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
-            ->fromMango([
-                'selector' => ['dtc' => ['$gte' => '2023-01-01']],
-                'sort' => [['dtc' => 'asc']],
-                'skip' => 1  // Skip first record (Alice), no limit specified
-            ])
+            ->byMango(MangoQuery::fromArray([
+                MangoQuery::MANGO_SELECTOR => ['dtc' => ['$gte' => '2023-01-01']],
+                MangoQuery::MANGO_SORT => [['dtc' => 'asc']],
+                MangoQuery::MANGO_SKIP => 1  // Skip first record (Alice), no limit specified
+            ]))
             ->some();
 
         // Should get Bob and Charlie (skipping Alice who has earliest date)
@@ -626,11 +610,11 @@ class QueryBuilder_Mango_Test extends TestCase
         try {
             // Test that skip without limit works with larger datasets
             $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
-                ->fromMango([
-                    'selector' => ['name' => ['$regex' => '^TestUser.*']],
-                    'sort' => [['name' => 'asc']],
-                    'skip' => 2  // Skip first 2 TestUser records
-                ])
+                ->byMango(MangoQuery::fromArray([
+                    MangoQuery::MANGO_SELECTOR => ['name' => ['$regex' => '^TestUser.*']],
+                    MangoQuery::MANGO_SORT => [['name' => 'asc']],
+                    MangoQuery::MANGO_SKIP => 2  // Skip first 2 TestUser records
+                ]))
                 ->some();
 
             $count = 0;
@@ -662,10 +646,10 @@ class QueryBuilder_Mango_Test extends TestCase
         // by checking the generated SQL contains the expected LIMIT clause
 
         $queryBuilder = DataMapper::find(SomeTableModel::class, $this->pdo)
-            ->fromMango([
-                'selector' => ['name' => 'Alice'],
-                'skip' => 5  // Only skip, no limit
-            ]);
+            ->byMango(MangoQuery::fromArray([
+                MangoQuery::MANGO_SELECTOR => ['name' => 'Alice'],
+                MangoQuery::MANGO_SKIP => 5  // Only skip, no limit
+            ]));
 
         // Access the internal SQL to verify PHP_INT_MAX is used
         $reflection = new \ReflectionClass($queryBuilder);
@@ -682,23 +666,23 @@ class QueryBuilder_Mango_Test extends TestCase
         // Test MangoQuery::hasPagination() method for different scenarios
 
         // Case 1: Only limit
-        $query1 = new \Anorm\MangoQuery(['limit' => 10]);
+        $query1 = MangoQuery::fromArray([MangoQuery::MANGO_LIMIT => 10]);
         $this->assertTrue($query1->hasPagination());
 
         // Case 2: Only skip
-        $query2 = new \Anorm\MangoQuery(['skip' => 5]);
+        $query2 = MangoQuery::fromArray([MangoQuery::MANGO_SKIP => 5]);
         $this->assertTrue($query2->hasPagination());
 
         // Case 3: Both limit and skip
-        $query3 = new \Anorm\MangoQuery(['limit' => 10, 'skip' => 5]);
+        $query3 = MangoQuery::fromArray([MangoQuery::MANGO_LIMIT => 10, MangoQuery::MANGO_SKIP => 5]);
         $this->assertTrue($query3->hasPagination());
 
         // Case 4: Neither limit nor skip
-        $query4 = new \Anorm\MangoQuery(['selector' => ['name' => 'test']]);
+        $query4 = MangoQuery::fromArray([MangoQuery::MANGO_SELECTOR => ['name' => 'test']]);
         $this->assertFalse($query4->hasPagination());
 
         // Case 5: Skip is 0 (should still be considered pagination)
-        $query5 = new \Anorm\MangoQuery(['skip' => 0]);
+        $query5 = MangoQuery::fromArray([MangoQuery::MANGO_SKIP => 0]);
         $this->assertTrue($query5->hasPagination());
     }
 
@@ -706,11 +690,11 @@ class QueryBuilder_Mango_Test extends TestCase
     {
         // Test edge case where skip is 0 but no limit is given
         $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
-            ->fromMango([
-                'selector' => ['name' => ['$in' => ['Alice', 'Bob']]],
-                'sort' => [['name' => 'asc']],
-                'skip' => 0  // Skip 0 records, no limit
-            ])
+            ->byMango(MangoQuery::fromArray([
+                MangoQuery::MANGO_SELECTOR => ['name' => ['$in' => ['Alice', 'Bob']]],
+                MangoQuery::MANGO_SORT => [['name' => 'asc']],
+                MangoQuery::MANGO_SKIP => 0  // Skip 0 records, no limit
+            ]))
             ->some();
 
         $expectedNames = ['alice', 'bob'];
@@ -721,5 +705,58 @@ class QueryBuilder_Mango_Test extends TestCase
         }
 
         $this->assertEquals(2, $index);
+    }
+
+    public function testQueryBuilder_MangoQueryFromArrayStatic()
+    {
+        // Test the new fromArray static method
+        $mangoQueryArray = [
+            \Anorm\MangoQuery::MANGO_SELECTOR => ['name' => 'Alice'],
+            \Anorm\MangoQuery::MANGO_SORT => [['name' => 'asc']]
+        ];
+
+        $mangoQuery = \Anorm\MangoQuery::fromArray($mangoQueryArray);
+
+        $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
+            ->byMango($mangoQuery)
+            ->some();
+
+        $count = 0;
+        foreach ($generator as $model) {
+            $this->assertEquals('alice', $model->name);
+            $count++;
+        }
+
+        $this->assertEquals(1, $count);
+    }
+
+    public function testQueryBuilder_MangoQueryObjectDirectly()
+    {
+        // Test passing MangoQuery object directly to byMango
+        $mangoQuery = MangoQuery::fromArray([
+            MangoQuery::MANGO_SELECTOR => ['name' => 'Bob'],
+            MangoQuery::MANGO_SORT => [['name' => 'asc']]
+        ]);
+
+        $generator = DataMapper::find(SomeTableModel::class, $this->pdo)
+            ->byMango($mangoQuery)
+            ->some();
+
+        $count = 0;
+        foreach ($generator as $model) {
+            $this->assertEquals('bob', $model->name);
+            $count++;
+        }
+
+        $this->assertEquals(1, $count);
+    }
+
+    public function testQueryBuilder_MangoQueryInvalidParameter()
+    {
+        // Test that invalid parameter types throw a TypeError
+        $this->expectException(\TypeError::class);
+
+        DataMapper::find(SomeTableModel::class, $this->pdo)
+            ->byMango("invalid string parameter");
     }
 }
