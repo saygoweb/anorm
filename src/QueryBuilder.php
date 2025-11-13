@@ -315,7 +315,7 @@ class QueryBuilder
     /**
      * Apply a Mango Query to this QueryBuilder
      *
-     * @param MangoQuery $mangoQuery The Mango Query object or array
+     * @param MangoQuery $query The Mango Query object
      * @return self
      */
     public function byMango(MangoQuery $query): self
