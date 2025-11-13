@@ -14,15 +14,15 @@ class MangoQuery_Test extends TestCase
 {
     public function testMangoQuery_BasicConstruction()
     {
-        $query = new MangoQuery([
-            'selector' => ['name' => 'John'],
-            'fields' => ['id', 'name'],
-            'limit' => 10
+        $query = MangoQuery::fromArray([
+            MangoQuery::MANGO_SELECTOR => ['name' => 'John'],
+            MangoQuery::MANGO_FIELDS => ['id', 'name'],
+            MangoQuery::MANGO_LIMIT => 10
         ]);
 
-        $this->assertEquals(['name' => 'John'], $query->getSelector());
-        $this->assertEquals(['id', 'name'], $query->getFields());
-        $this->assertEquals(10, $query->getLimit());
+        $this->assertEquals(['name' => 'John'], $query->selector);
+        $this->assertEquals(['id', 'name'], $query->fields);
+        $this->assertEquals(10, $query->limit);
         $this->assertTrue($query->hasConditions());
         $this->assertTrue($query->hasFields());
         $this->assertFalse($query->hasSort());
@@ -30,11 +30,11 @@ class MangoQuery_Test extends TestCase
 
     public function testMangoQuery_EmptyQuery()
     {
-        $query = new MangoQuery([]);
+        $query = MangoQuery::fromArray([]);
 
-        $this->assertEquals([], $query->getSelector());
-        $this->assertNull($query->getFields());
-        $this->assertNull($query->getLimit());
+        $this->assertEquals([], $query->selector);
+        $this->assertNull($query->fields);
+        $this->assertNull($query->limit);
         $this->assertFalse($query->hasConditions());
         $this->assertFalse($query->hasFields());
     }
@@ -44,7 +44,7 @@ class MangoQuery_Test extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Mango query limit must be a non-negative integer');
 
-        new MangoQuery(['limit' => -1]);
+        MangoQuery::fromArray([MangoQuery::MANGO_LIMIT => -1]);
     }
 
     public function testMangoQuery_InvalidFields_ThrowsException()
@@ -52,7 +52,7 @@ class MangoQuery_Test extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Mango query fields must be an array');
 
-        new MangoQuery(['fields' => 'invalid']);
+        MangoQuery::fromArray([MangoQuery::MANGO_FIELDS => 'invalid']);
     }
 
     public function testMangoQuery_InvalidSkip_ThrowsException()
@@ -60,7 +60,7 @@ class MangoQuery_Test extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Mango query skip must be a non-negative integer');
 
-        new MangoQuery(['skip' => -5]);
+        MangoQuery::fromArray([MangoQuery::MANGO_SKIP => -5]);
     }
 
     public function testMangoQuery_InvalidSort_ThrowsException()
@@ -68,7 +68,7 @@ class MangoQuery_Test extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Mango query sort must be an array');
 
-        new MangoQuery(['sort' => 'invalid']);
+        MangoQuery::fromArray([MangoQuery::MANGO_SORT => 'invalid']);
     }
 
     public function testMangoQuery_InvalidSelector_ThrowsException()
@@ -76,29 +76,54 @@ class MangoQuery_Test extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Mango query selector must be an array');
 
-        new MangoQuery(['selector' => 'invalid']);
+        MangoQuery::fromArray([MangoQuery::MANGO_SELECTOR => 'invalid']);
     }
 
     public function testMangoQuery_AllProperties()
     {
-        $query = new MangoQuery([
-            'selector' => ['name' => 'John'],
-            'fields' => ['id', 'name'],
-            'sort' => [['name' => 'asc']],
-            'limit' => 10,
-            'skip' => 5,
-            'use_index' => 'name_index'
+        $query = MangoQuery::fromArray([
+            MangoQuery::MANGO_SELECTOR => ['name' => 'John'],
+            MangoQuery::MANGO_FIELDS => ['id', 'name'],
+            MangoQuery::MANGO_SORT => [['name' => 'asc']],
+            MangoQuery::MANGO_LIMIT => 10,
+            MangoQuery::MANGO_SKIP => 5,
+            MangoQuery::MANGO_USE_INDEX => 'name_index'
         ]);
 
-        $this->assertEquals(['name' => 'John'], $query->getSelector());
-        $this->assertEquals(['id', 'name'], $query->getFields());
-        $this->assertEquals([['name' => 'asc']], $query->getSort());
-        $this->assertEquals(10, $query->getLimit());
-        $this->assertEquals(5, $query->getSkip());
-        $this->assertEquals('name_index', $query->getUseIndex());
+        $this->assertEquals(['name' => 'John'], $query->selector);
+        $this->assertEquals(['id', 'name'], $query->fields);
+        $this->assertEquals([['name' => 'asc']], $query->sort);
+        $this->assertEquals(10, $query->limit);
+        $this->assertEquals(5, $query->skip);
+        $this->assertEquals('name_index', $query->useIndex);
         $this->assertTrue($query->hasConditions());
         $this->assertTrue($query->hasFields());
         $this->assertTrue($query->hasSort());
+    }
+
+    public function testMangoQuery_ConstantsValues()
+    {
+        // Test that the constants have the expected values
+        $this->assertEquals('selector', MangoQuery::MANGO_SELECTOR);
+        $this->assertEquals('fields', MangoQuery::MANGO_FIELDS);
+        $this->assertEquals('sort', MangoQuery::MANGO_SORT);
+        $this->assertEquals('limit', MangoQuery::MANGO_LIMIT);
+        $this->assertEquals('skip', MangoQuery::MANGO_SKIP);
+        $this->assertEquals('use_index', MangoQuery::MANGO_USE_INDEX);
+    }
+
+    public function testMangoQuery_FromArrayWithConstants()
+    {
+        // Test that fromArray works with constants
+        $query = MangoQuery::fromArray([
+            MangoQuery::MANGO_SELECTOR => ['name' => 'Jane'],
+            MangoQuery::MANGO_LIMIT => 5
+        ]);
+
+        $this->assertEquals(['name' => 'Jane'], $query->selector);
+        $this->assertEquals(5, $query->limit);
+        $this->assertTrue($query->hasConditions());
+        $this->assertFalse($query->hasFields());
     }
 
     public function testSqlCondition_BasicUsage()

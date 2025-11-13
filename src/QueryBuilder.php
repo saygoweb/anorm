@@ -315,22 +315,13 @@ class QueryBuilder
     /**
      * Apply a Mango Query to this QueryBuilder
      *
-     * @param array $mangoQuery The Mango Query object
+     * @param MangoQuery $mangoQuery The Mango Query object or array
      * @return self
      */
-    public function fromMango(array $mangoQuery): self
+    public function byMango(MangoQuery $query): self
     {
-        $query = new MangoQuery($mangoQuery);
         $this->applyMangoQuery($query);
         return $this;
-    }
-
-    /**
-     * Alias for fromMango()
-     */
-    public function mango(array $mangoQuery): self
-    {
-        return $this->fromMango($mangoQuery);
     }
 
     /**
@@ -344,13 +335,13 @@ class QueryBuilder
 
         // Apply fields (SELECT clause)
         if ($query->hasFields()) {
-            $fieldsClause = $parser->parseFields($query->getFields());
+            $fieldsClause = $parser->parseFields($query->fields);
             $this->select($fieldsClause);
         }
 
         // Apply selector (WHERE clause)
         if ($query->hasConditions()) {
-            $condition = $parser->parseSelector($query->getSelector());
+            $condition = $parser->parseSelector($query->selector);
             if (!$condition->isEmpty()) {
                 $this->where($condition);
             }
@@ -358,7 +349,7 @@ class QueryBuilder
 
         // Apply sort (ORDER BY clause)
         if ($query->hasSort()) {
-            $sortClause = $parser->parseSort($query->getSort());
+            $sortClause = $parser->parseSort($query->sort);
             if (!empty($sortClause)) {
                 $this->orderBy($sortClause);
             }
@@ -366,8 +357,8 @@ class QueryBuilder
 
         // Apply pagination (LIMIT and OFFSET)
         if ($query->hasPagination()) {
-            $limit = $query->getLimit();
-            $skip = $query->getSkip() ?? 0;
+            $limit = $query->limit;
+            $skip = $query->skip ?? 0;
 
             if ($limit !== null) {
                 $this->limit($limit, $skip);
