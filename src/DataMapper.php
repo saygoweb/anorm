@@ -183,6 +183,8 @@ class DataMapper
             }
             $keyField = $this->map[$key];
             $id = $c->$key;
+            // CP Maybe REPLACE isn't the best to use? It requires a unique key in the db
+            // An alternative would be to detect based on SELECT query WHERE key and if found ...
             $sql = 'REPLACE INTO`' . $this->table . '` (' . $fields . ') VALUES (' . $values . ')';
             $this->dynamicWrapper(function () use ($sql) {
                 $this->pdo->query($sql);
@@ -206,6 +208,7 @@ class DataMapper
                         $value = $this->pdo->quote($c->$property);
                     }
                 }
+                // TODO Move this to bound value CP 2020-06
                 $set .= "$field=$value";
             }
             if ($c->$key === null || $c->$key === '') {
