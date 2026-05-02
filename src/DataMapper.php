@@ -233,6 +233,7 @@ class DataMapper
             try {
                 self::$changeListener->onWrite($c, $diff, $isInsert);
             } catch (\Anorm\Lifecycle\ReentrantWriteException $e) {
+                $c->_lastSnapshot = $this->captureSnapshot($c);
                 throw $e;
             } catch (\Throwable $e) {
                 error_log('Anorm change listener threw: ' . $e->getMessage());

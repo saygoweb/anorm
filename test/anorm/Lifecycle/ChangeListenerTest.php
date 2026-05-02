@@ -327,6 +327,8 @@ class ChangeListenerTest extends TestCase
 
         $this->assertNotNull($m->id);
         $this->assertStringContainsString('boom', file_get_contents($tmp));
+        $this->assertIsArray($m->_lastSnapshot);
+        $this->assertSame('alice', $m->_lastSnapshot['name']);
         unlink($tmp);
     }
 
@@ -345,16 +347,36 @@ class ChangeListenerTest extends TestCase
         $m = new LifecycleModel();
         $m->name = 'alice';
 
-        // Capture error_log so the unrelated wrapped exception path doesn't pollute output.
-        $tmp = tempnam(sys_get_temp_dir(), 'anorm_err_');
-        $prev = ini_set('error_log', $tmp);
+        $this->expectException(\Anorm\Lifecycle\ReentrantWriteException::class);
+        $m->write();
+    }
+
+    public function testWrite_ReentrantException_StillRefreshesSnapshot()
+    {
+        $reentrant = new class implements ChangeListenerInterface {
+            public function onWrite(\Anorm\Model $model, array $diff, bool $isInsert): void
+            {
+                $other = new LifecycleModel();
+                $other->name = 'side-effect';
+                $other->write();
+            }
+        };
+        DataMapper::setChangeListener($reentrant);
+
+        $m = new LifecycleModel();
+        $m->name = 'alice';
         try {
-            $this->expectException(\Anorm\Lifecycle\ReentrantWriteException::class);
             $m->write();
-        } finally {
-            ini_set('error_log', $prev);
-            @unlink($tmp);
+            $this->fail('Expected ReentrantWriteException');
+        } catch (\Anorm\Lifecycle\ReentrantWriteException $e) {
+            // expected
         }
+
+        // Even though the exception propagated, the SQL committed, so the snapshot
+        // must reflect post-write state.
+        $this->assertIsArray($m->_lastSnapshot);
+        $this->assertSame('alice', $m->_lastSnapshot['name']);
+        $this->assertNotNull($m->id);
     }
 
     public function testWrite_PartialLoad_DiffOnlyHasLoadedFields()
