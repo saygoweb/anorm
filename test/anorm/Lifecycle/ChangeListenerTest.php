@@ -6,20 +6,21 @@ use PHPUnit\Framework\TestCase;
 use Anorm\DataMapper;
 use Anorm\Test\Lifecycle\LifecycleModel;
 use Anorm\Test\Lifecycle\RecordingListener;
+use Anorm\Test\TestEnvironment;
 
 class ChangeListenerTest extends TestCase
 {
     public static function setUpBeforeClass(): void
     {
-        \Anorm\Test\TestEnvironment::connect();
-        $pdo = \Anorm\Test\TestEnvironment::pdo();
+        TestEnvironment::connect();
+        $pdo = TestEnvironment::pdo();
         $pdo->query('DROP TABLE IF EXISTS `lifecycle_model`');
         $pdo->query(file_get_contents(__DIR__ . '/LifecycleSchema.sql'));
     }
 
     protected function setUp(): void
     {
-        \Anorm\Test\TestEnvironment::pdo()->query('TRUNCATE TABLE `lifecycle_model`');
+        TestEnvironment::pdo()->query('TRUNCATE TABLE `lifecycle_model`');
     }
 
     protected function tearDown(): void
