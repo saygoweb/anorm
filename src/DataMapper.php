@@ -27,6 +27,14 @@ class DataMapper
     /** @var TransformInterface[] */
     public $transformers = [];
 
+    /**
+     * Property names that should not appear in diff output.
+     * Default empty — Anorm has no opinion on which properties are "infrastructure."
+     * Consumers set this per DataMapper (e.g. ['dtc','dtu','uc','uu']).
+     * @var array<int, string>
+     */
+    public $infrastructureProperties = [];
+
     /** @var \Anorm\Lifecycle\ChangeListenerInterface|null */
     private static $changeListener = null;
 
@@ -302,6 +310,62 @@ class DataMapper
             $out[$property] = is_object($v) ? clone $v : $v;
         }
         return $out;
+    }
+
+    /**
+     * Compute the per-property delta between a snapshot and the current model state.
+     * @return array<string, array{from: mixed, to: mixed}>
+     */
+    public function diff(array $snapshot, Model $current): array
+    {
+        $loaded = $current->getLoadedFields();
+        $out = [];
+        foreach ($this->map as $property => $field) {
+            if ($property[0] === '_') {
+                continue;
+            }
+            if ($property === $this->modelPrimaryKey) {
+                continue;
+            }
+            if (in_array($property, $this->infrastructureProperties, true)) {
+                continue;
+            }
+            if ($loaded !== null && !in_array($property, $loaded, true)) {
+                continue;
+            }
+            $from = array_key_exists($property, $snapshot) ? $snapshot[$property] : null;
+            $to   = $current->$property;
+            if (!$this->valuesEqual($from, $to)) {
+                $out[$property] = ['from' => $from, 'to' => $to];
+            }
+        }
+        return $out;
+    }
+
+    private function valuesEqual($a, $b): bool
+    {
+        if ($a === $b) {
+            return true;
+        }
+        if ($a === null || $b === null) {
+            return false;
+        }
+        if (is_object($a) && is_object($b)) {
+            if (get_class($a) !== get_class($b)) {
+                return false;
+            }
+            if (method_exists($a, 'equals')) {
+                return (bool) $a->equals($b);
+            }
+            if (method_exists($a, 'isSame')) {
+                return (bool) $a->isSame($b);
+            }
+            return $a == $b; // PHP property-by-property equality
+        }
+        if (is_array($a) && is_array($b)) {
+            return $a === $b;
+        }
+        return $a === $b;
     }
 
     public function delete($id)
