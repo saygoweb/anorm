@@ -285,7 +285,23 @@ class DataMapper
                 }
             }
         }
+        if (self::$changeListener !== null) {
+            $c->_lastSnapshot = $this->captureSnapshot($c);
+        }
         return true;
+    }
+
+    private function captureSnapshot(Model $c): array
+    {
+        $out = [];
+        foreach ($this->map as $property => $field) {
+            if ($property[0] === '_') {
+                continue;
+            }
+            $v = $c->$property;
+            $out[$property] = is_object($v) ? clone $v : $v;
+        }
+        return $out;
     }
 
     public function delete($id)

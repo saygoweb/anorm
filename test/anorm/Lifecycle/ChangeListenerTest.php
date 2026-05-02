@@ -64,4 +64,37 @@ class ChangeListenerTest extends TestCase
         $m = new LifecycleModel();
         $this->assertArrayNotHasKey('_lastSnapshot', $m->_mapper->map);
     }
+
+    public function testRead_WithoutListener_DoesNotCaptureSnapshot()
+    {
+        $m = new LifecycleModel();
+        $m->name = 'alice';
+        $m->email = 'a@example.com';
+        $m->write();
+        $id = $m->id;
+
+        $loaded = new LifecycleModel();
+        $loaded->read($id);
+
+        $this->assertNull($loaded->_lastSnapshot);
+    }
+
+    public function testRead_WithListener_CapturesSnapshot()
+    {
+        $m = new LifecycleModel();
+        $m->name = 'alice';
+        $m->email = 'a@example.com';
+        $m->write();
+        $id = $m->id;
+
+        DataMapper::setChangeListener(new RecordingListener());
+
+        $loaded = new LifecycleModel();
+        $loaded->read($id);
+
+        $this->assertIsArray($loaded->_lastSnapshot);
+        $this->assertSame('alice', $loaded->_lastSnapshot['name']);
+        $this->assertSame('a@example.com', $loaded->_lastSnapshot['email']);
+        $this->assertArrayNotHasKey('_lastSnapshot', $loaded->_lastSnapshot);
+    }
 }
