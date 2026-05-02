@@ -47,6 +47,9 @@ class DataMapper
     public static function setChangeListener(?\Anorm\Lifecycle\ChangeListenerInterface $listener): void
     {
         self::$changeListener = $listener;
+        if ($listener === null) {
+            self::$insideListener = false;
+        }
     }
 
     public static function getChangeListener(): ?\Anorm\Lifecycle\ChangeListenerInterface

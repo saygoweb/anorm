@@ -4,7 +4,6 @@ require_once(__DIR__ . '/../../../vendor/autoload.php');
 
 use PHPUnit\Framework\TestCase;
 use Anorm\DataMapper;
-use Anorm\Lifecycle\ChangeListenerInterface;
 use Anorm\Test\Lifecycle\RecordingListener;
 
 class ChangeListenerTest extends TestCase
