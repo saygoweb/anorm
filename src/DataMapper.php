@@ -27,6 +27,12 @@ class DataMapper
     /** @var TransformInterface[] */
     public $transformers = [];
 
+    /** @var \Anorm\Lifecycle\ChangeListenerInterface|null */
+    private static $changeListener = null;
+
+    /** @var bool true while a listener's onWrite is executing (re-entrancy guard) */
+    private static $insideListener = false;
+
     public static function create(\PDO $pdo, $table, $map)
     {
         $mapper = new DataMapper($pdo, $table, $map);
@@ -36,6 +42,16 @@ class DataMapper
     public static function createByClass(\PDO $pdo, $c, $tablePrefix = '')
     {
         return self::create($pdo, $tablePrefix . self::autoTable($c), self::autoMap($c));
+    }
+
+    public static function setChangeListener(?\Anorm\Lifecycle\ChangeListenerInterface $listener): void
+    {
+        self::$changeListener = $listener;
+    }
+
+    public static function getChangeListener(): ?\Anorm\Lifecycle\ChangeListenerInterface
+    {
+        return self::$changeListener;
     }
 
     /**
