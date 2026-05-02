@@ -129,7 +129,10 @@ class DataMapper
     {
         $properties = get_object_vars($c);
         foreach ($properties as $key => $value) {
-            // Skip properties that start with underscore (framework properties)
+            // Framework properties (_mapper, _lastSnapshot, etc.) are never columns.
+            // get_object_vars() has already populated $properties with these keys
+            // before the loop, so the unset is required — `continue` alone would
+            // leave the key in place with its original value.
             if ($key[0] === '_') {
                 unset($properties[$key]);
                 continue;
