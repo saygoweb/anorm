@@ -9,6 +9,12 @@ class BatchLoadingPerformance_Test extends TestCase
 {
     private $pdo;
 
+    public static function setUpBeforeClass(): void
+    {
+        TestEnvironment::connect();
+        TestEnvironment::loadRelationshipSchema();
+    }
+
     protected function setUp(): void
     {
         $this->pdo = TestEnvironment::pdo();
