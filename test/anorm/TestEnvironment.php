@@ -134,4 +134,42 @@ class TestEnvironment
         self::connect($name, $overrides);
         return Anorm::pdo($name);
     }
+
+
+    /**
+     * Load the shared `RelationshipTestSchema.sql` into the active connection.
+     * Called from setUpBeforeClass in tests that need the users/posts/comments/etc.
+     * fixture tables but don't manage them themselves. Idempotent — runs the
+     * schema's own DROP TABLE IF EXISTS / CREATE TABLE statements with foreign
+     * key checks disabled, so a previous test that added dynamic FKs to these
+     * tables (e.g. Relationship_Test) doesn't block the reset.
+     */
+    public static function loadRelationshipSchema()
+    {
+        $pdo = self::pdo();
+        $sql = file_get_contents(__DIR__ . '/RelationshipTestSchema.sql');
+
+        // Strip `#`-prefixed comments line-by-line BEFORE splitting on `;`,
+        // otherwise a CREATE preceded by a comment line would be misidentified
+        // as a comment by a naive whole-statement check.
+        $cleanSql = '';
+        foreach (explode("\n", $sql) as $line) {
+            $line = trim($line);
+            if ($line !== '' && strpos($line, '#') !== 0) {
+                $cleanSql .= $line . "\n";
+            }
+        }
+
+        $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
+        try {
+            foreach (explode(';', $cleanSql) as $statement) {
+                $statement = trim($statement);
+                if ($statement !== '') {
+                    $pdo->exec($statement);
+                }
+            }
+        } finally {
+            $pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
+        }
+    }
 }

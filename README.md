@@ -17,6 +17,7 @@ Yes, yet another ORM for PHP. This meets my needs for an ORM with the following 
 * Maps between camelCase property names and under_score field names common in database schema.
 * Makes CRUD operations extremely simple.
 * Doesn't get in the way of complex queries.
+* Optional lifecycle hook for change detection — see [docs/_docs/lifecycle.md](docs/_docs/lifecycle.md).
 
 ## Documentation
 

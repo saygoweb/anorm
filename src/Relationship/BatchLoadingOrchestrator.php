@@ -1,5 +1,7 @@
 <?php
 
+// phpcs:disable Generic.Commenting.Todo.TaskFound
+
 namespace Anorm\Relationship;
 
 use Anorm\Relationship\Strategy\QueryStrategySelector;

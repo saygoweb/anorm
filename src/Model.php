@@ -20,6 +20,9 @@ class Model
     /** @var array|null Fields that have been loaded (for partial loading) */
     private $_loadedFields = null;
 
+    /** @var array<string, mixed>|null Snapshot of values as last seen in the database. */
+    public $_lastSnapshot = null;
+
     public function __construct(\PDO $pdo, DataMapper $mapper)
     {
         $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);

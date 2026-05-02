@@ -1,5 +1,7 @@
 <?php
 
+// phpcs:disable Generic.Commenting.Todo.TaskFound
+
 namespace Anorm;
 
 class DataMapper
@@ -27,6 +29,20 @@ class DataMapper
     /** @var TransformInterface[] */
     public $transformers = [];
 
+    /**
+     * Property names that should not appear in diff output.
+     * Default empty — Anorm has no opinion on which properties are "infrastructure."
+     * Consumers set this per DataMapper (e.g. ['dtc','dtu','uc','uu']).
+     * @var array<int, string>
+     */
+    public $infrastructureProperties = [];
+
+    /** @var \Anorm\Lifecycle\ChangeListenerInterface|null */
+    private static $changeListener = null;
+
+    /** @var bool true while a listener's onWrite is executing (re-entrancy guard) */
+    private static $insideListener = false;
+
     public static function create(\PDO $pdo, $table, $map)
     {
         $mapper = new DataMapper($pdo, $table, $map);
@@ -36,6 +52,19 @@ class DataMapper
     public static function createByClass(\PDO $pdo, $c, $tablePrefix = '')
     {
         return self::create($pdo, $tablePrefix . self::autoTable($c), self::autoMap($c));
+    }
+
+    public static function setChangeListener(?\Anorm\Lifecycle\ChangeListenerInterface $listener): void
+    {
+        self::$changeListener = $listener;
+        if ($listener === null) {
+            self::$insideListener = false;
+        }
+    }
+
+    public static function getChangeListener(): ?\Anorm\Lifecycle\ChangeListenerInterface
+    {
+        return self::$changeListener;
     }
 
     /**
@@ -102,6 +131,14 @@ class DataMapper
     {
         $properties = get_object_vars($c);
         foreach ($properties as $key => $value) {
+            // Framework properties (_mapper, _lastSnapshot, etc.) are never columns.
+            // get_object_vars() has already populated $properties with these keys
+            // before the loop, so the unset is required — `continue` alone would
+            // leave the key in place with its original value.
+            if ($key[0] === '_') {
+                unset($properties[$key]);
+                continue;
+            }
             $properties[$key] = self::propertyName($key);
         }
         return $properties;
@@ -109,6 +146,16 @@ class DataMapper
 
     public function write(&$c)
     {
+        if (self::$insideListener) {
+            throw new \Anorm\Lifecycle\ReentrantWriteException(
+                'DataMapper::write() called inside a ChangeListener. Defer the write until after the listener returns.'
+            );
+        }
+
+        $hasListener = (self::$changeListener !== null);
+        $isInsert    = $hasListener && ($c->_lastSnapshot === null);
+        $snapshot    = $hasListener ? $c->_lastSnapshot : null;
+
         $key = $this->modelPrimaryKey;
         if ($this->useReplace) {
             if (!$c->$key) {
@@ -184,6 +231,24 @@ class DataMapper
                 }, $c);
             }
         }
+
+        if ($hasListener) {
+            $diff = $isInsert ? [] : $this->diff($snapshot, $c);
+            self::$insideListener = true;
+            try {
+                self::$changeListener->onWrite($c, $diff, $isInsert);
+            } catch (\Anorm\Lifecycle\ReentrantWriteException $e) {
+                $c->_lastSnapshot = $this->captureSnapshot($c);
+                throw $e;
+            } catch (\Throwable $e) {
+                error_log('Anorm change listener threw: ' . $e->getMessage());
+            } finally {
+                self::$insideListener = false;
+            }
+
+            $c->_lastSnapshot = $this->captureSnapshot($c);
+        }
+
         return $c->$key;
     }
 
@@ -261,7 +326,79 @@ class DataMapper
                 }
             }
         }
+        if (self::$changeListener !== null) {
+            $c->_lastSnapshot = $this->captureSnapshot($c);
+        }
         return true;
+    }
+
+    private function captureSnapshot(Model $c): array
+    {
+        $out = [];
+        foreach ($this->map as $property => $field) {
+            if ($property[0] === '_') {
+                continue;
+            }
+            $v = $c->$property;
+            $out[$property] = is_object($v) ? clone $v : $v;
+        }
+        return $out;
+    }
+
+    /**
+     * Compute the per-property delta between a snapshot and the current model state.
+     * @return array<string, array{from: mixed, to: mixed}>
+     */
+    public function diff(array $snapshot, Model $current): array
+    {
+        $loaded = $current->getLoadedFields();
+        $out = [];
+        foreach ($this->map as $property => $field) {
+            if ($property[0] === '_') {
+                continue;
+            }
+            if ($property === $this->modelPrimaryKey) {
+                continue;
+            }
+            if (in_array($property, $this->infrastructureProperties, true)) {
+                continue;
+            }
+            if ($loaded !== null && !in_array($property, $loaded, true)) {
+                continue;
+            }
+            $from = array_key_exists($property, $snapshot) ? $snapshot[$property] : null;
+            $to   = $current->$property;
+            if (!$this->valuesEqual($from, $to)) {
+                $out[$property] = ['from' => $from, 'to' => $to];
+            }
+        }
+        return $out;
+    }
+
+    private function valuesEqual($a, $b): bool
+    {
+        if ($a === $b) {
+            return true;
+        }
+        if ($a === null || $b === null) {
+            return false;
+        }
+        if (is_object($a) && is_object($b)) {
+            if (get_class($a) !== get_class($b)) {
+                return false;
+            }
+            if (method_exists($a, 'equals')) {
+                return (bool) $a->equals($b);
+            }
+            if (method_exists($a, 'isSame')) {
+                return (bool) $a->isSame($b);
+            }
+            return $a == $b; // PHP property-by-property equality
+        }
+        if (is_array($a) && is_array($b)) {
+            return $a === $b;
+        }
+        return $a === $b;
     }
 
     public function delete($id)

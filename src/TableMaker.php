@@ -1,6 +1,7 @@
 <?php
 
 // phpcs:disable PSR2.Methods.MethodDeclaration.Underscore
+// phpcs:disable Generic.Commenting.Todo.TaskFound
 
 namespace Anorm;
 
