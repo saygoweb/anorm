@@ -52,4 +52,16 @@ class ChangeListenerTest extends TestCase
         $m2->read($m->id);
         $this->assertEquals('alice', $m2->name);
     }
+
+    public function testLastSnapshotProperty_DefaultsToNull()
+    {
+        $m = new LifecycleModel();
+        $this->assertNull($m->_lastSnapshot);
+    }
+
+    public function testLastSnapshotProperty_NotMappedAsColumn()
+    {
+        $m = new LifecycleModel();
+        $this->assertArrayNotHasKey('_lastSnapshot', $m->_mapper->map);
+    }
 }

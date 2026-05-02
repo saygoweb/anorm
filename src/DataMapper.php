@@ -121,6 +121,11 @@ class DataMapper
     {
         $properties = get_object_vars($c);
         foreach ($properties as $key => $value) {
+            // Skip properties that start with underscore (framework properties)
+            if ($key[0] === '_') {
+                unset($properties[$key]);
+                continue;
+            }
             $properties[$key] = self::propertyName($key);
         }
         return $properties;
