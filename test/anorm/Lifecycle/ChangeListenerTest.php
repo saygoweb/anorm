@@ -4,6 +4,7 @@ require_once(__DIR__ . '/../../../vendor/autoload.php');
 
 use PHPUnit\Framework\TestCase;
 use Anorm\DataMapper;
+use Anorm\Lifecycle\ChangeListenerInterface;
 use Anorm\Test\Lifecycle\LifecycleModel;
 use Anorm\Test\Lifecycle\RecordingListener;
 use Anorm\Test\TestEnvironment;
@@ -213,5 +214,169 @@ class ChangeListenerTest extends TestCase
         ];
         $diff = $m->_mapper->diff($snapshot, $m);
         $this->assertArrayHasKey('payload', $diff);
+    }
+
+    public function testWrite_NoListener_BehavesUnchanged()
+    {
+        $m = new LifecycleModel();
+        $m->name = 'alice';
+        $m->write();
+        $this->assertNotNull($m->id);
+        $this->assertNull($m->_lastSnapshot);
+    }
+
+    public function testWrite_InsertPath_FiresWithIsInsertTrueAndEmptyDiff()
+    {
+        $listener = new RecordingListener();
+        DataMapper::setChangeListener($listener);
+
+        $m = new LifecycleModel();
+        $m->name = 'alice';
+        $m->email = 'a@example.com';
+        $m->write();
+
+        $this->assertCount(1, $listener->calls);
+        $this->assertTrue($listener->calls[0]['isInsert']);
+        $this->assertSame([], $listener->calls[0]['diff']);
+        /** @var LifecycleModel $capturedModel */
+        $capturedModel = $listener->calls[0]['model'];
+        $this->assertNotNull($capturedModel->id);
+    }
+
+    public function testWrite_UpdatePathNoChange_FiresWithEmptyDiff()
+    {
+        $m = new LifecycleModel();
+        $m->name = 'alice';
+        $m->email = 'a@example.com';
+        $m->write();
+        $id = $m->id;
+
+        $listener = new RecordingListener();
+        DataMapper::setChangeListener($listener);
+
+        $loaded = new LifecycleModel();
+        $loaded->read($id);
+        $loaded->write();
+
+        $this->assertCount(1, $listener->calls);
+        $this->assertFalse($listener->calls[0]['isInsert']);
+        $this->assertSame([], $listener->calls[0]['diff']);
+    }
+
+    public function testWrite_UpdatePathOneField_FiresWithDiff()
+    {
+        $m = new LifecycleModel();
+        $m->name = 'alice';
+        $m->email = 'a@example.com';
+        $m->write();
+        $id = $m->id;
+
+        $listener = new RecordingListener();
+        DataMapper::setChangeListener($listener);
+
+        $loaded = new LifecycleModel();
+        $loaded->read($id);
+        $loaded->name = 'bob';
+        $loaded->write();
+
+        $this->assertCount(1, $listener->calls);
+        $this->assertFalse($listener->calls[0]['isInsert']);
+        $this->assertSame(
+            ['name' => ['from' => 'alice', 'to' => 'bob']],
+            $listener->calls[0]['diff']
+        );
+    }
+
+    public function testWrite_SnapshotRefreshedAfterWrite()
+    {
+        DataMapper::setChangeListener(new RecordingListener());
+
+        $m = new LifecycleModel();
+        $m->name = 'alice';
+        $m->write();
+
+        $this->assertIsArray($m->_lastSnapshot);
+        $this->assertSame('alice', $m->_lastSnapshot['name']);
+
+        $m->name = 'bob';
+        $m->write();
+        $this->assertSame('bob', $m->_lastSnapshot['name']);
+    }
+
+    public function testWrite_ListenerThrowsRuntimeException_WriteSucceeds()
+    {
+        $throwing = new class implements ChangeListenerInterface {
+            public function onWrite(\Anorm\Model $model, array $diff, bool $isInsert): void
+            {
+                throw new \RuntimeException('boom');
+            }
+        };
+        DataMapper::setChangeListener($throwing);
+
+        $m = new LifecycleModel();
+        $m->name = 'alice';
+
+        // Capture error_log output by redirecting it to a temp file.
+        $tmp = tempnam(sys_get_temp_dir(), 'anorm_err_');
+        $prev = ini_set('error_log', $tmp);
+        try {
+            $m->write();
+        } finally {
+            ini_set('error_log', $prev);
+        }
+
+        $this->assertNotNull($m->id);
+        $this->assertStringContainsString('boom', file_get_contents($tmp));
+        unlink($tmp);
+    }
+
+    public function testWrite_ListenerCallsWrite_ThrowsReentrantWriteException()
+    {
+        $reentrant = new class implements ChangeListenerInterface {
+            public function onWrite(\Anorm\Model $model, array $diff, bool $isInsert): void
+            {
+                $other = new LifecycleModel();
+                $other->name = 'side-effect';
+                $other->write();
+            }
+        };
+        DataMapper::setChangeListener($reentrant);
+
+        $m = new LifecycleModel();
+        $m->name = 'alice';
+
+        // Capture error_log so the unrelated wrapped exception path doesn't pollute output.
+        $tmp = tempnam(sys_get_temp_dir(), 'anorm_err_');
+        $prev = ini_set('error_log', $tmp);
+        try {
+            $this->expectException(\Anorm\Lifecycle\ReentrantWriteException::class);
+            $m->write();
+        } finally {
+            ini_set('error_log', $prev);
+            @unlink($tmp);
+        }
+    }
+
+    public function testWrite_PartialLoad_DiffOnlyHasLoadedFields()
+    {
+        $m = new LifecycleModel();
+        $m->name = 'alice';
+        $m->email = 'a@example.com';
+        $m->write();
+        $id = $m->id;
+
+        $listener = new RecordingListener();
+        DataMapper::setChangeListener($listener);
+
+        $loaded = new LifecycleModel();
+        $loaded->read($id);
+        $loaded->setLoadedFields(['name']);
+        $loaded->name = 'bob';
+        $loaded->email = 'changed@example.com'; // not loaded — should be ignored in diff
+        $loaded->write();
+
+        $this->assertCount(1, $listener->calls);
+        $this->assertArrayHasKey('name', $listener->calls[0]['diff']);
+        $this->assertArrayNotHasKey('email', $listener->calls[0]['diff']);
     }
 }
