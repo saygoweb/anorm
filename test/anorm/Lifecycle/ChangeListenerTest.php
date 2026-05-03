@@ -332,51 +332,62 @@ class ChangeListenerTest extends TestCase
         unlink($tmp);
     }
 
-    public function testWrite_ListenerCallsWrite_ThrowsReentrantWriteException()
+    public function testWrite_ListenerCallsWrite_NestedWriteCommits()
     {
-        $reentrant = new class implements ChangeListenerInterface {
+        $listener = new class implements ChangeListenerInterface {
+            /** @var LifecycleModel|null */
+            public $captured = null;
             public function onWrite(\Anorm\Model $model, array $diff, bool $isInsert): void
             {
                 $other = new LifecycleModel();
                 $other->name = 'side-effect';
                 $other->write();
+                $this->captured = $other;
             }
         };
-        DataMapper::setChangeListener($reentrant);
+        DataMapper::setChangeListener($listener);
 
         $m = new LifecycleModel();
         $m->name = 'alice';
-
-        $this->expectException(\Anorm\Lifecycle\ReentrantWriteException::class);
         $m->write();
+
+        $this->assertNotNull($m->id);
+        $this->assertNotNull($listener->captured);
+        $this->assertNotNull($listener->captured->id);
+        $this->assertNotSame($m->id, $listener->captured->id);
+
+        // Nested write must still refresh its own snapshot, since the listener
+        // is registered. The listener simply isn't re-invoked for it.
+        $this->assertIsArray($listener->captured->_lastSnapshot);
+        $this->assertSame('side-effect', $listener->captured->_lastSnapshot['name']);
     }
 
-    public function testWrite_ReentrantException_StillRefreshesSnapshot()
+    public function testWrite_NestedWrite_DoesNotReinvokeListener()
     {
-        $reentrant = new class implements ChangeListenerInterface {
+        $listener = new class implements ChangeListenerInterface {
+            public $callCount = 0;
             public function onWrite(\Anorm\Model $model, array $diff, bool $isInsert): void
             {
-                $other = new LifecycleModel();
-                $other->name = 'side-effect';
-                $other->write();
+                $this->callCount++;
+                if ($this->callCount === 1) {
+                    $other = new LifecycleModel();
+                    $other->name = 'side-effect';
+                    $other->write();
+                }
             }
         };
-        DataMapper::setChangeListener($reentrant);
+        DataMapper::setChangeListener($listener);
 
         $m = new LifecycleModel();
         $m->name = 'alice';
-        try {
-            $m->write();
-            $this->fail('Expected ReentrantWriteException');
-        } catch (\Anorm\Lifecycle\ReentrantWriteException $e) {
-            // expected
-        }
+        $m->write();
 
-        // Even though the exception propagated, the SQL committed, so the snapshot
-        // must reflect post-write state.
-        $this->assertIsArray($m->_lastSnapshot);
-        $this->assertSame('alice', $m->_lastSnapshot['name']);
-        $this->assertNotNull($m->id);
+        $this->assertSame(1, $listener->callCount);
+
+        $rows = TestEnvironment::pdo()
+            ->query('SELECT name FROM `lifecycle_model` ORDER BY id')
+            ->fetchAll(\PDO::FETCH_COLUMN);
+        $this->assertSame(['alice', 'side-effect'], $rows);
     }
 
     public function testWrite_PartialLoad_DiffOnlyHasLoadedFields()
