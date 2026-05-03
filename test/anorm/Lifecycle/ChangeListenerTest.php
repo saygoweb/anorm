@@ -203,6 +203,52 @@ class ChangeListenerTest extends TestCase
         $this->assertArrayHasKey('payload', $diff);
     }
 
+    public function testDiff_NullToValue_DetectsChange()
+    {
+        $m = new LifecycleModel();
+        $m->name = 'alice';
+        $m->email = 'a@example.com';
+        $snapshot = ['name' => 'alice', 'email' => null, 'dtu' => null, 'payload' => null];
+        $diff = $m->_mapper->diff($snapshot, $m);
+        $this->assertSame(['email' => ['from' => null, 'to' => 'a@example.com']], $diff);
+    }
+
+    public function testDiff_ValueToNull_DetectsChange()
+    {
+        $m = new LifecycleModel();
+        $m->name = 'alice';
+        $m->email = null;
+        $snapshot = ['name' => 'alice', 'email' => 'a@example.com', 'dtu' => null, 'payload' => null];
+        $diff = $m->_mapper->diff($snapshot, $m);
+        $this->assertSame(['email' => ['from' => 'a@example.com', 'to' => null]], $diff);
+    }
+
+    public function testDiff_ArrayEquality_NoChange()
+    {
+        $m = new LifecycleModel();
+        $m->name = 'alice';
+        $m->payload = ['a', 'b', 'c'];
+        $snapshot = [
+            'name' => 'alice', 'email' => null, 'dtu' => null,
+            'payload' => ['a', 'b', 'c'],
+        ];
+        $diff = $m->_mapper->diff($snapshot, $m);
+        $this->assertArrayNotHasKey('payload', $diff);
+    }
+
+    public function testDiff_ArrayEquality_DetectsDifference()
+    {
+        $m = new LifecycleModel();
+        $m->name = 'alice';
+        $m->payload = ['a', 'b', 'c'];
+        $snapshot = [
+            'name' => 'alice', 'email' => null, 'dtu' => null,
+            'payload' => ['a', 'b'],
+        ];
+        $diff = $m->_mapper->diff($snapshot, $m);
+        $this->assertArrayHasKey('payload', $diff);
+    }
+
     public function testDiff_ObjectEquality_DifferentClasses()
     {
         $m = new LifecycleModel();
@@ -388,6 +434,67 @@ class ChangeListenerTest extends TestCase
             ->query('SELECT name FROM `lifecycle_model` ORDER BY id')
             ->fetchAll(\PDO::FETCH_COLUMN);
         $this->assertSame(['alice', 'side-effect'], $rows);
+    }
+
+    public function testWrite_ListenerThrows_SubsequentWriteStillFiresListener()
+    {
+        $listener = new class implements ChangeListenerInterface {
+            public $callCount = 0;
+            public function onWrite(\Anorm\Model $model, array $diff, bool $isInsert): void
+            {
+                $this->callCount++;
+                throw new \RuntimeException('boom');
+            }
+        };
+        DataMapper::setChangeListener($listener);
+
+        $tmp = tempnam(sys_get_temp_dir(), 'anorm_err_');
+        $prev = ini_set('error_log', $tmp);
+        try {
+            $a = new LifecycleModel();
+            $a->name = 'alice';
+            $a->write();
+
+            $b = new LifecycleModel();
+            $b->name = 'bob';
+            $b->write();
+        } finally {
+            ini_set('error_log', $prev);
+        }
+
+        // Both writes must fire the listener — the finally block resets
+        // $insideListener after the first throw.
+        $this->assertSame(2, $listener->callCount);
+        unlink($tmp);
+    }
+
+    public function testWrite_AfterNestedWrite_OuterContinuesNormally()
+    {
+        $listener = new class implements ChangeListenerInterface {
+            public $callCount = 0;
+            public function onWrite(\Anorm\Model $model, array $diff, bool $isInsert): void
+            {
+                $this->callCount++;
+                if ($this->callCount === 1) {
+                    $other = new LifecycleModel();
+                    $other->name = 'side-effect';
+                    $other->write();
+                }
+            }
+        };
+        DataMapper::setChangeListener($listener);
+
+        $a = new LifecycleModel();
+        $a->name = 'alice';
+        $a->write();
+
+        // After the nested-write call returns, $insideListener must be reset
+        // so a subsequent top-level write fires the listener again.
+        $b = new LifecycleModel();
+        $b->name = 'bob';
+        $b->write();
+
+        $this->assertSame(2, $listener->callCount);
     }
 
     public function testWrite_PartialLoad_DiffOnlyHasLoadedFields()
