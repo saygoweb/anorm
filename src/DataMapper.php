@@ -146,15 +146,10 @@ class DataMapper
 
     public function write(&$c)
     {
-        if (self::$insideListener) {
-            throw new \Anorm\Lifecycle\ReentrantWriteException(
-                'DataMapper::write() called inside a ChangeListener. Defer the write until after the listener returns.'
-            );
-        }
-
-        $hasListener = (self::$changeListener !== null);
-        $isInsert    = $hasListener && ($c->_lastSnapshot === null);
-        $snapshot    = $hasListener ? $c->_lastSnapshot : null;
+        $hasListener  = (self::$changeListener !== null);
+        $shouldNotify = $hasListener && !self::$insideListener;
+        $isInsert     = $hasListener && ($c->_lastSnapshot === null);
+        $snapshot     = $hasListener ? $c->_lastSnapshot : null;
 
         $key = $this->modelPrimaryKey;
         if ($this->useReplace) {
@@ -232,20 +227,19 @@ class DataMapper
             }
         }
 
-        if ($hasListener) {
+        if ($shouldNotify) {
             $diff = $isInsert ? [] : $this->diff($snapshot, $c);
             self::$insideListener = true;
             try {
                 self::$changeListener->onWrite($c, $diff, $isInsert);
-            } catch (\Anorm\Lifecycle\ReentrantWriteException $e) {
-                $c->_lastSnapshot = $this->captureSnapshot($c);
-                throw $e;
             } catch (\Throwable $e) {
                 error_log('Anorm change listener threw: ' . $e->getMessage());
             } finally {
                 self::$insideListener = false;
             }
+        }
 
+        if ($hasListener) {
             $c->_lastSnapshot = $this->captureSnapshot($c);
         }
 

@@ -91,21 +91,17 @@ incorrect for change tracking.
 
 ## Re-entrancy
 
-A listener must not call `DataMapper::write()` synchronously, because the
-recursive write would itself fire the listener. Doing so raises
-`Anorm\Lifecycle\ReentrantWriteException`, surfaced to the caller of the
-outer `write()`. The snapshot is still refreshed before the exception
-propagates, so the caller's view of `$_lastSnapshot` reflects the committed
-state.
-
-If the listener needs to persist follow-up records, queue them in memory and
-flush at the end of the request (e.g. via a middleware after-handler).
+A listener may call `DataMapper::write()` — for example, to persist a
+follow-up record on a different table in response to a change. Nested writes
+commit their SQL and refresh their own `$_lastSnapshot`, but do **not**
+re-invoke the listener. Anorm assumes a single in-flight listener and
+suppresses recursive notifications for any depth.
 
 ## Listener exceptions
 
-Anorm wraps the listener call in `try/catch`. Any exception other than
-`ReentrantWriteException` is logged via `error_log` and swallowed; the write
-itself succeeds. Listener faults must never break writes.
+Anorm wraps the listener call in `try/catch`. Any exception thrown by the
+listener is logged via `error_log` and swallowed; the write itself succeeds.
+Listener faults must never break writes.
 
 If you want strict behaviour, your listener can catch and re-throw a wrapper
 type — but most consumers prefer fire-and-forget.
