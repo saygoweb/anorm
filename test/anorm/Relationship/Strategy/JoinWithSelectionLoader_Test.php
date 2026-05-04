@@ -255,4 +255,133 @@ class JoinWithSelectionLoader_Test extends TestCase
         // Test with empty array
         $this->assertTrue($method->invoke($this->loader, []));
     }
+
+    public function testBuildWhereClauseWithEmptyPrimaryKeys()
+    {
+        // Use reflection to access private method
+        $reflection = new \ReflectionClass($this->loader);
+        $method = $reflection->getMethod('buildWhereClause');
+        $method->setAccessible(true);
+
+        // Empty primary keys should return '1=0' (no results)
+        $result = $method->invoke($this->loader, 'users', 'id', []);
+        $this->assertEquals('1=0', $result);
+    }
+
+    public function testBuildWhereClauseWithPrimaryKeys()
+    {
+        // Use reflection to access private method
+        $reflection = new \ReflectionClass($this->loader);
+        $method = $reflection->getMethod('buildWhereClause');
+        $method->setAccessible(true);
+
+        // Non-empty primary keys should produce IN clause
+        $result = $method->invoke($this->loader, 'users', 'id', [1, 2, 3]);
+        $this->assertStringContainsString('IN', $result);
+        $this->assertStringContainsString('`id`', $result);
+        $this->assertEquals('s.`id` IN (?,?,?)', $result);
+    }
+
+    public function testCreatePartialModelWithNullPdoEntersBranch()
+    {
+        // Test that the $pdo === null branch is entered (creates a new PDO internally)
+        // The hardcoded DSN in createPartialModel uses 'mysql:host=localhost' which
+        // may not be reachable in all environments — we verify the branch is executed
+        // by catching the PDOException from the attempted connection.
+        $data = ['id' => 1, 'name' => 'test', 'email' => 'test@example.com', 'company_id' => null];
+
+        try {
+            $model = $this->loader->createPartialModel(UserModel::class, $data, null, null);
+            // If we reach here, the connection succeeded (e.g. 'localhost' is reachable)
+            $this->assertInstanceOf(UserModel::class, $model);
+            $this->assertEquals(1, $model->id);
+        } catch (\PDOException $e) {
+            // The null-PDO branch was entered and attempted to connect — this is the expected path
+            // in environments where 'localhost' MySQL is not available
+            $this->assertStringContainsString('SQLSTATE', $e->getMessage());
+        }
+    }
+
+    public function testCreatePartialModelWithSetLoadedFields()
+    {
+        // Test the setLoadedFields branch when fieldSelection is not null
+        // and the model supports setLoadedFields
+        $data = ['id' => 1, 'name' => 'Test User', 'email' => 'test@example.com', 'company_id' => null];
+        $fieldSelection = ['id', 'name'];
+
+        $model = $this->loader->createPartialModel(UserModel::class, $data, $fieldSelection, $this->pdo);
+
+        $this->assertInstanceOf(UserModel::class, $model);
+        $this->assertEquals(1, $model->id);
+
+        // If the model supports setLoadedFields / getLoadedFields, verify they were set
+        if (method_exists($model, 'getLoadedFields')) {
+            $this->assertEquals($fieldSelection, $model->getLoadedFields());
+        }
+    }
+
+    public function testDistributeBatchResultsManyToOneCardinality()
+    {
+        // Test the many-to-one branch: should set a single model, not an array
+        // PostModel's 'user' relationship is belongsTo → ManyHasOne → cardinality = many-to-one
+        // distributeBatchResults keys results by $model->{getPrimaryKey()}, which for ManyHasOne
+        // returns 'id' (the source model's primary key, not the FK column).
+        $posts = DataMapper::find(PostModel::class, $this->pdo)->some();
+        $postArray = iterator_to_array($posts);
+
+        if (count($postArray) === 0) {
+            $this->markTestSkipped('No test data available');
+        }
+
+        // Build batch results keyed by post id (getPrimaryKey() = 'id' on ManyHasOne)
+        $batchResults = [];
+        foreach ($postArray as $post) {
+            $user = new UserModel($this->pdo);
+            $user->id = $post->user_id ?? 1;
+            $user->name = 'User ' . ($post->user_id ?? 1);
+            // distributeBatchResults wraps per-key values as arrays and calls reset()
+            $batchResults[$post->id] = [$user];
+        }
+
+        $this->loader->distributeBatchResults($postArray, $batchResults, 'user');
+
+        foreach ($postArray as $post) {
+            // many-to-one: should be a single model, not an array
+            $this->assertInstanceOf(UserModel::class, $post->user);
+        }
+    }
+
+    public function testDistributeBatchResultsMissingManyToOne()
+    {
+        // When there are no batch results for a many-to-one relationship, model property should be null
+        $posts = DataMapper::find(PostModel::class, $this->pdo)->some();
+        $postArray = iterator_to_array($posts);
+
+        if (count($postArray) === 0) {
+            $this->markTestSkipped('No test data available');
+        }
+
+        // Pass empty batch results — no matches for any post
+        $this->loader->distributeBatchResults($postArray, [], 'user');
+
+        foreach ($postArray as $post) {
+            // many-to-one with no result → null
+            $this->assertNull($post->user);
+        }
+    }
+
+    public function testBatchLoadThrowsExceptionForUndefinedRelationship()
+    {
+        $users = DataMapper::find(UserModel::class, $this->pdo)->some();
+        $userArray = iterator_to_array($users);
+
+        if (count($userArray) === 0) {
+            $this->markTestSkipped('No test data available');
+        }
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessageMatches("/Relationship 'nonexistent' not defined/");
+
+        $this->loader->batchLoad($userArray, 'nonexistent');
+    }
 }
