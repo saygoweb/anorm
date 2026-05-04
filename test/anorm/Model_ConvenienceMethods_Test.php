@@ -30,6 +30,11 @@ class ExposedModel extends UserModel
     ): array {
         return $this->constraintOptions($onDelete, $onUpdate, $constraintName);
     }
+
+    public function publicCascadeDelete(): array
+    {
+        return $this->cascadeDelete();
+    }
 }
 
 /**
@@ -85,18 +90,6 @@ class Model_ConvenienceMethods_Test extends TestCase
     {
         $model = new ExposedModel($this->pdo);
         $result = $model->publicRestrictDelete();
-        $this->assertEquals([
-            'constraints' => [
-                'on_delete' => 'RESTRICT',
-                'on_update' => 'CASCADE',
-            ]
-        ], $result);
-    }
-
-    public function testConstraintOptions_DefaultValues()
-    {
-        $model = new ExposedModel($this->pdo);
-        $result = $model->publicConstraintOptions();
         $this->assertEquals([
             'constraints' => [
                 'on_delete' => 'RESTRICT',
@@ -164,12 +157,24 @@ class Model_ConvenienceMethods_Test extends TestCase
     // createForeignKeyConstraints() early-return (non-dynamic mode)
     // -----------------------------------------------------------------
 
+    /**
+     * @doesNotPerformAssertions
+     */
     public function testCreateForeignKeyConstraints_NonDynamicMode_DoesNothing()
     {
         $user = new UserModel($this->pdo);
-        // UserModel uses the default mode (not MODE_DYNAMIC), so calling
-        // createForeignKeyConstraints() should hit the early-return branch.
         $user->createForeignKeyConstraints();
-        $this->assertTrue(true);
+    }
+
+    public function testCascadeDelete_ReturnsCorrectOptions()
+    {
+        $model = new ExposedModel($this->pdo);
+        $result = $model->publicCascadeDelete();
+        $this->assertEquals([
+            'constraints' => [
+                'on_delete' => 'CASCADE',
+                'on_update' => 'CASCADE',
+            ]
+        ], $result);
     }
 }
