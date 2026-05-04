@@ -35,7 +35,7 @@ class QueryBuilder_Test extends TestCase
 
     public function testFunctions_ReturnThis()
     {
-        $pdo = TestEnvironment::pdo();
+        $pdo = $this->pdo;
         $o = new QueryBuilder(SomeTableModel::class, $pdo);
         $result = $o->select('');
         $this->assertSame($o, $result);
@@ -123,6 +123,7 @@ class QueryBuilder_Test extends TestCase
 
         $this->assertNotEmpty($models);
         $this->assertInstanceOf(UserModel::class, $models[0]);
+        $this->assertIsArray($models[0]->posts);
     }
 
     public function testSome_WithNestedRelationships_LoadsWithoutException()
@@ -135,5 +136,6 @@ class QueryBuilder_Test extends TestCase
 
         $this->assertNotEmpty($models);
         $this->assertInstanceOf(UserModel::class, $models[0]);
+        $this->assertIsArray($models[0]->posts);
     }
 }
