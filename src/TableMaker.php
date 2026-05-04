@@ -159,7 +159,7 @@ class TableMaker
     {
         $type = $relationship->getType();
 
-        if ($type === 'ManyHasOne') {
+        if ($type === 'manyHasOne') {
             // For belongsTo relationships, create foreign key on current table
             $this->createForeignKey(
                 $this->mapper->table,
@@ -168,7 +168,7 @@ class TableMaker
                 $relationship->getPrimaryKey(),
                 $relationship->getConstraintOptions()
             );
-        } elseif ($type === 'OneHasMany') {
+        } elseif ($type === 'oneHasMany') {
             // For hasMany relationships, create foreign key on related table
             $this->createForeignKey(
                 $this->getTableNameFromModelClass($relationship->getRelatedModelClass()),
@@ -196,7 +196,8 @@ class TableMaker
             return;
         }
 
-        // Ensure the referenced table exists
+        // Ensure both tables exist
+        $this->ensureTableExists($table);
         $this->ensureTableExists($referencedTable);
 
         // Ensure the column exists in the source table
