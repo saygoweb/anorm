@@ -258,9 +258,9 @@ class ManyHasRelationship_Test extends TestCase
 
     public function testManyHasManyBatchLoaderDistributeBatchResultsEmptyModels()
     {
+        $this->expectNotToPerformAssertions();
         $loader = new ManyHasManyBatchLoader();
         $loader->distributeBatchResults([], [], 'tags');
-        $this->assertTrue(true);
     }
 
     public function testManyHasOneGenerateForeignKeyConstraints()

@@ -146,11 +146,10 @@ class NestedRelationshipParser_Test extends TestCase
                 ]
             ];
 
-            // This should handle circular references gracefully
             $this->parser->loadNestedRelationships($userArray, $nestedSpecs, 2);
 
-            // Should not cause infinite recursion
-            $this->assertTrue(true);
+            // posts should be loaded on users
+            $this->assertIsArray($userArray[0]->posts);
         } else {
             $this->markTestSkipped('No test data available');
         }
@@ -179,11 +178,11 @@ class NestedRelationshipParser_Test extends TestCase
                 ]
             ];
 
-            // Test with limited depth
             $this->parser->loadNestedRelationships($userArray, $nestedSpecs, 1);
 
-            // Should stop at depth 1
-            $this->assertTrue(true);
+            // posts were loaded (depth 1), but comments within posts were not (depth 0 cut off)
+            $this->assertIsArray($userArray[0]->posts);
+            $this->assertNull($userArray[0]->posts[0]->comments ?? null);
         } else {
             $this->markTestSkipped('No test data available');
         }
@@ -371,9 +370,8 @@ class NestedRelationshipParser_Test extends TestCase
         $method = $reflection->getMethod('loadImmediateRelationship');
         $method->setAccessible(true);
 
-        // Should return without error for empty models
+        $this->expectNotToPerformAssertions();
         $method->invoke($this->parser, [], 'posts', null);
-        $this->assertTrue(true); // reached here means no exception
     }
 
     public function testLoadImmediateRelationshipWithMissingRelationship()
@@ -389,8 +387,7 @@ class NestedRelationshipParser_Test extends TestCase
         $method = $reflection->getMethod('loadImmediateRelationship');
         $method->setAccessible(true);
 
-        // 'nonexistent' relationship is not defined — should return silently
+        $this->expectNotToPerformAssertions();
         $method->invoke($this->parser, $userArray, 'nonexistent', null);
-        $this->assertTrue(true); // no exception thrown
     }
 }

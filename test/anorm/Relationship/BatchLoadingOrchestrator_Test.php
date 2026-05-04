@@ -55,10 +55,8 @@ class BatchLoadingOrchestrator_Test extends TestCase
 
     public function testLoadRelationshipsForModelsWithEmptyModels()
     {
+        $this->expectNotToPerformAssertions();
         $this->orchestrator->loadRelationshipsForModels([], ['posts']);
-
-        // Should not throw an exception
-        $this->assertTrue(true);
     }
 
     public function testLoadRelationshipsForModelsWithEmptyRelationships()
@@ -69,8 +67,7 @@ class BatchLoadingOrchestrator_Test extends TestCase
         if (count($userArray) > 0) {
             $this->orchestrator->loadRelationshipsForModels($userArray, []);
 
-            // Should not throw an exception
-            $this->assertTrue(true);
+            $this->assertNull($userArray[0]->posts);
         } else {
             $this->markTestSkipped('No test data available');
         }
@@ -103,8 +100,7 @@ class BatchLoadingOrchestrator_Test extends TestCase
         if (count($userArray) > 0) {
             $this->orchestrator->loadRelationshipsForModels($userArray, ['posts:id,title', 'company:name']);
 
-            // Should handle field selection syntax
-            $this->assertTrue(true); // If we get here, parsing worked
+            $this->assertIsArray($userArray[0]->posts);
         } else {
             $this->markTestSkipped('No test data available');
         }
@@ -123,8 +119,8 @@ class BatchLoadingOrchestrator_Test extends TestCase
 
             $this->orchestrator->loadRelationshipsForModels($mixedModels, ['posts', 'user']);
 
-            // Should handle mixed model types
-            $this->assertTrue(true);
+            $this->assertIsArray($userArray[0]->posts);
+            $this->assertInstanceOf(UserModel::class, $postArray[0]->user);
         } else {
             $this->markTestSkipped('No test data available');
         }
@@ -158,7 +154,7 @@ class BatchLoadingOrchestrator_Test extends TestCase
 
         if (count($userArray) > 0) {
             $orchestrator->loadRelationshipsForModels($userArray, ['posts']);
-            $this->assertTrue(true); // Should work with custom components
+            $this->assertIsArray($userArray[0]->posts);
         } else {
             $this->markTestSkipped('No test data available');
         }
@@ -210,10 +206,9 @@ class BatchLoadingOrchestrator_Test extends TestCase
         $userArray = iterator_to_array($users);
 
         if (count($userArray) > 0) {
-            // Should handle non-existent relationships gracefully
             $this->orchestrator->loadRelationshipsForModels($userArray, ['nonexistent_relationship']);
 
-            $this->assertTrue(true); // Should not throw exception
+            $this->assertFalse(isset($userArray[0]->nonexistent_relationship));
         } else {
             $this->markTestSkipped('No test data available');
         }
@@ -227,13 +222,9 @@ class BatchLoadingOrchestrator_Test extends TestCase
         $userArray = iterator_to_array($users);
 
         if (count($userArray) > 0) {
-            // Capture error log output
-            $errorLogBefore = error_get_last();
-
             $this->orchestrator->loadRelationshipsForModels($userArray, ['posts']);
 
-            // Should work with debug mode enabled
-            $this->assertTrue(true);
+            $this->assertIsArray($userArray[0]->posts);
         } else {
             $this->markTestSkipped('No test data available');
         }
@@ -252,10 +243,9 @@ class BatchLoadingOrchestrator_Test extends TestCase
                 'fallback_to_individual' => true
             ]);
 
-            // This should handle errors gracefully
             $this->orchestrator->loadRelationshipsForModels($userArray, ['posts']);
 
-            $this->assertTrue(true);
+            $this->assertIsArray($userArray[0]->posts);
         } else {
             $this->markTestSkipped('No test data available');
         }
@@ -284,10 +274,10 @@ class BatchLoadingOrchestrator_Test extends TestCase
         $method = $reflection->getMethod('executeBatchLoading');
         $method->setAccessible(true);
 
-        // Should not throw — falls back to individual loading
         $method->invoke($this->orchestrator, $userArray, $mockRelationship, null);
 
-        $this->assertTrue(true);
+        // After exception, falls back to individual loading which populates posts
+        $this->assertIsArray($userArray[0]->posts);
     }
 
     public function testExecuteBatchLoadingExceptionLogsInDebugMode()
@@ -313,10 +303,10 @@ class BatchLoadingOrchestrator_Test extends TestCase
         $method = $reflection->getMethod('executeBatchLoading');
         $method->setAccessible(true);
 
-        // With debug_mode=true, error_log is called and then falls back to individual loading
         $method->invoke($this->orchestrator, $userArray, $mockRelationship, null);
 
-        $this->assertTrue(true);
+        // After logged exception, falls back to individual loading which populates posts
+        $this->assertIsArray($userArray[0]->posts);
     }
 
     public function testExecuteIndividualLoadingSuccess()
@@ -342,9 +332,8 @@ class BatchLoadingOrchestrator_Test extends TestCase
 
         $method->invoke($this->orchestrator, $userArray, $relationship);
 
-        // Individual loading should have populated posts on each user
         foreach ($userArray as $user) {
-            $this->assertTrue(isset($user->posts) || $user->posts !== false);
+            $this->assertIsArray($user->posts);
         }
     }
 
@@ -371,10 +360,8 @@ class BatchLoadingOrchestrator_Test extends TestCase
         $method = $reflection->getMethod('executeIndividualLoading');
         $method->setAccessible(true);
 
-        // Should not throw — exceptions per model are caught internally
+        $this->expectNotToPerformAssertions();
         $method->invoke($this->orchestrator, $userArray, $mockRelationship);
-
-        $this->assertTrue(true);
     }
 
     public function testExecuteIndividualLoadingExceptionLogsInDebugMode()
@@ -399,10 +386,8 @@ class BatchLoadingOrchestrator_Test extends TestCase
         $method = $reflection->getMethod('executeIndividualLoading');
         $method->setAccessible(true);
 
-        // With debug_mode=true, error_log is called per failing model
+        $this->expectNotToPerformAssertions();
         $method->invoke($this->orchestrator, $userArray, $mockRelationship);
-
-        $this->assertTrue(true);
     }
 
     public function testLoadSingleRelationshipJoinStrategyBranch()
@@ -426,7 +411,7 @@ class BatchLoadingOrchestrator_Test extends TestCase
         // The orchestrator handles JOIN by falling back to executeBatchLoading.
         $this->orchestrator->loadRelationshipsForModels($manyUsers, ['posts:id,title']);
 
-        $this->assertTrue(true);
+        $this->assertIsArray($manyUsers[0]->posts);
     }
 
     public function testLoadRelationshipsForModelClassWithEmptyModelsArray()
@@ -437,9 +422,7 @@ class BatchLoadingOrchestrator_Test extends TestCase
         $method = $reflection->getMethod('loadRelationshipsForModelClass');
         $method->setAccessible(true);
 
-        // Calling with empty array should return early without error
+        $this->expectNotToPerformAssertions();
         $method->invoke($this->orchestrator, [], ['posts' => ['fields' => null, 'nested' => []]]);
-
-        $this->assertTrue(true);
     }
 }
