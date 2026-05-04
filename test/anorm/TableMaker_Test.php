@@ -39,6 +39,10 @@ class TableMakerTest extends TestCase
         $this->pdo = TestEnvironment::pdo();
     }
 
+    protected function tearDown(): void
+    {
+        $this->dropTmTables();
+    }
 
     public function testColumnDefinition_Integer_OK()
     {
@@ -181,8 +185,6 @@ class TableMakerTest extends TestCase
             $this->tmForeignKeyExists('tm_items', 'fk_tm_items_parent_id'),
             'Expected FK constraint fk_tm_items_parent_id to be created on tm_items'
         );
-
-        $this->dropTmTables();
     }
 
     public function testFix_HY000_WithFkMessageAndModel_CreatesForeignKey()
@@ -207,8 +209,6 @@ class TableMakerTest extends TestCase
             $this->tmForeignKeyExists('tm_items', 'fk_tm_items_parent_id'),
             'Expected FK constraint to be created via HY000 + FK message path'
         );
-
-        $this->dropTmTables();
     }
 
     public function testFix_ForeignKeyAlreadyExists_DoesNotDuplicate()
@@ -232,10 +232,17 @@ class TableMakerTest extends TestCase
             'Cannot add or update a child row: a foreign key constraint fails'
         );
 
+        // Should not throw even though FK already exists (idempotency guard in foreignKeyExists())
         TableMaker::fix($e, $child->_mapper, $child);
-        $this->assertTrue($this->tmForeignKeyExists('tm_items', 'fk_tm_items_parent_id'));
 
-        $this->dropTmTables();
+        // Confirm FK still exists and wasn't doubled up
+        $stmt = $this->pdo->prepare(
+            "SELECT COUNT(*) AS cnt FROM information_schema.TABLE_CONSTRAINTS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'tm_items'
+             AND CONSTRAINT_TYPE = 'FOREIGN KEY'"
+        );
+        $stmt->execute();
+        $this->assertEquals(1, (int) $stmt->fetch(\PDO::FETCH_ASSOC)['cnt'], 'Expected exactly one FK on tm_items');
     }
 
     public function testFix_HasManyRelationship_CreatesForeignKeyOnRelatedTable()
@@ -259,7 +266,5 @@ class TableMakerTest extends TestCase
             $this->tmForeignKeyExists('tm_items', 'fk_tm_items_parent_id'),
             'Expected FK on tm_items (auto-created by ensureTableExists) referencing tm_parents'
         );
-
-        $this->dropTmTables();
     }
 }
