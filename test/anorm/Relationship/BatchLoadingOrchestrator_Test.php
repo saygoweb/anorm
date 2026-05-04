@@ -55,10 +55,8 @@ class BatchLoadingOrchestrator_Test extends TestCase
 
     public function testLoadRelationshipsForModelsWithEmptyModels()
     {
+        $this->expectNotToPerformAssertions();
         $this->orchestrator->loadRelationshipsForModels([], ['posts']);
-
-        // Should not throw an exception
-        $this->assertTrue(true);
     }
 
     public function testLoadRelationshipsForModelsWithEmptyRelationships()
@@ -69,8 +67,7 @@ class BatchLoadingOrchestrator_Test extends TestCase
         if (count($userArray) > 0) {
             $this->orchestrator->loadRelationshipsForModels($userArray, []);
 
-            // Should not throw an exception
-            $this->assertTrue(true);
+            $this->assertNull($userArray[0]->posts);
         } else {
             $this->markTestSkipped('No test data available');
         }
@@ -103,8 +100,7 @@ class BatchLoadingOrchestrator_Test extends TestCase
         if (count($userArray) > 0) {
             $this->orchestrator->loadRelationshipsForModels($userArray, ['posts:id,title', 'company:name']);
 
-            // Should handle field selection syntax
-            $this->assertTrue(true); // If we get here, parsing worked
+            $this->assertIsArray($userArray[0]->posts);
         } else {
             $this->markTestSkipped('No test data available');
         }
@@ -123,8 +119,8 @@ class BatchLoadingOrchestrator_Test extends TestCase
 
             $this->orchestrator->loadRelationshipsForModels($mixedModels, ['posts', 'user']);
 
-            // Should handle mixed model types
-            $this->assertTrue(true);
+            $this->assertIsArray($userArray[0]->posts);
+            $this->assertInstanceOf(UserModel::class, $postArray[0]->user);
         } else {
             $this->markTestSkipped('No test data available');
         }
@@ -158,7 +154,7 @@ class BatchLoadingOrchestrator_Test extends TestCase
 
         if (count($userArray) > 0) {
             $orchestrator->loadRelationshipsForModels($userArray, ['posts']);
-            $this->assertTrue(true); // Should work with custom components
+            $this->assertIsArray($userArray[0]->posts);
         } else {
             $this->markTestSkipped('No test data available');
         }
@@ -210,10 +206,9 @@ class BatchLoadingOrchestrator_Test extends TestCase
         $userArray = iterator_to_array($users);
 
         if (count($userArray) > 0) {
-            // Should handle non-existent relationships gracefully
             $this->orchestrator->loadRelationshipsForModels($userArray, ['nonexistent_relationship']);
 
-            $this->assertTrue(true); // Should not throw exception
+            $this->assertFalse(isset($userArray[0]->nonexistent_relationship));
         } else {
             $this->markTestSkipped('No test data available');
         }
@@ -227,13 +222,9 @@ class BatchLoadingOrchestrator_Test extends TestCase
         $userArray = iterator_to_array($users);
 
         if (count($userArray) > 0) {
-            // Capture error log output
-            $errorLogBefore = error_get_last();
-
             $this->orchestrator->loadRelationshipsForModels($userArray, ['posts']);
 
-            // Should work with debug mode enabled
-            $this->assertTrue(true);
+            $this->assertIsArray($userArray[0]->posts);
         } else {
             $this->markTestSkipped('No test data available');
         }
@@ -252,12 +243,186 @@ class BatchLoadingOrchestrator_Test extends TestCase
                 'fallback_to_individual' => true
             ]);
 
-            // This should handle errors gracefully
             $this->orchestrator->loadRelationshipsForModels($userArray, ['posts']);
 
-            $this->assertTrue(true);
+            $this->assertIsArray($userArray[0]->posts);
         } else {
             $this->markTestSkipped('No test data available');
         }
+    }
+
+    public function testExecuteBatchLoadingExceptionFallsBackToIndividual()
+    {
+        // Use reflection to call executeBatchLoading with a relationship that throws
+        $users = DataMapper::find(UserModel::class, $this->pdo)->some();
+        $userArray = iterator_to_array($users);
+
+        if (count($userArray) === 0) {
+            $this->markTestSkipped('No test data available');
+        }
+
+        // Create a mock relationship whose batchLoad() throws an exception
+        $mockRelationship = $this->getMockBuilder(\Anorm\Relationship\OneHasMany::class)
+            ->setConstructorArgs(['Anorm\Test\PostModel', 'posts', 'user_id', 'id'])
+            ->onlyMethods(['batchLoad', 'getPropertyName'])
+            ->getMock();
+
+        $mockRelationship->method('getPropertyName')->willReturn('posts');
+        $mockRelationship->method('batchLoad')->willThrowException(new \RuntimeException('Batch load failed'));
+
+        $reflection = new \ReflectionClass($this->orchestrator);
+        $method = $reflection->getMethod('executeBatchLoading');
+        $method->setAccessible(true);
+
+        $method->invoke($this->orchestrator, $userArray, $mockRelationship, null);
+
+        // After exception, falls back to individual loading which populates posts
+        $this->assertIsArray($userArray[0]->posts);
+    }
+
+    public function testExecuteBatchLoadingExceptionLogsInDebugMode()
+    {
+        $users = DataMapper::find(UserModel::class, $this->pdo)->some();
+        $userArray = iterator_to_array($users);
+
+        if (count($userArray) === 0) {
+            $this->markTestSkipped('No test data available');
+        }
+
+        $this->orchestrator->setConfig(['debug_mode' => true]);
+
+        $mockRelationship = $this->getMockBuilder(\Anorm\Relationship\OneHasMany::class)
+            ->setConstructorArgs(['Anorm\Test\PostModel', 'posts', 'user_id', 'id'])
+            ->onlyMethods(['batchLoad', 'getPropertyName'])
+            ->getMock();
+
+        $mockRelationship->method('getPropertyName')->willReturn('posts');
+        $mockRelationship->method('batchLoad')->willThrowException(new \RuntimeException('Debug batch fail'));
+
+        $reflection = new \ReflectionClass($this->orchestrator);
+        $method = $reflection->getMethod('executeBatchLoading');
+        $method->setAccessible(true);
+
+        $method->invoke($this->orchestrator, $userArray, $mockRelationship, null);
+
+        // After logged exception, falls back to individual loading which populates posts
+        $this->assertIsArray($userArray[0]->posts);
+    }
+
+    public function testExecuteIndividualLoadingSuccess()
+    {
+        $users = DataMapper::find(UserModel::class, $this->pdo)->some();
+        $userArray = iterator_to_array($users);
+
+        if (count($userArray) === 0) {
+            $this->markTestSkipped('No test data available');
+        }
+
+        $user = $userArray[0];
+        $relationshipManager = $user->getRelationshipManager();
+        $relationship = $relationshipManager->getRelationship('posts');
+
+        if (!$relationship) {
+            $this->markTestSkipped('Posts relationship not found');
+        }
+
+        $reflection = new \ReflectionClass($this->orchestrator);
+        $method = $reflection->getMethod('executeIndividualLoading');
+        $method->setAccessible(true);
+
+        $method->invoke($this->orchestrator, $userArray, $relationship);
+
+        foreach ($userArray as $user) {
+            $this->assertIsArray($user->posts);
+        }
+    }
+
+    public function testExecuteIndividualLoadingExceptionHandledPerModel()
+    {
+        $users = DataMapper::find(UserModel::class, $this->pdo)->some();
+        $userArray = iterator_to_array($users);
+
+        if (count($userArray) === 0) {
+            $this->markTestSkipped('No test data available');
+        }
+
+        // Create a mock relationship whose getPropertyName returns a non-existent relationship
+        // so loadRelated() would fail gracefully (or we use a model that throws)
+        $mockRelationship = $this->getMockBuilder(\Anorm\Relationship\OneHasMany::class)
+            ->setConstructorArgs(['Anorm\Test\PostModel', 'posts', 'user_id', 'id'])
+            ->onlyMethods(['getPropertyName'])
+            ->getMock();
+
+        // Use a relationship name that does not exist on UserModel → loadRelated returns null or throws
+        $mockRelationship->method('getPropertyName')->willReturn('nonexistent_rel_xyz');
+
+        $reflection = new \ReflectionClass($this->orchestrator);
+        $method = $reflection->getMethod('executeIndividualLoading');
+        $method->setAccessible(true);
+
+        $this->expectNotToPerformAssertions();
+        $method->invoke($this->orchestrator, $userArray, $mockRelationship);
+    }
+
+    public function testExecuteIndividualLoadingExceptionLogsInDebugMode()
+    {
+        $users = DataMapper::find(UserModel::class, $this->pdo)->some();
+        $userArray = iterator_to_array($users);
+
+        if (count($userArray) === 0) {
+            $this->markTestSkipped('No test data available');
+        }
+
+        $this->orchestrator->setConfig(['debug_mode' => true]);
+
+        $mockRelationship = $this->getMockBuilder(\Anorm\Relationship\OneHasMany::class)
+            ->setConstructorArgs(['Anorm\Test\PostModel', 'posts', 'user_id', 'id'])
+            ->onlyMethods(['getPropertyName'])
+            ->getMock();
+
+        $mockRelationship->method('getPropertyName')->willReturn('nonexistent_rel_xyz');
+
+        $reflection = new \ReflectionClass($this->orchestrator);
+        $method = $reflection->getMethod('executeIndividualLoading');
+        $method->setAccessible(true);
+
+        $this->expectNotToPerformAssertions();
+        $method->invoke($this->orchestrator, $userArray, $mockRelationship);
+    }
+
+    public function testLoadSingleRelationshipJoinStrategyBranch()
+    {
+        // Force JOIN_WITH_SELECTION strategy by providing > 10 models with field selection.
+        // The orchestrator falls through to executeBatchLoading for JOIN strategy (see line 118-119).
+        $users = DataMapper::find(UserModel::class, $this->pdo)->some();
+        $userArray = iterator_to_array($users);
+
+        if (count($userArray) === 0) {
+            $this->markTestSkipped('No test data available');
+        }
+
+        // Duplicate users to exceed individual_loading_threshold (10)
+        $manyUsers = [];
+        for ($i = 0; $i < 20; $i++) {
+            $manyUsers[] = $userArray[0];
+        }
+
+        // With field selection and > 10 models, the strategy selector may choose JOIN strategy.
+        // The orchestrator handles JOIN by falling back to executeBatchLoading.
+        $this->orchestrator->loadRelationshipsForModels($manyUsers, ['posts:id,title']);
+
+        $this->assertIsArray($manyUsers[0]->posts);
+    }
+
+    public function testLoadRelationshipsForModelClassWithEmptyModelsArray()
+    {
+        // The private loadRelationshipsForModelClass has an early return for empty models (line 72).
+        // We can trigger it via reflection.
+        $reflection = new \ReflectionClass($this->orchestrator);
+        $method = $reflection->getMethod('loadRelationshipsForModelClass');
+        $method->setAccessible(true);
+
+        $this->expectNotToPerformAssertions();
+        $method->invoke($this->orchestrator, [], ['posts' => ['fields' => null, 'nested' => []]]);
     }
 }

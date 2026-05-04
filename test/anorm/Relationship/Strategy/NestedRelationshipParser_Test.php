@@ -146,11 +146,10 @@ class NestedRelationshipParser_Test extends TestCase
                 ]
             ];
 
-            // This should handle circular references gracefully
             $this->parser->loadNestedRelationships($userArray, $nestedSpecs, 2);
 
-            // Should not cause infinite recursion
-            $this->assertTrue(true);
+            // posts should be loaded on users
+            $this->assertIsArray($userArray[0]->posts);
         } else {
             $this->markTestSkipped('No test data available');
         }
@@ -179,11 +178,11 @@ class NestedRelationshipParser_Test extends TestCase
                 ]
             ];
 
-            // Test with limited depth
             $this->parser->loadNestedRelationships($userArray, $nestedSpecs, 1);
 
-            // Should stop at depth 1
-            $this->assertTrue(true);
+            // posts were loaded (depth 1), but comments within posts were not (depth 0 cut off)
+            $this->assertIsArray($userArray[0]->posts);
+            $this->assertNull($userArray[0]->posts[0]->comments ?? null);
         } else {
             $this->markTestSkipped('No test data available');
         }
@@ -275,5 +274,120 @@ class NestedRelationshipParser_Test extends TestCase
         } else {
             $this->markTestSkipped('No test data available');
         }
+    }
+
+    public function testParseNestedSpecsDuplicateRelationshipMergesFields()
+    {
+        // Duplicate relationship 'posts' in two specs with different fields
+        // hits the else/merge branch in parseNestedSpec
+        $specs = ['posts:id,title', 'posts:content'];
+        $parsed = $this->parser->parseNestedSpecs($specs);
+
+        $this->assertArrayHasKey('posts', $parsed);
+        // All three fields should be present after the merge
+        $fields = $parsed['posts']['fields'];
+        $this->assertIsArray($fields);
+        $this->assertContains('id', $fields);
+        $this->assertContains('title', $fields);
+        $this->assertContains('content', $fields);
+    }
+
+    public function testParseNestedSpecsDuplicateRelationshipWithNullFields()
+    {
+        // Second spec has no field selection — elseif branch: only update when new fields provided
+        $specs = ['posts:id,title', 'posts'];
+        $parsed = $this->parser->parseNestedSpecs($specs);
+
+        $this->assertArrayHasKey('posts', $parsed);
+        // First spec set fields; second spec (null fields) should not overwrite them
+        $this->assertEquals(['id', 'title'], $parsed['posts']['fields']);
+    }
+
+    public function testGenerateCircularKeyWithEmptyModels()
+    {
+        // Use reflection to test private method — empty models returns just $relationshipName
+        $reflection = new \ReflectionClass($this->parser);
+        $method = $reflection->getMethod('generateCircularKey');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($this->parser, [], 'posts');
+        $this->assertEquals('posts', $result);
+    }
+
+    public function testGenerateCircularKeyWithModels()
+    {
+        $users = DataMapper::find(UserModel::class, $this->pdo)->some();
+        $userArray = iterator_to_array($users);
+
+        if (count($userArray) === 0) {
+            $this->markTestSkipped('No test data available');
+        }
+
+        $reflection = new \ReflectionClass($this->parser);
+        $method = $reflection->getMethod('generateCircularKey');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($this->parser, $userArray, 'posts');
+        $this->assertEquals('Anorm\Test\UserModel.posts', $result);
+    }
+
+    public function testLoadNestedRelationshipsSkipsCircularReference()
+    {
+        $users = DataMapper::find(UserModel::class, $this->pdo)->some();
+        $userArray = iterator_to_array($users);
+
+        if (count($userArray) === 0) {
+            $this->markTestSkipped('No test data available');
+        }
+
+        // Pre-load the loading stack with the key that would be generated
+        // for UserModel + 'posts', simulating an in-progress load
+        $circularKey = 'Anorm\Test\UserModel.posts';
+        $reflection = new \ReflectionClass($this->parser);
+        $stackProp = $reflection->getProperty('loadingStack');
+        $stackProp->setAccessible(true);
+        $stackProp->setValue($this->parser, [$circularKey]);
+
+        $nestedSpecs = [
+            'posts' => [
+                'fields' => null,
+                'nested' => []
+            ]
+        ];
+
+        // Should return early without throwing (circular reference detected)
+        $this->parser->loadNestedRelationships($userArray, $nestedSpecs);
+
+        // Loading stack should only contain the key we injected (nothing was added/removed)
+        $stack = $stackProp->getValue($this->parser);
+        $this->assertEquals([$circularKey], $stack);
+    }
+
+    public function testLoadImmediateRelationshipWithEmptyModels()
+    {
+        // Use reflection to call the private method with an empty models array
+        $reflection = new \ReflectionClass($this->parser);
+        $method = $reflection->getMethod('loadImmediateRelationship');
+        $method->setAccessible(true);
+
+        $this->expectNotToPerformAssertions();
+        $method->invoke($this->parser, [], 'posts', null);
+    }
+
+    public function testLoadImmediateRelationshipWithMissingRelationship()
+    {
+        $users = DataMapper::find(UserModel::class, $this->pdo)->some();
+        $userArray = iterator_to_array($users);
+
+        if (count($userArray) === 0) {
+            $this->markTestSkipped('No test data available');
+        }
+
+        $reflection = new \ReflectionClass($this->parser);
+        $method = $reflection->getMethod('loadImmediateRelationship');
+        $method->setAccessible(true);
+
+        $this->expectNotToPerformAssertions();
+        $method->invoke($this->parser, $userArray, 'nonexistent', null);
     }
 }
