@@ -17,6 +17,15 @@ class TableMakerTestException extends \PDOException
     }
 }
 
+class TableMakerTestExceptionWithMessage extends \PDOException
+{
+    public function __construct(string $code, string $msg)
+    {
+        $this->code = $code;
+        $this->message = $msg;
+    }
+}
+
 class TableMakerTest extends TestCase
 {
     /** @var \PDO */
@@ -90,5 +99,37 @@ class TableMakerTest extends TestCase
         $e = new TableMakerTestException('42S22'); // Column does not exist
         $mapper = DataMapper::create($this->pdo, null, null);
         TableMaker::fix($e, $mapper);
+    }
+
+    public function testFix_23000_NoModel_DoesNotThrow()
+    {
+        $e = new TableMakerTestExceptionWithMessage(
+            '23000',
+            'Cannot add or update a child row: a foreign key constraint fails'
+        );
+        $mapper = DataMapper::create($this->pdo, null, null);
+        TableMaker::fix($e, $mapper, null);
+        $this->assertTrue(true);
+    }
+
+    public function testFix_HY000_WithForeignKeyMessage_DoesNotThrow()
+    {
+        $e = new TableMakerTestExceptionWithMessage(
+            'HY000',
+            'General error: 1215 Cannot add foreign key constraint'
+        );
+        $mapper = DataMapper::create($this->pdo, null, null);
+        TableMaker::fix($e, $mapper, null);
+        $this->assertTrue(true);
+    }
+
+    public function testFix_HY000_WithoutForeignKeyMessage_Rethrows()
+    {
+        $this->expectException(\PDOException::class);
+        $this->expectExceptionMessage('Some unrelated general error');
+
+        $e = new TableMakerTestExceptionWithMessage('HY000', 'Some unrelated general error');
+        $mapper = DataMapper::create($this->pdo, null, null);
+        TableMaker::fix($e, $mapper, null);
     }
 }
