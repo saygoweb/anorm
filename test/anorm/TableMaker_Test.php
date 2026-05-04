@@ -101,6 +101,9 @@ class TableMakerTest extends TestCase
         TableMaker::fix($e, $mapper);
     }
 
+    /**
+     * @doesNotPerformAssertions
+     */
     public function testFix_23000_NoModel_DoesNotThrow()
     {
         $e = new TableMakerTestExceptionWithMessage(
@@ -109,9 +112,11 @@ class TableMakerTest extends TestCase
         );
         $mapper = DataMapper::create($this->pdo, null, null);
         TableMaker::fix($e, $mapper, null);
-        $this->assertTrue(true);
     }
 
+    /**
+     * @doesNotPerformAssertions
+     */
     public function testFix_HY000_WithForeignKeyMessage_DoesNotThrow()
     {
         $e = new TableMakerTestExceptionWithMessage(
@@ -120,7 +125,6 @@ class TableMakerTest extends TestCase
         );
         $mapper = DataMapper::create($this->pdo, null, null);
         TableMaker::fix($e, $mapper, null);
-        $this->assertTrue(true);
     }
 
     public function testFix_HY000_WithoutForeignKeyMessage_Rethrows()
