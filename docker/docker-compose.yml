@@ -1,0 +1,111 @@
+# Host-driven development stack for Anorm, targeting PHP 7.4.
+#
+# The editor/agent stays on the host and only reaches into the container to run
+# PHP. Anorm is a library, so unlike an application stack there is nothing to
+# serve: the app container holds itself open and every command arrives by exec.
+#
+# Everything conflict-prone (project name, ports) is overridable from
+# docker/.env, so several worktrees can run their own stack at once.
+#
+# Drive it with docker/anorm rather than raw docker compose; see docker/README.md.
+
+name: ${COMPOSE_PROJECT_NAME:-anorm}
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # 7.4 is Anorm's supported floor. Set PHP_VARIANT to 8.0-cli ... 8.3-cli
+        # to run the same checkout against a newer interpreter.
+        PHP_VARIANT: ${PHP_VARIANT:-7.4-cli}
+        # Set by docker/anorm from the invoking user so files written in the
+        # container are owned by the host user, not root.
+        USER_UID: ${USER_UID:-1000}
+        USER_GID: ${USER_GID:-1000}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Xdebug is compiled in but off by default; pass a mode through per command.
+      XDEBUG_MODE: ${XDEBUG_MODE:-off}
+      XDEBUG_CONFIG: ${XDEBUG_CONFIG:-}
+      PHP_IDE_CONFIG: serverName=anorm
+      # TestEnvironment::connect() reads these before it reads .env, so the
+      # stack's database wins over whatever the checkout's .env happens to say.
+      DB_HOST: db
+      DB_PORT: '3306'
+      DB_DATABASE: ${DB_NAME:-anorm_test}
+      DB_NAME: ${DB_NAME:-anorm_test}
+      DB_USERNAME: ${DB_USER:-dev}
+      DB_USER: ${DB_USER:-dev}
+      DB_PASSWORD: ${DB_PASS:-dev}
+      DB_PASS: ${DB_PASS:-dev}
+      # Set to 0 to stop the entrypoint installing Composer deps on first start.
+      AUTO_COMPOSER_INSTALL: ${AUTO_COMPOSER_INSTALL:-1}
+    volumes:
+      # The whole checkout. /workspace matches the path .devcontainer already
+      # uses, so anything that has learned that path keeps working.
+      - ${PROJECT_ROOT:-..}:/workspace:cached
+      # Survives `anorm down`, so a rebuilt container does not re-download packages.
+      - composer-cache:/home/dev/.composer
+    # A library has nothing to listen on; the container just has to stay up.
+    command: [sleep, infinity]
+    extra_hosts:
+      # Lets Xdebug in the container call back to an IDE on the host.
+      - 'host.docker.internal:host-gateway'
+    healthcheck:
+      # "Ready" means the interpreter runs AND dependencies are installed —
+      # the entrypoint may still be running composer install for a minute.
+      test: [CMD-SHELL, 'php -v >/dev/null 2>&1 && test -f /workspace/vendor/autoload.php']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      # Generous, because on a fresh checkout the entrypoint runs composer
+      # install before this can ever pass.
+      start_period: 180s
+
+  db:
+    image: mariadb:${MARIADB_VERSION:-10.11}
+    restart: unless-stopped
+    environment:
+      # Matches .devcontainer/docker-compose.yml, .github/workflows/ci.yml and
+      # the defaults in TestEnvironment::connect(). Changing any of these means
+      # changing all four.
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      MARIADB_DATABASE: ${DB_NAME:-anorm_test}
+      MARIADB_USER: ${DB_USER:-dev}
+      MARIADB_PASSWORD: ${DB_PASS:-dev}
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    ports:
+      # Published so host-side tools (mysql client, GUIs) can reach the data.
+      - '${DB_PORT:-3316}:3306'
+    healthcheck:
+      test: [CMD, healthcheck.sh, --connect, --innodb_initialized]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  # Optional. Start with: docker/anorm up --tools
+  phpmyadmin:
+    image: phpmyadmin
+    profiles: [tools]
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: ${DB_USER:-dev}
+      PMA_PASSWORD: ${DB_PASS:-dev}
+    ports:
+      - '${PMA_PORT:-8096}:80'
+
+volumes:
+  mariadb-data:
+  composer-cache:
