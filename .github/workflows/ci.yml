@@ -5,6 +5,11 @@ on:
     branches: [ "master", "main" ]
   pull_request:
     branches: [ "master", "main" ]
+    # "edited" is what a retarget fires. Without it, a PR moved onto master
+    # from another base gets no CI at all: the opened/synchronize events it
+    # did fire were filtered out by the branches: list while its base was
+    # still elsewhere, and nothing re-evaluates afterwards.
+    types: [opened, synchronize, reopened, edited]
 
 permissions:
   contents: read
