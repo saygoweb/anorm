@@ -30,7 +30,7 @@ class FieldSelectionParser
         $relationshipSpec = trim($relationshipSpec);
 
         // Check if field selection is specified
-        if (!str_contains($relationshipSpec, ':')) {
+        if (strpos($relationshipSpec, ':') === false) {
             // No field selection - return relationship name with all fields
             return [
                 'relationship' => $relationshipSpec,
@@ -111,7 +111,7 @@ class FieldSelectionParser
             }
 
             // Check for potentially problematic field names
-            if (str_starts_with($field, '_')) {
+            if (strpos($field, '_') === 0) {
                 $result['warnings'][] = "Field '{$field}' starts with underscore - may be internal";
             }
 
@@ -158,7 +158,7 @@ class FieldSelectionParser
         $prefixLength = strlen($prefix) + 1; // +1 for underscore
 
         foreach ($row as $key => $value) {
-            if (str_starts_with($key, $prefix . '_')) {
+            if (strpos($key, $prefix . '_') === 0) {
                 $fieldName = substr($key, $prefixLength);
                 $extracted[$fieldName] = $value;
             }

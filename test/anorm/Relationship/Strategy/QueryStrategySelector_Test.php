@@ -207,7 +207,7 @@ class QueryStrategySelector_Test extends TestCase
         // Should contain information about field selection
         $hasFieldSelectionFactor = false;
         foreach ($factors as $factor) {
-            if (str_contains($factor, 'Field selection available')) {
+            if (strpos($factor, 'Field selection available') !== false) {
                 $hasFieldSelectionFactor = true;
                 break;
             }

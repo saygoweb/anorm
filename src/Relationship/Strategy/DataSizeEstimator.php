@@ -154,23 +154,23 @@ class DataSizeEstimator
         // Common field size estimates
         $fieldName = strtolower($fieldName);
 
-        if ($fieldName === 'id' || str_ends_with($fieldName, '_id')) {
+        if ($fieldName === 'id' || substr($fieldName, -3) === '_id') {
             return 8; // Integer primary/foreign keys
         }
 
-        if (str_contains($fieldName, 'name') || str_contains($fieldName, 'title')) {
+        if (strpos($fieldName, 'name') !== false || strpos($fieldName, 'title') !== false) {
             return 100; // Short text fields
         }
 
-        if (str_contains($fieldName, 'description') || str_contains($fieldName, 'content')) {
+        if (strpos($fieldName, 'description') !== false || strpos($fieldName, 'content') !== false) {
             return 500; // Longer text fields
         }
 
-        if (str_contains($fieldName, 'email')) {
+        if (strpos($fieldName, 'email') !== false) {
             return 50; // Email addresses
         }
 
-        if (str_contains($fieldName, 'date') || str_contains($fieldName, 'time')) {
+        if (strpos($fieldName, 'date') !== false || strpos($fieldName, 'time') !== false) {
             return 20; // Datetime fields
         }
 
