@@ -55,6 +55,27 @@ composer ci
 
 ## Development Environment
 
+### Using the docker/ stack (recommended)
+
+`docker/` runs PHP and MariaDB in containers while your editor and checkout stay
+on the host. It defaults to **PHP 7.4**, the floor this library supports, so the
+version consumers on legacy stacks actually run is one command away:
+
+```bash
+docker/anorm up      # build the image, start MariaDB, install vendor/
+docker/anorm test    # composer test:quick, inside the container
+docker/anorm quality # phpcs + phpstan
+```
+
+`docker/anorm help` lists the rest. To check a newer interpreter against the
+same checkout, rebuild with `PHP_VARIANT` set:
+
+```bash
+PHP_VARIANT=8.3-cli docker/anorm up --build
+```
+
+See [`docker/README.md`](docker/README.md) for the details.
+
 ### Using DevContainer
 This project includes a DevContainer configuration for VS Code. Open the project in VS Code and select "Reopen in Container" when prompted.
 
