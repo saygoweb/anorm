@@ -5,8 +5,7 @@
 
 namespace Anorm;
 
-use Anorm\Schema\ColumnTypeHintInterface;
-use Anorm\Schema\PropertyType;
+use Anorm\Schema\ColumnIntent;
 
 class TableMaker
 {
@@ -94,60 +93,18 @@ class TableMaker
     }
 
     /**
-     * Decide the definition of a column that does not exist yet, from the best
-     * information the mapper and the model can offer, in this order:
+     * Decide the definition of a column that does not exist yet.
      *
-     *  1. an explicit definition on the mapper — the caller has said so outright;
-     *  2. a transformer that knows the format it writes;
-     *  3. the type the model declares for the property — intent, not an accident;
-     *  4. a value sampled from the model — the original guess;
-     *  5. VARCHAR(128), which is what no information at all looks like.
+     * The decision itself lives in ColumnIntent, because a schema diff has to be able
+     * to ask the same question without creating anything, and the two answers must not
+     * be allowed to drift apart.
      *
      * @param string $columnName Name of the column being created
      * @return string A column definition for ALTER TABLE ... ADD
      */
     private function columnDefinitionFor($columnName)
     {
-        // 1. An explicit definition beats any guess. Per mapper rather than global, so
-        // pinning a column in one table does not pin the same name everywhere.
-        // See Anorm::$columnFn for the global fallback.
-        if (isset($this->mapper->columnDefinitions[$columnName])) {
-            return $this->mapper->columnDefinitions[$columnName];
-        }
-
-        // 2. A transformer has already decided how the value is stored. Transformers
-        // are keyed by column name, so this is available even with no model in hand.
-        if (isset($this->mapper->transformers[$columnName])) {
-            $transformer = $this->mapper->transformers[$columnName];
-            if ($transformer instanceof ColumnTypeHintInterface) {
-                $hint = $transformer->sqlColumnType();
-                if ($hint !== null) {
-                    return $hint;
-                }
-            }
-        }
-
-        // 3 and 4. Read what the model declares the property to be, and sample its
-        // value. A column the map does not mention can offer neither. An uninitialised
-        // typed property has no value to sample, which is not an error — its
-        // declaration is the information here.
-        $sampleData = null;
-        $declaredType = null;
-        if ($this->model) {
-            $invertMap = array_flip($this->mapper->map);
-            if (isset($invertMap[$columnName])) {
-                $property = $invertMap[$columnName];
-                $sampleData = isset($this->model->$property) ? $this->model->$property : null;
-                $declaredType = PropertyType::forProperty($this->model, $property);
-            }
-        }
-
-        // A replacement columnFn is the consumer's own decision and stays in charge of
-        // the guess: it is handed the declared type and may use or ignore it, as one
-        // written before this existed does — PHP discards extra arguments to a
-        // user-defined callable.
-        $columnFn = Anorm::$columnFn; // Redundant, but can't do this Anorm::$columnFn(...)
-        return $columnFn($columnName, $sampleData, $declaredType);
+        return ColumnIntent::forColumn($this->mapper, $this->model, $columnName)->definition;
     }
 
     /**
