@@ -11,6 +11,12 @@ class NestedRelationshipParser_Test extends TestCase
     private $pdo;
     private $parser;
 
+    public static function setUpBeforeClass(): void
+    {
+        TestEnvironment::connect();
+        TestEnvironment::loadRelationshipSchema();
+    }
+
     protected function setUp(): void
     {
         $this->pdo = TestEnvironment::pdo();
