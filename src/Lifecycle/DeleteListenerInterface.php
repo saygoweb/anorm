@@ -7,9 +7,11 @@ use Anorm\Model;
 /**
  * Opt-in companion to ChangeListenerInterface for deletions.
  *
- * Registered through the same slot, DataMapper::setChangeListener(). A listener
- * that wants both events implements both interfaces; existing write-only
- * listeners are unaffected.
+ * Registered with DataMapper::setDeleteListener(), its own slot, so that a
+ * delete-only listener does not have to supply a no-op onWrite() and the
+ * published setChangeListener() signature does not have to widen. A class that
+ * wants both events implements both interfaces and is passed to both setters;
+ * existing write-only listeners are unaffected.
  */
 interface DeleteListenerInterface
 {

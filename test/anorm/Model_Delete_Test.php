@@ -5,6 +5,7 @@ require_once(__DIR__ . '/../../vendor/autoload.php');
 use PHPUnit\Framework\TestCase;
 
 use Anorm\DataMapper;
+use Anorm\Test\Lifecycle\RecordingDeleteListener;
 use Anorm\Test\SomeTableModel;
 use Anorm\Test\TestEnvironment;
 
@@ -130,6 +131,44 @@ class ModelDeleteTest extends TestCase
             $this->fail('expected an exception');
         } catch (\Exception $e) {
             $this->assertEquals("SomeTable id '999999' not deleted", $e->getMessage());
+        }
+    }
+
+    /**
+     * The reason Model::delete() takes no id: it can hand the whole model to the
+     * listener, which $mapper->delete($id) cannot. Guard that it actually does.
+     */
+    public function testDelete_PassesTheModelThroughToTheDeleteListener()
+    {
+        $listener = new RecordingDeleteListener();
+        DataMapper::setDeleteListener($listener);
+        try {
+            $model = $this->makeRow('alice');
+            $model->delete();
+        } finally {
+            DataMapper::setDeleteListener(null);
+        }
+
+        $this->assertCount(1, $listener->deletes);
+        $this->assertSame('some_table', $listener->deletes[0]['table']);
+        $this->assertSame($model, $listener->deletes[0]['model']);
+        $this->assertEquals($model->someId, $listener->deletes[0]['id']);
+    }
+
+    public function testDelete_ClearsTheSnapshotEndToEnd()
+    {
+        $listener = new RecordingDeleteListener();
+        DataMapper::setChangeListener($listener);
+        DataMapper::setDeleteListener($listener);
+        try {
+            $model = $this->makeRow('alice');
+            $this->assertIsArray($model->_lastSnapshot);
+
+            $model->delete();
+            $this->assertNull($model->_lastSnapshot);
+        } finally {
+            DataMapper::setChangeListener(null);
+            DataMapper::setDeleteListener(null);
         }
     }
 
