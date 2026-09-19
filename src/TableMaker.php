@@ -5,6 +5,9 @@
 
 namespace Anorm;
 
+use Anorm\Schema\ColumnTypeHintInterface;
+use Anorm\Schema\PropertyType;
+
 class TableMaker
 {
     public static function fix(\Exception $exception, DataMapper $mapper, $model = null)
@@ -85,31 +88,66 @@ class TableMaker
             throw new \Exception('Anorm: Could not parse PDOException', 0, $this->exception);
         }
         $columnName = $matches[1];
+        $columnDefinition = $this->columnDefinitionFor($columnName);
+        $sql = "ALTER TABLE `" . $this->mapper->table . "` ADD $columnName $columnDefinition";
+        $this->mapper->pdo->query($sql);
+    }
 
-        // An explicit definition for this column beats any guess. Per mapper rather
-        // than global, so pinning a column in one table does not pin the same name
-        // everywhere. See Anorm::$columnFn for the global fallback.
+    /**
+     * Decide the definition of a column that does not exist yet, from the best
+     * information the mapper and the model can offer, in this order:
+     *
+     *  1. an explicit definition on the mapper — the caller has said so outright;
+     *  2. a transformer that knows the format it writes;
+     *  3. the type the model declares for the property — intent, not an accident;
+     *  4. a value sampled from the model — the original guess;
+     *  5. VARCHAR(128), which is what no information at all looks like.
+     *
+     * @param string $columnName Name of the column being created
+     * @return string A column definition for ALTER TABLE ... ADD
+     */
+    private function columnDefinitionFor($columnName)
+    {
+        // 1. An explicit definition beats any guess. Per mapper rather than global, so
+        // pinning a column in one table does not pin the same name everywhere.
+        // See Anorm::$columnFn for the global fallback.
         if (isset($this->mapper->columnDefinitions[$columnName])) {
-            $columnDefinition = $this->mapper->columnDefinitions[$columnName];
-            $sql = "ALTER TABLE `" . $this->mapper->table . "` ADD $columnName $columnDefinition";
-            $this->mapper->pdo->query($sql);
-            return;
+            return $this->mapper->columnDefinitions[$columnName];
         }
 
-        // Add the column, sampling the model's property for a type hint where there is
-        // one. A column the map does not mention cannot be sampled.
+        // 2. A transformer has already decided how the value is stored. Transformers
+        // are keyed by column name, so this is available even with no model in hand.
+        if (isset($this->mapper->transformers[$columnName])) {
+            $transformer = $this->mapper->transformers[$columnName];
+            if ($transformer instanceof ColumnTypeHintInterface) {
+                $hint = $transformer->sqlColumnType();
+                if ($hint !== null) {
+                    return $hint;
+                }
+            }
+        }
+
+        // 3 and 4. Read what the model declares the property to be, and sample its
+        // value. A column the map does not mention can offer neither. An uninitialised
+        // typed property has no value to sample, which is not an error — its
+        // declaration is the information here.
         $sampleData = null;
+        $declaredType = null;
         if ($this->model) {
             $invertMap = array_flip($this->mapper->map);
             if (isset($invertMap[$columnName])) {
                 $property = $invertMap[$columnName];
-                $sampleData = $this->model->$property;
+                $sampleData = isset($this->model->$property) ? $this->model->$property : null;
+                $declaredType = PropertyType::forProperty($this->model, $property);
             }
         }
+
+        // A replacement columnFn is the consumer's own decision and stays in charge of
+        // the guess: it is handed the declared type and may use or ignore it, as one
+        // written before this existed does — PHP discards extra arguments to a
+        // user-defined callable.
         $columnFn = Anorm::$columnFn; // Redundant, but can't do this Anorm::$columnFn(...)
-        $columnDefinition = $columnFn($columnName, $sampleData);
-        $sql = "ALTER TABLE `" . $this->mapper->table . "` ADD $columnName $columnDefinition";
-        $this->mapper->pdo->query($sql);
+        return $columnFn($columnName, $sampleData, $declaredType);
     }
 
     /**
@@ -360,12 +398,22 @@ class TableMaker
      * MODE_STATIC against a schema that has been dumped and corrected by hand.
      * See docs/_docs/schema-modes.md.
      *
+     * A type the model declares is not a guess, so it is preferred where there is one;
+     * the sample then refines what the declaration leaves open, such as an int's width.
+     *
      * @param string $columnName Name of the column being created
      * @param mixed $sampleData The value the column is being guessed from
+     * @param string|null $declaredType The type the model declares, as PropertyType returns it
      * @return string A column definition for ALTER TABLE ... ADD
      */
-    public static function columnDefinition($columnName, $sampleData)
+    public static function columnDefinition($columnName, $sampleData, $declaredType = null)
     {
+        if ($declaredType !== null) {
+            $declared = self::definitionFromDeclaredType($declaredType, $sampleData);
+            if ($declared !== null) {
+                return $declared;
+            }
+        }
         // Only null is an absence of information. 0, 0.0, '' and false are information,
         // and a truthiness test used to discard them along with it.
         if ($sampleData !== null) {
@@ -373,11 +421,7 @@ class TableMaker
                 return "TINYINT(1) NULL";
             }
             if (\is_integer($sampleData)) {
-                // INT(11) stops at 2147483647, so a byte count or any other large
-                // magnitude has to widen or it is rejected — or silently clamped.
-                return ($sampleData > 2147483647 || $sampleData < -2147483648)
-                    ? "BIGINT(20) NULL"
-                    : "INT(11) NULL";
+                return self::integerDefinition($sampleData);
             }
             if (\is_float($sampleData)) {
                 return "DOUBLE NULL";
@@ -386,18 +430,92 @@ class TableMaker
                 return "DATETIME NULL";
             }
             if (is_string($sampleData)) {
-                // The whole value has to be a date. A string that merely contains one —
-                // an error message, a note, a URL — is not a DATETIME, and typing it as
-                // one destroys every later write to that column.
-                if (preg_match('/^\d{4}-\d{2}-\d{2}([ T]\d{2}:\d{2}(:\d{2})?)?$/', $sampleData) === 1) {
-                    return "DATETIME NULL";
-                }
-                if (strlen($sampleData) > 256) {
-                    return "TEXT";
-                }
-                if (strlen($sampleData) > 128) {
-                    return "VARCHAR(256)";
-                }
+                return self::stringDefinition($sampleData);
+            }
+        }
+        return 'VARCHAR(128)';
+    }
+
+    /**
+     * A column definition from a type the model declares, refined by the sample where
+     * the declaration leaves a choice: an `int` does not say INT or BIGINT, and a
+     * `string` does not say how wide.
+     *
+     * @param string $declaredType A type as PropertyType returns it
+     * @param mixed $sampleData The value sampled from the model, which may be null
+     * @return string|null null where the declaration says nothing a column can use
+     */
+    private static function definitionFromDeclaredType($declaredType, $sampleData)
+    {
+        switch ($declaredType) {
+            case 'bool':
+                return "TINYINT(1) NULL";
+            case 'int':
+                return self::integerDefinition(self::magnitude($sampleData));
+            case 'float':
+                return "DOUBLE NULL";
+            case 'array':
+                // An array reaches the database encoded, and encoded is not a VARCHAR.
+                return "TEXT";
+            case 'string':
+                return self::stringDefinition($sampleData);
+        }
+        if ($declaredType === 'Moment\Moment' || \is_a($declaredType, \DateTimeInterface::class, true)) {
+            return "DATETIME NULL";
+        }
+        // Any other class: what it stores is its transformer's business, not the type's.
+        return null;
+    }
+
+    /**
+     * @param int|null $value The magnitude to hold, or null where none is known
+     * @return string
+     */
+    private static function integerDefinition($value)
+    {
+        // INT(11) stops at 2147483647, so a byte count or any other large
+        // magnitude has to widen or it is rejected — or silently clamped.
+        return ($value !== null && ($value > 2147483647 || $value < -2147483648))
+            ? "BIGINT(20) NULL"
+            : "INT(11) NULL";
+    }
+
+    /**
+     * The magnitude a sample implies, for a column already known to be an integer.
+     *
+     * @param mixed $sampleData
+     * @return int|null
+     */
+    private static function magnitude($sampleData)
+    {
+        if (\is_int($sampleData)) {
+            return $sampleData;
+        }
+        // Everything PDO returns is a string, so a read path samples '10737418240'.
+        if (\is_string($sampleData) && \preg_match('/^-?\d+$/', $sampleData) === 1) {
+            return (int) $sampleData;
+        }
+        return null;
+    }
+
+    /**
+     * @param mixed $sampleData The value sampled from the model, which may be null
+     * @return string
+     */
+    private static function stringDefinition($sampleData)
+    {
+        if (is_string($sampleData)) {
+            // The whole value has to be a date. A string that merely contains one —
+            // an error message, a note, a URL — is not a DATETIME, and typing it as
+            // one destroys every later write to that column.
+            if (preg_match('/^\d{4}-\d{2}-\d{2}([ T]\d{2}:\d{2}(:\d{2})?)?$/', $sampleData) === 1) {
+                return "DATETIME NULL";
+            }
+            if (strlen($sampleData) > 256) {
+                return "TEXT";
+            }
+            if (strlen($sampleData) > 128) {
+                return "VARCHAR(256)";
             }
         }
         return 'VARCHAR(128)';
