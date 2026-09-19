@@ -138,11 +138,9 @@ class PropertyType
             return null;
         }
         $type = $property->getType();
-        // A union or intersection type declares alternatives, not a column type.
-        if (!$type instanceof \ReflectionNamedType) {
-            return null;
-        }
-        return self::normalise($type->getName());
+        // A union or intersection type declares alternatives rather than a column
+        // type, and is PHP 8 syntax, so it is handled here rather than branched on.
+        return $type instanceof \ReflectionNamedType ? self::normalise($type->getName()) : null;
     }
 
     /**

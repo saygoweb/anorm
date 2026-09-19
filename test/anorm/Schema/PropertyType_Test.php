@@ -81,6 +81,12 @@ class PtDocModel
     /** @var key-of<Foo> */
     public $pseudoUnknown;
 
+    /** @var int<0,100> */
+    public $boundedInt;
+
+    /** @var ? */
+    public $bareQuestionMark;
+
     public $noDocblock;
 }
 
@@ -156,9 +162,15 @@ class PropertyType_Test extends TestCase
         $this->assertSame('Moment\Moment', PropertyType::forProperty($model, 'noLeadingSlash'));
     }
 
+    public function testABoundedIntegerPseudoType_IsStillAnInt()
+    {
+        $this->assertSame('int', PropertyType::forProperty(new PtDocModel(), 'boundedInt'));
+    }
+
     public function testUninformativeDocblocks_AreNull()
     {
         $model = new PtDocModel();
+        $this->assertNull(PropertyType::forProperty($model, 'bareQuestionMark'), 'a nullable nothing');
         $this->assertNull(PropertyType::forProperty($model, 'anything'), 'mixed says nothing');
         $this->assertNull(PropertyType::forProperty($model, 'ambiguous'), 'two real types is not a decision');
         $this->assertNull(PropertyType::forProperty($model, 'partlyUninformative'));

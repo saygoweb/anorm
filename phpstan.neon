@@ -23,3 +23,6 @@ parameters:
         -
             message: '#@var for property PtBothModel::\$hitCount with type string is incompatible with native type int#'
             path: test/anorm/Schema/PropertyType_Test.php
+        -
+            message: '#@var has invalid value \(\?\)#'
+            path: test/anorm/Schema/PropertyType_Test.php

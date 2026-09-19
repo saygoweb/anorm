@@ -167,14 +167,11 @@ class DataMapper
      * The public, non-static, non-infrastructure properties $c declares, whether or
      * not they currently hold a value.
      *
-     * @param mixed $c A model instance
+     * @param object $c A model instance; autoMap() has already required one
      * @return array<int, string> Property names
      */
     private static function declaredProperties($c)
     {
-        if (!is_object($c)) {
-            return [];
-        }
         $names = [];
         $reflection = new \ReflectionClass($c);
         foreach ($reflection->getProperties(\ReflectionProperty::IS_PUBLIC) as $property) {
