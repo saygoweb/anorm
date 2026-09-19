@@ -23,10 +23,86 @@ class ModelDeleteTest extends TestCase
         TestEnvironment::pdo()->query('TRUNCATE TABLE `some_table`');
     }
 
+    private function makeRow($name)
+    {
+        $model = new SomeTableModel();
+        $model->name = $name;
+        $model->dtc = '2026-09-20';
+        $model->write();
+        return $model;
+    }
+
     public function testMapper_ReturnsTheSameInstanceAsTheUnderscoreProperty()
     {
         $model = new SomeTableModel();
         $this->assertInstanceOf(DataMapper::class, $model->mapper());
         $this->assertSame($model->_mapper, $model->mapper());
+    }
+
+    public function testDelete_KeySet_RemovesRowAndReturnsTrue()
+    {
+        $model = $this->makeRow('alice');
+        $this->assertTrue($model->delete());
+        $this->assertEquals(0, $model->countRows());
+    }
+
+    public function testDelete_ByAssignedKeyWithoutReading_RemovesRow()
+    {
+        $written = $this->makeRow('alice');
+
+        $model = new SomeTableModel();
+        $model->someId = $written->someId;
+        $this->assertTrue($model->delete());
+        $this->assertEquals(0, $model->countRows());
+    }
+
+    public function testDelete_UnknownId_ReturnsFalse()
+    {
+        $this->makeRow('alice');
+
+        $model = new SomeTableModel();
+        $model->someId = 999999;
+        $this->assertFalse($model->delete());
+        $this->assertEquals(1, $model->countRows());
+    }
+
+    public function testDelete_KeyNotSet_Throws()
+    {
+        $model = new SomeTableModel();
+        $this->expectException(\Exception::class);
+        $model->delete();
+    }
+
+    public function testDelete_KeyNotSet_MessageOk()
+    {
+        $model = new SomeTableModel();
+        try {
+            $model->delete();
+            $this->fail('expected an exception');
+        } catch (\Exception $e) {
+            $this->assertEquals(
+                "SomeTable cannot be deleted: primary key 'someId' is not set",
+                $e->getMessage()
+            );
+        }
+    }
+
+    public function testDelete_EmptyStringKey_Throws()
+    {
+        $model = new SomeTableModel();
+        $model->someId = '';
+        $this->expectException(\Exception::class);
+        $model->delete();
+    }
+
+    public function testReadOrThrow_MessageUnchanged()
+    {
+        $model = new SomeTableModel();
+        try {
+            $model->readOrThrow(1);
+            $this->fail('expected an exception');
+        } catch (\Exception $e) {
+            $this->assertEquals("SomeTable id '1' not found", $e->getMessage());
+        }
     }
 }

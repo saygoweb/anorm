@@ -125,13 +125,39 @@ class Model
     {
         $result = $this->_mapper->read($this, $id);
         if (!$result) {
-            $className = get_class($this);
-            $className = str_replace('Model', '', $className);
-            $tokens = explode('\\', $className);
-            $className = end($tokens); // Get the last element (class name without namespace)
-            throw new \Exception("$className id '$id' not found");
+            throw new \Exception($this->modelLabel() . " id '$id' not found");
         }
         return $result;
+    }
+
+    /**
+     * Delete the row this model identifies.
+     * The primary key property must be set — either read from the database or
+     * assigned directly. Passing the model to the mapper is what lets a
+     * DeleteListenerInterface see which model went.
+     * @return bool True when a row was deleted, false when no row matched.
+     * @throws \Exception if the primary key property is not set.
+     */
+    public function delete()
+    {
+        $key = $this->_mapper->modelPrimaryKey;
+        $id = isset($this->$key) ? $this->$key : null;
+        if ($id === null || $id === '') {
+            throw new \Exception($this->modelLabel() . " cannot be deleted: primary key '$key' is not set");
+        }
+        return $this->_mapper->delete($id, $this);
+    }
+
+    /**
+     * Short name for exception messages: 'Model' removed and the namespace
+     * stripped, e.g. Anorm\Test\SomeTableModel -> SomeTable.
+     * @return string
+     */
+    private function modelLabel(): string
+    {
+        $className = str_replace('Model', '', get_class($this));
+        $tokens = explode('\\', $className);
+        return end($tokens); // The last element: the class name without its namespace.
     }
 
     /**
