@@ -1,6 +1,8 @@
 <?php
 namespace Anorm\Tools;
 
+use Anorm\Schema\SqlType;
+
 class ModelMaker {
 
     /** @var bool If true column names will be converted to camelCase property names */
@@ -48,12 +50,30 @@ class ModelMaker {
             $functor = $this->propertyFunctor;
             $propertyName = $functor($schema['Field']);
             $modelInfo->properties[] = $propertyName;
+            $modelInfo->propertyTypes[$propertyName] = $this->propertyType($schema);
             if ($schema['Key'] === 'PRI')
             {
                 $modelInfo->keyProperty = $propertyName;
             }
         }
         return $modelInfo;
+    }
+
+    /**
+     * The docblock type for a column, from what SHOW COLUMNS says about it.
+     *
+     * A generated model used to say `@var string` about every property, including
+     * integer and boolean columns. That is read as intent now — by a human, and by
+     * dynamic mode when it has to create the column elsewhere — so it has to be true.
+     *
+     * @param array $schema One row of SHOW COLUMNS
+     * @return string
+     */
+    private function propertyType($schema)
+    {
+        $type = SqlType::toPhpType(isset($schema['Type']) ? $schema['Type'] : '');
+        $nullable = !isset($schema['Null']) || \strtoupper($schema['Null']) !== 'NO';
+        return $nullable ? '?' . $type : $type;
     }
 
     public static function lowerCamelCase($s)
@@ -93,7 +113,8 @@ class ModelMaker {
         $properties = "";
         foreach ($this->modelInfo->properties as $property)
         {
-            $properties .= "    /** @var string */\n";
+            $type = isset($this->modelInfo->propertyTypes[$property]) ? $this->modelInfo->propertyTypes[$property] : 'string';
+            $properties .= "    /** @var $type */\n";
             $properties .= "    public \$" . $property . ";\n";
             $properties .= "\n";
         }
