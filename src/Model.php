@@ -454,8 +454,13 @@ class Model
         try {
             $this->_pdo->query($sql);
         } catch (\PDOException $e) {
-            // If foreign key creation fails, log the error but don't throw
-            error_log("Anorm: Failed to create foreign key constraint: " . $e->getMessage());
+            // Tolerate only "already exists", so re-running dynamic schema creation stays
+            // harmless. A constraint that cannot be created — an incompatible column type
+            // above all — is a schema error the caller has no other way to learn about.
+            if (!TableMaker::isDuplicateConstraintError($e)) {
+                throw $e;
+            }
+            error_log("Anorm: Foreign key constraint `$constraintName` already exists on `$table`: " . $e->getMessage());
         }
     }
 

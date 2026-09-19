@@ -216,9 +216,13 @@ class TableMaker
         try {
             $this->mapper->pdo->query($sql);
         } catch (\PDOException $e) {
-            // If foreign key creation fails, it might be because the constraint already exists
-            // or there are data integrity issues. Log and continue.
-            error_log("Anorm: Failed to create foreign key constraint: " . $e->getMessage());
+            // A duplicate constraint name means the constraint is already there, which is
+            // what a re-run of dynamic schema creation looks like. Anything else leaves the
+            // relationship the model declared without a constraint, so the caller is told.
+            if (!self::isDuplicateConstraintError($e)) {
+                throw $e;
+            }
+            error_log("Anorm: Foreign key constraint `$constraintName` already exists on `$table`: " . $e->getMessage());
         }
     }
 
@@ -303,6 +307,36 @@ class TableMaker
         }
 
         return $tableName;
+    }
+
+    /**
+     * True when a failed ADD CONSTRAINT means the constraint is already there.
+     *
+     * Re-running dynamic schema creation has to stay harmless, so a duplicate
+     * constraint name is tolerated. Everything else is not: errno 150 in
+     * particular means the column types do not match, and swallowing it leaves a
+     * declared relationship with no constraint and nothing to notice it by.
+     *
+     * MariaDB reports both cases as 1005 / SQLSTATE HY000 and separates them only
+     * by the InnoDB errno in the message text (121 duplicate, 150 incorrectly
+     * formed), so the message is part of the signal here, not just the code.
+     * MySQL 8 reports the duplicate as 1826 instead.
+     *
+     * @param \PDOException $e The exception raised by ADD CONSTRAINT
+     * @return bool
+     */
+    public static function isDuplicateConstraintError(\PDOException $e)
+    {
+        $driverCode = isset($e->errorInfo[1]) ? (int) $e->errorInfo[1] : 0;
+        // 1826 duplicate foreign key constraint name, 1061 duplicate key name.
+        if ($driverCode === 1826 || $driverCode === 1061) {
+            return true;
+        }
+        $message = isset($e->errorInfo[2]) ? $e->errorInfo[2] : $e->getMessage();
+        if ($driverCode === 1005 && \preg_match('/errno:\s*121\b/', $message) === 1) {
+            return true;
+        }
+        return \strpos($message, 'Duplicate foreign key constraint name') !== false;
     }
 
     public static function columnDefinition($columnName, $sampleData)

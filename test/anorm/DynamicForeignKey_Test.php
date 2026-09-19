@@ -31,6 +31,7 @@ class DynamicForeignKey_Test extends TestCase
         $this->pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
         $this->pdo->exec('DROP TABLE IF EXISTS dynamic_posts');
         $this->pdo->exec('DROP TABLE IF EXISTS dynamic_users');
+        $this->pdo->exec('DROP TABLE IF EXISTS dynamic_users_cascade');
         $this->pdo->exec('DROP TABLE IF EXISTS dynamic_companies');
         $this->pdo->exec('DROP TABLE IF EXISTS dynamic_post_tags');
         $this->pdo->exec('DROP TABLE IF EXISTS dynamic_tags');
@@ -43,6 +44,7 @@ class DynamicForeignKey_Test extends TestCase
         $this->pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
         $this->pdo->exec('DROP TABLE IF EXISTS dynamic_posts');
         $this->pdo->exec('DROP TABLE IF EXISTS dynamic_users');
+        $this->pdo->exec('DROP TABLE IF EXISTS dynamic_users_cascade');
         $this->pdo->exec('DROP TABLE IF EXISTS dynamic_companies');
         $this->pdo->exec('DROP TABLE IF EXISTS dynamic_post_tags');
         $this->pdo->exec('DROP TABLE IF EXISTS dynamic_tags');
