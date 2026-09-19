@@ -45,6 +45,39 @@ class SqlType_Test extends TestCase
         $this->assertSame('string', SqlType::toPhpType(''));
     }
 
+    public function testFamily_SeparatesDatesFromOtherStrings()
+    {
+        // A date reaches a model as a string, but a DATETIME column and a VARCHAR
+        // column are not the same decision, and a diff has to be able to say so.
+        $this->assertSame('datetime', SqlType::family('datetime'));
+        $this->assertSame('datetime', SqlType::family('DATETIME NULL'));
+        $this->assertSame('datetime', SqlType::family('date'));
+        $this->assertSame('datetime', SqlType::family('timestamp'));
+        $this->assertSame('string', SqlType::family('varchar(128)'));
+        $this->assertSame('int', SqlType::family('INT(11) NULL'));
+        $this->assertSame('bool', SqlType::family('TINYINT(1) NULL'));
+    }
+
+    public function testIntegerRank_OrdersTheWidths()
+    {
+        $this->assertGreaterThan(SqlType::integerRank('int(11)'), SqlType::integerRank('bigint(20)'));
+        $this->assertGreaterThan(SqlType::integerRank('smallint(6)'), SqlType::integerRank('int(11)'));
+        $this->assertSame(SqlType::integerRank('int(11)'), SqlType::integerRank('INTEGER'));
+        $this->assertSame(0, SqlType::integerRank('varchar(128)'), 'not an integer type');
+    }
+
+    public function testStringLength_ComparesTextWithVarchar()
+    {
+        $this->assertSame(128, SqlType::stringLength('varchar(128)'));
+        $this->assertSame(32, SqlType::stringLength('char(32)'));
+        $this->assertSame(255, SqlType::stringLength('tinytext'));
+        $this->assertSame(65535, SqlType::stringLength('text'));
+        $this->assertSame(16777215, SqlType::stringLength('mediumtext'));
+        $this->assertGreaterThan(SqlType::stringLength('varchar(255)'), SqlType::stringLength('text'));
+        $this->assertGreaterThan(SqlType::stringLength('text'), SqlType::stringLength('longtext'));
+        $this->assertNull(SqlType::stringLength('int(11)'));
+    }
+
     public function testIntegerPrefixes_DoNotMatchLongerWords()
     {
         // `interval` and `intent` start with `int`; a word boundary keeps them out.

@@ -19,7 +19,9 @@ dumped, corrected by hand and committed. `MODE_DYNAMIC` is a development aid.
 
 ## Features
 
-* Provides a tool 'anorm' for quickly generating models from existing tables.
+* Provides a tool 'anorm' for quickly generating models from existing tables, and
+  `anorm schema:diff` for checking a live schema against what the models imply —
+  see [Schema diff](https://saygoweb.github.io/anorm/schema-diff/).
 * Maps between camelCase property names and under_score field names common in database schema.
 * Makes CRUD operations extremely simple.
 * Doesn't get in the way of complex queries.
