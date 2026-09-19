@@ -95,6 +95,34 @@ class DiffEventModel extends Model
     public $loose;
 }
 
+/**
+ * The #67 story: timestamps that a null first sample typed VARCHAR(128), on a model
+ * that declares them `string` — which is true, and is why nothing reports them.
+ */
+
+class DiffAuditModel extends Model
+{
+    public function __construct(\PDO $pdo = null)
+    {
+        $pdo = $pdo ?: Anorm::pdo();
+        $mapper = DataMapper::createByClass($pdo, $this);
+        $mapper->table = 'diff_audits';
+        $mapper->columnDefinitions = ['reviewed_at' => 'VARCHAR(32) NULL'];
+        parent::__construct($pdo, $mapper);
+    }
+
+    public $id;
+    /** @var ?string */
+    public $lastSyncedAt = null;
+    /** @var ?string */
+    public $createdAt = null;
+    public $dtu;
+    /** @var ?string */
+    public $reviewedAt = null;
+    /** @var ?string */
+    public $note = null;
+}
+
 class DiffGhostModel extends Model
 {
     public function __construct(\PDO $pdo = null)
@@ -143,6 +171,14 @@ class SchemaDiff_Test extends TestCase
             flags TINYINT(1) NULL,
             summary VARCHAR(64) NULL,
             legacy_flag VARCHAR(10) NULL
+        ) ENGINE=InnoDB');
+        $this->pdo->exec('CREATE TABLE diff_audits (
+            id INT(11) AUTO_INCREMENT PRIMARY KEY,
+            last_synced_at VARCHAR(128) NULL,
+            created_at VARCHAR(128) NULL,
+            dtu VARCHAR(128) NULL,
+            reviewed_at VARCHAR(32) NULL,
+            note VARCHAR(128) NULL
         ) ENGINE=InnoDB');
         $this->pdo->exec('CREATE TABLE diff_orders (
             id INT(11) AUTO_INCREMENT PRIMARY KEY,
@@ -356,10 +392,65 @@ class SchemaDiff_Test extends TestCase
         return null;
     }
 
+    // #67: a timestamp that a null first sample typed VARCHAR, on a model that
+    // honestly declares `string`. Nothing else in the diff can see these, because the
+    // declaration and the column agree.
+
+    public function testATextColumnNamedAsADate_IsReported()
+    {
+        $finding = $this->findingFor(new DiffAuditModel($this->pdo), 'last_synced_at', 'temporal_column_as_text');
+
+        $this->assertSame(Finding::INFO, $finding->severity);
+        $this->assertStringContainsString('VARCHAR(128)', $finding->message);
+        $this->assertStringContainsString('sorts', $finding->message);
+    }
+
+    public function testATextColumnNamedCreatedAt_IsReported()
+    {
+        $finding = $this->findingFor(new DiffAuditModel($this->pdo), 'created_at', 'temporal_column_as_text');
+
+        $this->assertSame(Finding::INFO, $finding->severity);
+    }
+
+    public function testAnAnormInfrastructureTimestampColumn_IsReported()
+    {
+        $finding = $this->findingFor(new DiffAuditModel($this->pdo), 'dtu', 'temporal_column_as_text');
+
+        $this->assertSame(Finding::INFO, $finding->severity);
+    }
+
+    public function testAPinnedTextColumnNamedAsADate_IsNotReported()
+    {
+        // The author has said outright what the column is. A guess from its name does
+        // not get to argue with that.
+        $this->assertNull($this->findingOrNull(new DiffAuditModel($this->pdo), 'reviewed_at', 'temporal_column_as_text'));
+    }
+
+    public function testATextColumnNotNamedAsADate_IsNotReported()
+    {
+        $this->assertNull($this->findingOrNull(new DiffAuditModel($this->pdo), 'note', 'temporal_column_as_text'));
+    }
+
+    public function testADateColumnNamedAsADate_IsNotReported()
+    {
+        // diff_events.occurred_at is a real DATETIME. There is nothing to say.
+        $this->assertNull($this->findingOrNull(new DiffEventModel($this->pdo), 'occurred_at', 'temporal_column_as_text'));
+    }
+
+    private function findingOrNull(Model $model, $column, $kind)
+    {
+        foreach ($this->findings($model) as $finding) {
+            if ($finding->column === $column && $finding->kind === $kind) {
+                return $finding;
+            }
+        }
+        return null;
+    }
+
     private function dropTables()
     {
         $this->pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
-        foreach (['diff_hostings', 'diff_orders', 'diff_events', 'diff_clients'] as $table) {
+        foreach (['diff_hostings', 'diff_orders', 'diff_events', 'diff_audits', 'diff_clients'] as $table) {
             $this->pdo->exec("DROP TABLE IF EXISTS $table");
         }
         $this->pdo->exec('SET FOREIGN_KEY_CHECKS = 1');

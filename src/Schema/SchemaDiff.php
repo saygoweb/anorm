@@ -138,6 +138,11 @@ class SchemaDiff
      */
     private function compareColumn($table, $column, $liveType, ColumnIntent $intent)
     {
+        $temporal = $this->temporalTextFinding($table, $column, $liveType, $intent);
+        if ($temporal !== null) {
+            return $temporal;
+        }
+
         if (!$intent->isInformed()) {
             // The model declares no type, holds no value and pins nothing. There is
             // nothing to compare against, and saying so is more useful than silence:
@@ -196,6 +201,85 @@ class SchemaDiff
             }
         }
         return null;
+    }
+
+    /**
+     * A column named as though it held a date, in a column type that holds text.
+     *
+     * This is the one drift the rest of this class cannot see. A property declared
+     * `/** @var string *``/` that holds an ISO datetime implies `VARCHAR`, the live
+     * column is `VARCHAR`, and the two agree — so comparing types reports nothing,
+     * however wrong the column is.
+     *
+     * It is worth saying anyway because the consequence is silent. `VARCHAR` accepts
+     * every value `DATETIME` would, so writes and reads keep working and the
+     * application behaves correctly until something sorts or ranges on the column, at
+     * which point it sorts as text: `'2026-9-1'` comes after `'2026-10-01'` and
+     * nothing errors.
+     *
+     * A name is weaker evidence than a type, so this is only ever INFO, and it defers
+     * to anything the model states outright.
+     *
+     * @param string $table
+     * @param string $column
+     * @param string $liveType
+     * @param ColumnIntent $intent
+     * @return Finding|null
+     * @see https://github.com/saygoweb/anorm/issues/67
+     */
+    private function temporalTextFinding($table, $column, $liveType, ColumnIntent $intent)
+    {
+        if (SqlType::family($liveType) !== 'string') {
+            return null;
+        }
+        // A pin is the author saying what the column is. A guess from its name does
+        // not get to argue with that, or the pin is worth less than nothing.
+        if ($intent->source === ColumnIntent::SOURCE_PIN) {
+            return null;
+        }
+        // Where the model implies something other than text, comparing the types
+        // already has a stronger and better-founded thing to say.
+        if ($intent->isInformed() && SqlType::family($intent->definition) !== 'string') {
+            return null;
+        }
+        if (!self::readsAsTemporal($column)) {
+            return null;
+        }
+        $message = ' and is named as though it held a date — text sorts lexicographically, so ORDER BY and BETWEEN are wrong';
+        return new Finding(
+            Finding::INFO,
+            'temporal_column_as_text',
+            $table,
+            $column,
+            'is ' . $this->spell($liveType) . $message,
+            $liveType,
+            null
+        );
+    }
+
+    /**
+     * Whether a column name reads as a date or a time.
+     *
+     * Deliberately a short list. A heuristic that fires often is one a reader learns
+     * to skip, and this one is guessing from a name.
+     *
+     * @param string $column
+     * @return bool
+     */
+    private static function readsAsTemporal($column)
+    {
+        $name = strtolower($column);
+        // `dtc` and `dtu` are the created/updated timestamps conventional in Anorm
+        // consumers, which no suffix rule would catch.
+        if (in_array($name, ['dtc', 'dtu', 'date', 'datetime', 'timestamp'], true)) {
+            return true;
+        }
+        foreach (['_at', '_date', '_time', '_datetime', '_timestamp'] as $suffix) {
+            if (substr($name, -strlen($suffix)) === $suffix) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
