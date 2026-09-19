@@ -69,6 +69,36 @@ class SchemaDiffCommandTest extends TestCase
         $this->assertStringContainsString('could not be constructed', $skipped[$this->namespace . '\CliAwkwardModel']);
     }
 
+    public function testLocating_IsIdempotentAndSkipsAbstractBases()
+    {
+        $locator = new ModelLocator($this->pdo);
+        $locator->locate($this->modelsDirectory, $this->namespace);
+        $models = $locator->locate($this->modelsDirectory, $this->namespace);
+
+        $this->assertArrayHasKey($this->namespace . '\CliClientModel', $models);
+        $this->assertArrayNotHasKey($this->namespace . '\CliAbstractModel', $models, 'an abstract base is not a model');
+        $this->assertArrayNotHasKey($this->namespace . '\CliAbstractModel', $locator->skipped, 'nor is it a problem');
+    }
+
+    public function testAFileThatCannotBeLoaded_IsSkippedRatherThanFatal()
+    {
+        $locator = new ModelLocator($this->pdo);
+        $locator->locate(__DIR__ . '/fixtures/broken', 'Anorm\Test\Fixtures\Broken');
+
+        $this->assertCount(1, $locator->skipped);
+        $reason = reset($locator->skipped);
+        $this->assertStringContainsString('could not be loaded', $reason);
+        $this->assertStringContainsString('cannot be loaded', $reason, 'the file says why');
+    }
+
+    public function testADirectoryWithNoModels_SaysSo()
+    {
+        $result = $this->command()->run(__DIR__ . '/fixtures/none', 'Anorm\Test\Fixtures\None');
+
+        $this->assertSame(0, $result->exitCode());
+        $this->assertStringContainsString('No models found', $result->output);
+    }
+
     public function testRun_ReportsTheMistypedColumnAndExitsNonZero()
     {
         $result = $this->command()->run($this->modelsDirectory, $this->namespace);

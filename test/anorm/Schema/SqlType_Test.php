@@ -70,7 +70,9 @@ class SqlType_Test extends TestCase
     {
         $this->assertSame(128, SqlType::stringLength('varchar(128)'));
         $this->assertSame(32, SqlType::stringLength('char(32)'));
+        $this->assertSame(255, SqlType::stringLength('tinytext'));
         $this->assertSame(65535, SqlType::stringLength('text'));
+        $this->assertSame(16777215, SqlType::stringLength('mediumtext'));
         $this->assertGreaterThan(SqlType::stringLength('varchar(255)'), SqlType::stringLength('text'));
         $this->assertGreaterThan(SqlType::stringLength('text'), SqlType::stringLength('longtext'));
         $this->assertNull(SqlType::stringLength('int(11)'));

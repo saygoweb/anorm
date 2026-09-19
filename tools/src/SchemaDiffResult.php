@@ -46,7 +46,7 @@ class SchemaDiffResult
         });
         foreach ($findings as $finding)
         {
-            if ($finding->severity === Finding::ERROR)
+            if ($finding->isError())
             {
                 ++$this->errors;
             }
@@ -60,23 +60,6 @@ class SchemaDiffResult
             }
         }
         $this->tables[$table] = array('class' => $class, 'findings' => $findings);
-    }
-
-    /**
-     * Every finding, from every table.
-     * @return Finding[]
-     */
-    public function findings()
-    {
-        $all = array();
-        foreach ($this->tables as $entry)
-        {
-            foreach ($entry['findings'] as $finding)
-            {
-                $all[] = $finding;
-            }
-        }
-        return $all;
     }
 
     /**

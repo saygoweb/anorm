@@ -81,22 +81,6 @@ class SchemaInspector
     }
 
     /**
-     * The primary key column of $table, or null where it has none.
-     *
-     * @param string $table
-     * @return string|null
-     */
-    public function primaryKeyColumn($table)
-    {
-        foreach ($this->columns($table) as $name => $details) {
-            if ($details['key'] === 'PRI') {
-                return $name;
-            }
-        }
-        return null;
-    }
-
-    /**
      * Foreign key constraints on $table, keyed by the constrained column. Each entry
      * has 'constraint', 'referencedTable' and 'referencedColumn'.
      *

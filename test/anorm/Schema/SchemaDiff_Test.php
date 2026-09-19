@@ -27,11 +27,18 @@ class DiffClientModel extends Model
         $mapper = DataMapper::createByClass($pdo, $this);
         $mapper->table = 'diff_clients';
         parent::__construct($pdo, $mapper);
+        $this->hasMany('DiffHostingModel', 'clientId', 'id', 'hostings');
     }
 
     public $id;
     public ?string $name = null;
+    public $tier = 3;
 }
+
+/**
+ * The hasMany is declared without a property, as the relationship API allows, so it
+ * stays out of the column map and the model is still clean.
+ */
 
 class DiffHostingModel extends Model
 {
@@ -50,6 +57,8 @@ class DiffHostingModel extends Model
     public $trafficBytes;
     public ?string $note = null;
     public ?int $resellerId = null;
+    public ?int $flags = null;
+    public $summary = 'a summary long enough that the guess widens the column past VARCHAR(128), which the live column is not';
 }
 
 class DiffOrderModel extends Model
@@ -122,7 +131,8 @@ class SchemaDiff_Test extends TestCase
         $this->dropTables();
         $this->pdo->exec('CREATE TABLE diff_clients (
             id INT(11) AUTO_INCREMENT PRIMARY KEY,
-            name VARCHAR(128) NULL
+            name VARCHAR(128) NULL,
+            tier INT(11) NULL
         ) ENGINE=InnoDB');
         // client_id is the #61 story: a lookup typed it before the first write.
         $this->pdo->exec('CREATE TABLE diff_hostings (
@@ -130,6 +140,8 @@ class SchemaDiff_Test extends TestCase
             client_id VARCHAR(128) NULL,
             traffic_bytes INT(11) NULL,
             note VARCHAR(64) NULL,
+            flags TINYINT(1) NULL,
+            summary VARCHAR(64) NULL,
             legacy_flag VARCHAR(10) NULL
         ) ENGINE=InnoDB');
         $this->pdo->exec('CREATE TABLE diff_orders (
@@ -179,6 +191,36 @@ class SchemaDiff_Test extends TestCase
         $this->assertNull($this->findFor($this->findings(new DiffHostingModel($this->pdo)), 'note'));
     }
 
+    public function testAValueTheModelWritesThatWouldNotFit_IsAWarning()
+    {
+        // The sample is over 128 characters, so the guess widens to VARCHAR(256) and
+        // the live VARCHAR(64) would truncate it. That width the model does assert.
+        $finding = $this->findingFor(new DiffHostingModel($this->pdo), 'summary', 'type_mismatch');
+
+        $this->assertSame(Finding::WARNING, $finding->severity);
+        $this->assertStringContainsString('would not fit', $finding->message);
+    }
+
+    public function testACompatibleButDifferentKindOfColumn_IsAWarningNotAnError()
+    {
+        // An INT property in a TINYINT(1) column works until it does not, which is a
+        // difference worth a human's eye rather than a failed build.
+        $finding = $this->findingFor(new DiffHostingModel($this->pdo), 'flags', 'type_mismatch');
+
+        $this->assertSame(Finding::WARNING, $finding->severity);
+        $this->assertStringContainsString('TINYINT(1)', $finding->message);
+        $this->assertStringContainsString('holds small numbers', $finding->message);
+    }
+
+    public function testAHasMany_IsNotAForeignKeyOnThisTable()
+    {
+        // The constraint for a hasMany belongs on the *other* table, so it is not a
+        // missing foreign key here. DiffClientModel declares one and stays clean.
+        $findings = $this->findings(new DiffClientModel($this->pdo));
+
+        $this->assertSame([], $findings);
+    }
+
     public function testAMappedColumnThatDoesNotExist_IsAnError()
     {
         $finding = $this->findingFor(new DiffHostingModel($this->pdo), 'reseller_id', 'missing_column');
@@ -196,6 +238,8 @@ class SchemaDiff_Test extends TestCase
 
     public function testAModelThatMatchesItsTable_HasNothingToSay()
     {
+        // `name` matches by declaration and `tier` by the value it holds: two
+        // different routes to the same silence.
         $this->assertSame([], $this->findings(new DiffClientModel($this->pdo)));
     }
 
