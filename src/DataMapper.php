@@ -480,9 +480,9 @@ class DataMapper
     public function delete($id)
     {
         $keyField = $this->map[$this->modelPrimaryKey];
-        $sql = 'DELETE FROM `' . $this->table . '` WHERE ' . $keyField . "='" . $id . "'";
-        $result = $this->query($sql);
-        // This allows for imprecise deletes which may not be the best idea. CP 25 Nov 2018
+        $sql = 'DELETE FROM `' . $this->table . '` WHERE `' . $keyField . '` = ?';
+        $result = $this->query($sql, [$id]);
+        // A bound primary key matches at most one row, so this is 0 or 1.
         return $result->rowCount() >= 1;
     }
 
