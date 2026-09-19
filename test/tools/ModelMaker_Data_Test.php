@@ -35,6 +35,11 @@ class ModelMakerDataTest extends TestCase
         $o->writeModelAsString();
     }
 
+    /**
+     * A generated model documents the type its column holds, because that docblock is
+     * read as intent — by a human, and by dynamic mode when the same property has to
+     * be created as a column elsewhere.
+     */
     public function testWriteModelAsString_OK()
     {
         $o = new ModelMaker($this->pdo, 'model_test');
@@ -56,7 +61,7 @@ class ModelTestModel extends Model
     }
 
     // Properties
-    /** @var string */
+    /** @var int */
     public \$someId;
 
     /** @var string */
@@ -64,6 +69,21 @@ class ModelTestModel extends Model
 
     /** @var string */
     public \$dtc;
+
+    /** @var ?int */
+    public \$ownerId;
+
+    /** @var ?bool */
+    public \$isActive;
+
+    /** @var ?int */
+    public \$quotaBytes;
+
+    /** @var ?float */
+    public \$rate;
+
+    /** @var ?string */
+    public \$notes;
 
 
 }

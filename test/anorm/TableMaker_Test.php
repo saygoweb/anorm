@@ -44,6 +44,62 @@ class TableMakerTest extends TestCase
         $this->dropTmTables();
     }
 
+    // A type the model declares, which is intent rather than an accident of which
+    // value reached the column first. #61, suggestion 1.
+
+    public function testDeclaredType_TypesAColumnWithNothingToSample()
+    {
+        // The case a sample can never reach: a fresh instance on a read path, where the
+        // property is null. The declaration is the only information there is.
+        $this->assertEquals('INT(11) NULL', TableMaker::columnDefinition('owner_id', null, 'int'));
+        $this->assertEquals('TINYINT(1) NULL', TableMaker::columnDefinition('is_active', null, 'bool'));
+        $this->assertEquals('DOUBLE NULL', TableMaker::columnDefinition('rate', null, 'float'));
+        $this->assertEquals('VARCHAR(128)', TableMaker::columnDefinition('name', null, 'string'));
+        $this->assertEquals('TEXT', TableMaker::columnDefinition('tags', null, 'array'));
+    }
+
+    public function testDeclaredInt_StillTakesItsWidthFromTheSample()
+    {
+        // `int` does not say INT or BIGINT, so the sample still decides the width.
+        $this->assertEquals('INT(11) NULL', TableMaker::columnDefinition('n', 42, 'int'));
+        $this->assertEquals('BIGINT(20) NULL', TableMaker::columnDefinition('quota_bytes', 10737418240, 'int'));
+    }
+
+    public function testDeclaredInt_ReadsAMagnitudeOutOfANumericString()
+    {
+        // Everything PDO returns is a string, so a read path samples '10737418240'.
+        $this->assertEquals('BIGINT(20) NULL', TableMaker::columnDefinition('quota_bytes', '10737418240', 'int'));
+        $this->assertEquals('INT(11) NULL', TableMaker::columnDefinition('hit_count', '42', 'int'));
+    }
+
+    public function testDeclaredString_StillTakesItsWidthFromTheSample()
+    {
+        $this->assertEquals('VARCHAR(256)', TableMaker::columnDefinition('note', str_repeat('a', 200), 'string'));
+        $this->assertEquals('TEXT', TableMaker::columnDefinition('note', str_repeat('a', 300), 'string'));
+    }
+
+    public function testDeclaredDateClasses_AreDatetime()
+    {
+        $this->assertEquals('DATETIME NULL', TableMaker::columnDefinition('dtc', null, 'DateTime'));
+        $this->assertEquals('DATETIME NULL', TableMaker::columnDefinition('dtc', null, 'DateTimeImmutable'));
+        $this->assertEquals('DATETIME NULL', TableMaker::columnDefinition('dtc', null, 'Moment\Moment'));
+    }
+
+    public function testDeclaredType_BeatsASampleThatDisagrees()
+    {
+        // A column holding '42' as a reference, not a number, is what a declaration is for.
+        $this->assertEquals('VARCHAR(128)', TableMaker::columnDefinition('reference', 42, 'string'));
+        $this->assertEquals('INT(11) NULL', TableMaker::columnDefinition('hit_count', 'not a number', 'int'));
+    }
+
+    public function testDeclaredUnknownClass_FallsBackToTheSample()
+    {
+        // What some other class stores is its transformer's business. The guess carries
+        // on as it did rather than inventing a type for it.
+        $this->assertEquals('INT(11) NULL', TableMaker::columnDefinition('thing', 5, 'App\\Money'));
+        $this->assertEquals('VARCHAR(128)', TableMaker::columnDefinition('thing', null, 'App\\Money'));
+    }
+
     public function testColumnDefinition_Integer_OK()
     {
         $result = TableMaker::columnDefinition('integer', 1);

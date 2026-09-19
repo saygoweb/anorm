@@ -145,9 +145,12 @@ class DynamicInference_Test extends TestCase
     public function testNullSampleWithoutOverride_IsStillVarchar()
     {
         // A documented limit, not an aspiration. Threading the model through the read
-        // path lets the guess see the property; it cannot conjure a type out of null.
-        // That is what columnDefinitions is for, and why MODE_STATIC is the production
-        // answer. Asserted so a future change to the fallback has to be deliberate.
+        // path lets the guess see the property; it cannot conjure a type out of null,
+        // and this property declares none either. Declaring the property's type or
+        // pinning it in columnDefinitions is the answer, and MODE_STATIC is the
+        // production one. Asserted so a future change to the fallback has to be
+        // deliberate.
+        // @see DeclaredTypeInference_Test for the same read path on a declared property
         $this->pdo->exec('CREATE TABLE inf_plains (id INT(11) AUTO_INCREMENT PRIMARY KEY) ENGINE=InnoDB');
 
         DataMapper::find('InfPlainModel', $this->pdo)

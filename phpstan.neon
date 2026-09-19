@@ -11,3 +11,18 @@ parameters:
     ignoreErrors:
         # Ignore missing Moment\Moment class in tests (external dependency)
         - '#Instantiated class Moment\\Moment not found#'
+        # PropertyType_Test's fixtures are declarations on purpose: a class phpstan
+        # cannot resolve, a pseudo-type it cannot resolve, and a docblock that
+        # disagrees with the native type. Each is a case PropertyType has to handle.
+        -
+            message: '#has unknown class Moment\\Moment as its type#'
+            path: test/anorm/Schema/PropertyType_Test.php
+        -
+            message: '#@var for property PtDocModel::\$pseudoUnknown contains unresolvable type#'
+            path: test/anorm/Schema/PropertyType_Test.php
+        -
+            message: '#@var for property PtBothModel::\$hitCount with type string is incompatible with native type int#'
+            path: test/anorm/Schema/PropertyType_Test.php
+        -
+            message: '#@var has invalid value \(\?\)#'
+            path: test/anorm/Schema/PropertyType_Test.php
