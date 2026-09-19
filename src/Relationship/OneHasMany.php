@@ -46,7 +46,7 @@ class OneHasMany extends Relationship
         // The foreign key should be a database column name, not a property name
         $sql = "SELECT * FROM `{$mapper->table}` WHERE `{$this->foreignKey}` = ?";
 
-        $result = $mapper->query($sql, [$sourceValue]);
+        $result = $mapper->query($sql, [$sourceValue], $relatedInstance);
         $relatedModels = [];
 
         while ($data = $result->fetch(\PDO::FETCH_ASSOC)) {

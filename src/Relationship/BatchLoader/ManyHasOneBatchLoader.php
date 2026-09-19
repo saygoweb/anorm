@@ -70,7 +70,7 @@ class ManyHasOneBatchLoader implements BatchLoaderInterface
 
 
         // Execute the batch query
-        $result = $mapper->query($sql, $foreignKeys);
+        $result = $mapper->query($sql, $foreignKeys, $relatedInstance);
 
         // Create lookup map by primary key value
         $lookupMap = [];
