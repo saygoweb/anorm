@@ -95,16 +95,20 @@ the table, the column and the property. Declare the property nullable
 
 1. **Develop** with `MODE_DYNAMIC`, so the schema appears as the models grow.
 2. **Dump** the database once the models have settled.
-3. **Correct the dump by hand** — see the checklist below.
-4. **Commit** it as a versioned schema file.
-5. **Switch the models to `MODE_STATIC`** and deploy against the committed schema.
+3. **Run `anorm schema:diff`** to see where the database and the models disagree —
+   see [Schema diff]({{ site.baseurl }}/schema-diff/).
+4. **Correct the dump by hand** — see the checklist below.
+5. **Commit** it as a versioned schema file.
+6. **Switch the models to `MODE_STATIC`** and deploy against the committed schema.
 
-Step 3 is not optional. The dump inherits whatever dynamic mode inferred, so a column
+Step 4 is not optional. The dump inherits whatever dynamic mode inferred, so a column
 that was guessed wrongly becomes the authoritative schema unless somebody notices.
+Step 3 is how they notice.
 
 ## What to check in the correct-by-hand step
 
-Read `SHOW CREATE TABLE` for each table and look for:
+`anorm schema:diff` reports the first three of these for you, and the foreign key
+constraints. Read `SHOW CREATE TABLE` for each table and look for:
 
 - **Integer width.** Anything counting bytes, or any identifier from an external
   system, probably wants `BIGINT(20)` rather than `INT(11)`, which stops at
