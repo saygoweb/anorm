@@ -150,7 +150,62 @@ class DataMapper
             }
             $properties[$key] = self::propertyName($key);
         }
+        // get_object_vars() reports values, and a PHP 7.4 typed property with no
+        // default has no value until something assigns one — `public int $hitCount;`
+        // is absent from it entirely. Such a property is a declaration of a column
+        // as much as `public $hitCount = 0;` is, so the declared ones are added here.
+        // Anything already mapped keeps its place and its spelling.
+        foreach (self::declaredProperties($c) as $key) {
+            if (!array_key_exists($key, $properties)) {
+                $properties[$key] = self::propertyName($key);
+            }
+        }
         return $properties;
+    }
+
+    /**
+     * The public, non-static, non-infrastructure properties $c declares, whether or
+     * not they currently hold a value.
+     *
+     * @param mixed $c A model instance
+     * @return array<int, string> Property names
+     */
+    private static function declaredProperties($c)
+    {
+        if (!is_object($c)) {
+            return [];
+        }
+        $names = [];
+        $reflection = new \ReflectionClass($c);
+        foreach ($reflection->getProperties(\ReflectionProperty::IS_PUBLIC) as $property) {
+            if ($property->isStatic()) {
+                continue;
+            }
+            $name = $property->getName();
+            if ($name[0] === '_') {
+                continue;
+            }
+            $names[] = $name;
+        }
+        return $names;
+    }
+
+    /**
+     * The value of $property on $model, with an uninitialised typed property read as
+     * null rather than as an Error.
+     *
+     * PHP 7.4 leaves `public int $hitCount;` uninitialised until something assigns to
+     * it, and reading it in that state throws. A model is routinely written before
+     * every declared property has been given a value, so that state is ordinary here
+     * and means the same thing as null: nothing to store.
+     *
+     * @param mixed $model The model to read from
+     * @param string $property Property name
+     * @return mixed
+     */
+    private static function propertyValue($model, $property)
+    {
+        return isset($model->$property) ? $model->$property : null;
     }
 
     public function write(&$c)
@@ -162,7 +217,7 @@ class DataMapper
 
         $key = $this->modelPrimaryKey;
         if ($this->useReplace) {
-            if (!$c->$key) {
+            if (!self::propertyValue($c, $key)) {
                 throw new \Exception("Key '$key' must be set when using replace mode");
             }
             $fields = '';
@@ -178,14 +233,15 @@ class DataMapper
                     $values .= ', ';
                 }
                 $fields .= $field;
-                if ($c->$property === null) {
+                $propertyValue = self::propertyValue($c, $property);
+                if ($propertyValue === null) {
                     $value = 'NULL';
                 } else {
                     if (array_key_exists($field, $this->transformers)) {
-                        $transformedValue = $this->transformers[$field]->txModelToDatabase($c->$property);
+                        $transformedValue = $this->transformers[$field]->txModelToDatabase($propertyValue);
                         $value = $transformedValue === null ? 'NULL' : $this->pdo->quote($transformedValue);
                     } else {
-                        $value = $this->pdo->quote($c->$property);
+                        $value = $this->pdo->quote($propertyValue);
                     }
                 }
                 $values .= $value;
@@ -207,20 +263,22 @@ class DataMapper
                 if ($set) {
                     $set .= ', ';
                 }
-                if ($c->$property === null) {
+                $propertyValue = self::propertyValue($c, $property);
+                if ($propertyValue === null) {
                     $value = 'NULL';
                 } else {
                     if (array_key_exists($field, $this->transformers)) {
-                        $transformedValue = $this->transformers[$field]->txModelToDatabase($c->$property);
+                        $transformedValue = $this->transformers[$field]->txModelToDatabase($propertyValue);
                         $value = $transformedValue === null ? 'NULL' : $this->pdo->quote($transformedValue);
                     } else {
-                        $value = $this->pdo->quote($c->$property);
+                        $value = $this->pdo->quote($propertyValue);
                     }
                 }
                 // TODO Move this to bound value CP 2020-06
                 $set .= "$field=$value";
             }
-            if ($c->$key === null || $c->$key === '') {
+            $keyValue = self::propertyValue($c, $key);
+            if ($keyValue === null || $keyValue === '') {
                 $sql = 'INSERT INTO `' . $this->table . '` SET ' . $set;
                 $this->dynamicWrapper(function () use ($sql, $c, $key) {
                     $result = $this->pdo->query($sql);
@@ -228,7 +286,7 @@ class DataMapper
                 }, $c);
             } else {
                 $keyField = $this->map[$key];
-                $id = $c->$key;
+                $id = $keyValue;
                 $sql = 'UPDATE `' . $this->table . '` SET ' . $set . ' WHERE ' . $keyField . "='" . $id . "'";
                 $this->dynamicWrapper(function () use ($sql) {
                     $this->pdo->query($sql);
@@ -320,17 +378,32 @@ class DataMapper
         if (!$data) {
             return false;
         }
-        foreach ($this->map as $property => $field) {
-            if ($property[0] == '_') {
-                continue;
-            }
-            if (!in_array($property, $exclude) && array_key_exists($field, $data)) {
-                if (array_key_exists($field, $this->transformers)) {
-                    $c->$property = $this->transformers[$field]->txDatabaseToModel($data[$field]);
-                } else {
-                    $c->$property = $data[$field];
+        $property = '';
+        $field = '';
+        try {
+            foreach ($this->map as $property => $field) {
+                if ($property[0] == '_') {
+                    continue;
+                }
+                if (!in_array($property, $exclude) && array_key_exists($field, $data)) {
+                    if (array_key_exists($field, $this->transformers)) {
+                        $c->$property = $this->transformers[$field]->txDatabaseToModel($data[$field]);
+                    } else {
+                        $c->$property = $data[$field];
+                    }
                 }
             }
+        } catch (\TypeError $e) {
+            // A typed property that cannot hold what the column holds — most often a
+            // non-nullable property against a nullable column. PHP's own message names
+            // neither the column nor the table, and this is the one place that knows both.
+            throw new \TypeError(
+                'Anorm: cannot read `' . $this->table . '`.`' . $field . '` into '
+                . get_class($c) . '::$' . $property . ' — ' . $e->getMessage()
+                . '. Declare the property nullable, or make the column NOT NULL.',
+                0,
+                $e
+            );
         }
         if (self::$changeListener !== null) {
             $c->_lastSnapshot = $this->captureSnapshot($c);
@@ -345,7 +418,7 @@ class DataMapper
             if ($property[0] === '_') {
                 continue;
             }
-            $v = $c->$property;
+            $v = self::propertyValue($c, $property);
             $out[$property] = is_object($v) ? clone $v : $v;
         }
         return $out;
@@ -373,7 +446,7 @@ class DataMapper
                 continue;
             }
             $from = array_key_exists($property, $snapshot) ? $snapshot[$property] : null;
-            $to   = $current->$property;
+            $to   = self::propertyValue($current, $property);
             if (!$this->valuesEqual($from, $to)) {
                 $out[$property] = ['from' => $from, 'to' => $to];
             }
