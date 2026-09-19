@@ -80,5 +80,8 @@ $model = DataMapper::find('SomeTableModel', $anorm->pdo)
 ```php
 $id = 3; // Likely passed on via GET or POST
 $model = new SomeTableModel(Anorm::use('mydata'));
-$model->_mapper->delete($id);
+$model->id = $id;
+$model->delete();
 ```
+
+`deleteOrThrow()` is the same thing but throws when no row matched.

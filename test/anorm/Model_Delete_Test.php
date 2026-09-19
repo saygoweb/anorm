@@ -105,4 +105,45 @@ class ModelDeleteTest extends TestCase
             $this->assertEquals("SomeTable id '1' not found", $e->getMessage());
         }
     }
+
+    public function testDeleteOrThrow_RowExists_ReturnsTrue()
+    {
+        $model = $this->makeRow('alice');
+        $this->assertTrue($model->deleteOrThrow());
+        $this->assertEquals(0, $model->countRows());
+    }
+
+    public function testDeleteOrThrow_UnknownId_Throws()
+    {
+        $model = new SomeTableModel();
+        $model->someId = 999999;
+        $this->expectException(\Exception::class);
+        $model->deleteOrThrow();
+    }
+
+    public function testDeleteOrThrow_UnknownId_MessageOk()
+    {
+        $model = new SomeTableModel();
+        $model->someId = 999999;
+        try {
+            $model->deleteOrThrow();
+            $this->fail('expected an exception');
+        } catch (\Exception $e) {
+            $this->assertEquals("SomeTable id '999999' not deleted", $e->getMessage());
+        }
+    }
+
+    public function testDeleteOrThrow_KeyNotSet_ThrowsTheUnsetKeyMessage()
+    {
+        $model = new SomeTableModel();
+        try {
+            $model->deleteOrThrow();
+            $this->fail('expected an exception');
+        } catch (\Exception $e) {
+            $this->assertEquals(
+                "SomeTable cannot be deleted: primary key 'someId' is not set",
+                $e->getMessage()
+            );
+        }
+    }
 }

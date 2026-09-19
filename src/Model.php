@@ -149,6 +149,23 @@ class Model
     }
 
     /**
+     * Delete the row this model identifies, or throw if there was no such row.
+     * The counterpart to readOrThrow.
+     * @return bool Always true.
+     * @throws \Exception if the primary key is not set, or no row was deleted.
+     */
+    public function deleteOrThrow()
+    {
+        $key = $this->_mapper->modelPrimaryKey;
+        $id = isset($this->$key) ? $this->$key : null;
+        $result = $this->delete();
+        if (!$result) {
+            throw new \Exception($this->modelLabel() . " id '$id' not deleted");
+        }
+        return $result;
+    }
+
+    /**
      * Short name for exception messages: 'Model' removed and the namespace
      * stripped, e.g. Anorm\Test\SomeTableModel -> SomeTable.
      * @return string
