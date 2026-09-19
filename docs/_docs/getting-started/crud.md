@@ -17,8 +17,9 @@ class SomeTableModel extends Model {
     {
         parent::__construct($anorm->pdo, DataMapper::createByClass($anorm->pdo, $this));
         // Development only: lets Anorm create and alter tables to match the model.
-        // Types are inferred from values and are a best guess — dump and correct the
-        // schema, then remove this line, before production. See 'Schema modes'.
+        // Column types come from what the properties below declare, and are a guess
+        // where they declare nothing — dump and correct the schema, then remove this
+        // line, before production. See 'Schema modes'.
         $this->_mapper->mode = DataMapper::MODE_DYNAMIC;
     }
 

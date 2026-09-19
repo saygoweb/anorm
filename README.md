@@ -10,8 +10,9 @@ Yes, yet another ORM for PHP. This meets my needs for an ORM with the following 
 * Works well with legacy databases.
 * Provides (requires) a Model class which helps coding in IDEs.
 * Creates and modifies the underlying database schema to match the Model *during development*.
-  Types are inferred from PHP values and are a best guess, not something to rely on in
-  production — see [Schema modes](https://saygoweb.github.io/anorm/schema-modes/).
+  Types come from what your model declares, falling back to a guess from the values it
+  holds — a starting point for a schema, not something to rely on in production. See
+  [Schema modes](https://saygoweb.github.io/anorm/schema-modes/).
 
 `MODE_STATIC` is the default and the production expectation: a schema that has been
 dumped, corrected by hand and committed. `MODE_DYNAMIC` is a development aid.
