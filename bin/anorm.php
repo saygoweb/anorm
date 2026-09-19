@@ -32,7 +32,10 @@ class App
 
     public function __construct()
     {
-        $arguments = new Arguments(array('strict' => false));
+        // `--option=value` is not understood by the lexer and is not rejected either,
+        // so it has to be split before parsing. See CliOptions::splitAssignments.
+        $argv = isset($_SERVER['argv']) ? array_slice($_SERVER['argv'], 1) : array();
+        $arguments = new Arguments(array('strict' => false, 'input' => CliOptions::splitAssignments($argv)));
         $arguments->addFlag(array('help', 'h'), 'Display this help');
         $arguments->addFlag('version', 'Display the version');
         $arguments->addFlag(array('force', 'f'), 'Force overwrite of files');
@@ -53,6 +56,15 @@ class App
             'default' => 'App\Models',
             'description' => 'Namespace for generated models'
         ));
+        $arguments->addOption('host', array(
+            'default' => 'db',
+            'description' => 'Database host'
+        ));
+        $arguments->addOption('format', array(
+            'default' => 'text',
+            'description' => 'Output format for schema:diff, text or json'
+        ));
+        $arguments->addFlag(array('all', 'a'), 'Include informational findings in schema:diff');
         $arguments->parse();
         $this->options = $arguments;
         $this->commandArgs = $arguments->getInvalidArguments();
@@ -62,25 +74,86 @@ class App
         }
     }
 
+    /**
+     * @return int The process exit code
+     */
     public function run()
     {
         if ($this->options['help']) {
             $this->help();
-            return;
+            return 0;
         }
         if ($this->options['version']) {
             $this->version();
-            return;
+            return 0;
         }
         switch ($this->command) {
             case 'make':
                 $this->make();
                 break;
 
+            case 'schema:diff':
+                return $this->schemaDiff();
+
             default:
                 echo $this->title();
                 printf("Error: Unknown command '%s', try 'help'\n", $this->command);
+                return 2;
         }
+        return 0;
+    }
+
+    /**
+     * Connect to $database, prompting for a password when asked to.
+     * @return \PDO|null null when the connection failed, having said why
+     */
+    public function connect($database)
+    {
+        $password = '';
+        if ($this->options['password']) {
+            $password = \cli\prompt("Password", false, ':', true); // hide
+        }
+        $dsn = 'mysql:host=' . $this->options['host'] . ';dbname=' . $database;
+        try {
+            $pdo = new \PDO($dsn, $this->options['user'], $password);
+        } catch (\PDOException $e) {
+            echo 'Error: Database connection failed, ' . $e->getMessage() . PHP_EOL;
+            return null;
+        }
+        $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        return $pdo;
+    }
+
+    /**
+     * Compare the live schema with what the models imply.
+     * @return int An exit code: 1 when the schema cannot hold what a model writes
+     */
+    public function schemaDiff()
+    {
+        echo $this->title();
+        if (count($this->commandArgs) < 1) {
+            echo "Error: schema:diff command must have a database specified" . PHP_EOL;
+            return 2;
+        }
+        $database = $this->commandArgs[0];
+        $table = count($this->commandArgs) >= 2 ? $this->commandArgs[1] : '';
+
+        $pdo = $this->connect($database);
+        if ($pdo === null) {
+            return 2;
+        }
+
+        $command = new SchemaDiffCommand($pdo);
+        $command->format = $this->options['format'];
+        $command->showInfo = (bool) $this->options['all'];
+        try {
+            $result = $command->run($this->options['models'], $this->options['namespace'], $table);
+        } catch (\Exception $e) {
+            echo 'Error: ' . $e->getMessage() . PHP_EOL;
+            return 2;
+        }
+        echo $result->output;
+        return $result->exitCode();
     }
 
     public function make()
@@ -99,17 +172,10 @@ class App
             return;
         }
 
-        $password = '';
-        if ($this->options['password']) {
-            $password = \cli\prompt("Password", false, ':', true); // hide
-        }
-        try {
-            $pdo = new \PDO('mysql:host=db;dbname=' . $this->commandArgs[0], $this->options['user'], $password);
-        } catch (\PDOException $e) {
-            echo 'Error: Database connection failed, ' . $e->getMessage() . PHP_EOL;
+        $pdo = $this->connect($database);
+        if ($pdo === null) {
             return;
         }
-        $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         $tables = array($table);
         foreach ($tables as $table) {
             $modelMakerOptions = new ModelMakerOptions();
@@ -129,6 +195,13 @@ class App
 Commands
   make <database> [table]
     Makes models for the given database table in the Models folder with Namespace.
+
+  schema:diff <database> [table]
+    Compares the live schema with what the models in the Models folder imply, and
+    reports every difference: columns typed as the wrong kind of thing, columns the
+    model expects that are not there, and relationships with no foreign key
+    constraint. Exits 1 when the schema cannot hold what a model writes, so it can
+    be run in CI or before committing a dump.
 EOD;
         echo PHP_EOL;
         echo $this->options->getHelpScreen();
@@ -148,4 +221,4 @@ EOD;
 }
 
 $app = new App();
-$app->run();
+exit((int) $app->run());
