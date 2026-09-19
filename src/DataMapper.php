@@ -30,6 +30,15 @@ class DataMapper
     public $transformers = [];
 
     /**
+     * Explicit column definitions, keyed by column name, consulted before the type is
+     * guessed from a sampled value in dynamic mode. Per mapper, so a column pinned in
+     * one table is not pinned in every table that happens to share the name.
+     * e.g. ['traffic_bytes' => 'BIGINT(20) NULL']
+     * @var array<string, string>
+     */
+    public $columnDefinitions = [];
+
+    /**
      * Property names that should not appear in diff output.
      * Default empty — Anorm has no opinion on which properties are "infrastructure."
      * Consumers set this per DataMapper (e.g. ['dtc','dtu','uc','uu']).
@@ -281,15 +290,18 @@ class DataMapper
     /**
      * @param string $sql SQL query
      * @param array|null $data array of values for bound parameters
+     * @param mixed $model Optional model to sample column types from in dynamic mode.
+     *                     It must be the model this mapper maps: TableMaker reverse-maps
+     *                     the column through $this->map to reach the property.
      * @return \PDOStatement
      */
-    public function query($sql, $data = null)
+    public function query($sql, $data = null, $model = null)
     {
         return $this->dynamicWrapper(function () use ($sql, $data) {
             $statement = $this->pdo->prepare($sql);
             $statement->execute($data);
             return $statement;
-        });
+        }, $model);
     }
 
     /**

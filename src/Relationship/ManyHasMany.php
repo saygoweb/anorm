@@ -86,7 +86,7 @@ class ManyHasMany extends Relationship
                 INNER JOIN `{$this->joinTable}` j ON r.`{$this->primaryKey}` = j.`{$this->joinRelatedKey}`
                 WHERE j.`{$this->joinForeignKey}` = ?";
 
-        $result = $mapper->query($sql, [$sourceValue]);
+        $result = $mapper->query($sql, [$sourceValue], $relatedInstance);
         $relatedModels = [];
 
         while ($data = $result->fetch(\PDO::FETCH_ASSOC)) {

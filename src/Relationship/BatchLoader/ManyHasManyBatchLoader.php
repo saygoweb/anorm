@@ -71,7 +71,7 @@ class ManyHasManyBatchLoader implements BatchLoaderInterface
                 WHERE j.`{$relationship->getJoinForeignKey()}` IN ({$placeholders})";
 
         // Execute the batch query
-        $result = $mapper->query($sql, $primaryKeys);
+        $result = $mapper->query($sql, $primaryKeys, $relatedInstance);
 
         // Group results by source primary key
         $groupedResults = [];

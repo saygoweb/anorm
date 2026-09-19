@@ -68,7 +68,7 @@ class OneHasManyBatchLoader implements BatchLoaderInterface
         $sql = "SELECT {$selectClause} FROM `{$mapper->table}` WHERE `{$relationship->getForeignKey()}` IN ({$placeholders})";
 
         // Execute the batch query
-        $result = $mapper->query($sql, $primaryKeys);
+        $result = $mapper->query($sql, $primaryKeys, $relatedInstance);
 
         // Group results by foreign key value
         $groupedResults = [];

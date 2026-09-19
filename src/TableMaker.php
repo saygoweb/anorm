@@ -85,14 +85,26 @@ class TableMaker
             throw new \Exception('Anorm: Could not parse PDOException', 0, $this->exception);
         }
         $columnName = $matches[1];
-        // Add the column.
-        // TODO Have a go at figuring out the type if the model is available.
+
+        // An explicit definition for this column beats any guess. Per mapper rather
+        // than global, so pinning a column in one table does not pin the same name
+        // everywhere. See Anorm::$columnFn for the global fallback.
+        if (isset($this->mapper->columnDefinitions[$columnName])) {
+            $columnDefinition = $this->mapper->columnDefinitions[$columnName];
+            $sql = "ALTER TABLE `" . $this->mapper->table . "` ADD $columnName $columnDefinition";
+            $this->mapper->pdo->query($sql);
+            return;
+        }
+
+        // Add the column, sampling the model's property for a type hint where there is
+        // one. A column the map does not mention cannot be sampled.
         $sampleData = null;
         if ($this->model) {
-            // See if we can reverse map the
             $invertMap = array_flip($this->mapper->map);
-            $property = $invertMap[$columnName];
-            $sampleData = $this->model->$property;
+            if (isset($invertMap[$columnName])) {
+                $property = $invertMap[$columnName];
+                $sampleData = $this->model->$property;
+            }
         }
         $columnFn = Anorm::$columnFn; // Redundant, but can't do this Anorm::$columnFn(...)
         $columnDefinition = $columnFn($columnName, $sampleData);
@@ -339,22 +351,45 @@ class TableMaker
         return \strpos($message, 'Duplicate foreign key constraint name') !== false;
     }
 
+    /**
+     * Guess a column definition from one sampled value.
+     *
+     * A SQL type cannot be inferred correctly from a PHP value — an int does not say
+     * INT or BIGINT, a string does not say VARCHAR(n), TEXT or DATETIME — so this is
+     * deliberately a best guess for development. Production is expected to run
+     * MODE_STATIC against a schema that has been dumped and corrected by hand.
+     * See docs/_docs/schema-modes.md.
+     *
+     * @param string $columnName Name of the column being created
+     * @param mixed $sampleData The value the column is being guessed from
+     * @return string A column definition for ALTER TABLE ... ADD
+     */
     public static function columnDefinition($columnName, $sampleData)
     {
-        if ($sampleData) {
-            if (\is_numeric($sampleData)) {
-                if (\is_integer($sampleData)) {
-                    return "INT(11) NULL";
-                }
-                if (\is_float($sampleData)) {
-                    return "DOUBLE NULL";
-                }
+        // Only null is an absence of information. 0, 0.0, '' and false are information,
+        // and a truthiness test used to discard them along with it.
+        if ($sampleData !== null) {
+            if (\is_bool($sampleData)) {
+                return "TINYINT(1) NULL";
+            }
+            if (\is_integer($sampleData)) {
+                // INT(11) stops at 2147483647, so a byte count or any other large
+                // magnitude has to widen or it is rejected — or silently clamped.
+                return ($sampleData > 2147483647 || $sampleData < -2147483648)
+                    ? "BIGINT(20) NULL"
+                    : "INT(11) NULL";
+            }
+            if (\is_float($sampleData)) {
+                return "DOUBLE NULL";
             }
             if (is_object($sampleData) && get_class($sampleData) == 'Moment\Moment') {
                 return "DATETIME NULL";
             }
             if (is_string($sampleData)) {
-                if (preg_match('/(\d{4})-(\d{2})-(\d{2})/', $sampleData) === 1) {
+                // The whole value has to be a date. A string that merely contains one —
+                // an error message, a note, a URL — is not a DATETIME, and typing it as
+                // one destroys every later write to that column.
+                if (preg_match('/^\d{4}-\d{2}-\d{2}([ T]\d{2}:\d{2}(:\d{2})?)?$/', $sampleData) === 1) {
                     return "DATETIME NULL";
                 }
                 if (strlen($sampleData) > 256) {

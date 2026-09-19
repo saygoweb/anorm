@@ -208,7 +208,7 @@ class QueryBuilder
         $this->ensureFrom();
         /** @var DataMapper */
         $mapper = $this->instance->_mapper;
-        $result = $mapper->query($this->sql, $this->boundData);
+        $result = $mapper->query($this->sql, $this->boundData, $this->instance);
 
         // Collect all models first
         $models = [];
@@ -264,7 +264,7 @@ class QueryBuilder
         $this->ensureFrom();
         /** @var DataMapper */
         $mapper = $this->instance->_mapper;
-        $result = $mapper->query($this->sql, $this->boundData);
+        $result = $mapper->query($this->sql, $this->boundData, $this->instance);
 
         while ($data = $result->fetch(\PDO::FETCH_ASSOC)) {
             // Create a new instance for each row
@@ -293,7 +293,7 @@ class QueryBuilder
         /** @var DataMapper */
         $mapper = $this->instance->_mapper;
         $this->limit(1);
-        $result = $mapper->query($this->sql, $this->boundData);
+        $result = $mapper->query($this->sql, $this->boundData, $this->instance);
         $couldRead = $mapper->readRow($this->instance, $result);
         if ($couldRead === false) {
             return false;

@@ -43,7 +43,7 @@ class ManyHasOne extends Relationship
         // The primary key should be a database column name, not a property name
         $sql = "SELECT * FROM `{$mapper->table}` WHERE `{$this->primaryKey}` = ?";
 
-        $result = $mapper->query($sql, [$foreignValue]);
+        $result = $mapper->query($sql, [$foreignValue], $relatedInstance);
         $data = $result->fetch(\PDO::FETCH_ASSOC);
 
         if (!$data) {
