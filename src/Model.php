@@ -32,6 +32,17 @@ class Model
     }
 
     /**
+     * The DataMapper that owns this model's table, column map and transformers.
+     * Prefer this to the public $_mapper property, which stays for backward
+     * compatibility but is, by the underscore convention, infrastructure.
+     * @return DataMapper
+     */
+    public function mapper(): DataMapper
+    {
+        return $this->_mapper;
+    }
+
+    /**
      * Get the PDO connection
      * @return \PDO
      */
@@ -114,13 +125,56 @@ class Model
     {
         $result = $this->_mapper->read($this, $id);
         if (!$result) {
-            $className = get_class($this);
-            $className = str_replace('Model', '', $className);
-            $tokens = explode('\\', $className);
-            $className = end($tokens); // Get the last element (class name without namespace)
-            throw new \Exception("$className id '$id' not found");
+            throw new \Exception($this->modelLabel() . " id '$id' not found");
         }
         return $result;
+    }
+
+    /**
+     * Delete the row this model identifies.
+     * The primary key property must be set — either read from the database or
+     * assigned directly. Passing the model to the mapper is what lets a
+     * DeleteListenerInterface see which model went.
+     * @return bool True when a row was deleted, false when no row matched.
+     * @throws \Exception if the primary key property is not set.
+     */
+    public function delete()
+    {
+        $key = $this->_mapper->modelPrimaryKey;
+        $id = isset($this->$key) ? $this->$key : null;
+        if ($id === null || $id === '') {
+            throw new \Exception($this->modelLabel() . " cannot be deleted: primary key '$key' is not set");
+        }
+        return $this->_mapper->delete($id, $this);
+    }
+
+    /**
+     * Delete the row this model identifies, or throw if there was no such row.
+     * The counterpart to readOrThrow.
+     * @return bool Always true.
+     * @throws \Exception if the primary key is not set, or no row was deleted.
+     */
+    public function deleteOrThrow()
+    {
+        $key = $this->_mapper->modelPrimaryKey;
+        $id = isset($this->$key) ? $this->$key : null;
+        $result = $this->delete();
+        if (!$result) {
+            throw new \Exception($this->modelLabel() . " id '$id' not deleted");
+        }
+        return $result;
+    }
+
+    /**
+     * Short name for exception messages: 'Model' removed and the namespace
+     * stripped, e.g. Anorm\Test\SomeTableModel -> SomeTable.
+     * @return string
+     */
+    private function modelLabel(): string
+    {
+        $className = str_replace('Model', '', get_class($this));
+        $tokens = explode('\\', $className);
+        return end($tokens); // The last element: the class name without its namespace.
     }
 
     /**

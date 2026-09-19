@@ -49,7 +49,10 @@ class DataMapper
     /** @var \Anorm\Lifecycle\ChangeListenerInterface|null */
     private static $changeListener = null;
 
-    /** @var bool true while a listener's onWrite is executing (re-entrancy guard) */
+    /** @var \Anorm\Lifecycle\DeleteListenerInterface|null */
+    private static $deleteListener = null;
+
+    /** @var bool true while a listener's onWrite or onDelete is executing (re-entrancy guard) */
     private static $insideListener = false;
 
     public static function create(\PDO $pdo, $table, $map)
@@ -74,6 +77,26 @@ class DataMapper
     public static function getChangeListener(): ?\Anorm\Lifecycle\ChangeListenerInterface
     {
         return self::$changeListener;
+    }
+
+    /**
+     * Register the listener notified of deletes. Deliberately a separate slot from
+     * setChangeListener: widening that method's parameter and return types to accept
+     * a delete-only listener would change a published signature, and requiring a
+     * delete listener to also implement onWrite would mean writing a no-op. A class
+     * that implements both interfaces is registered by calling both setters with it.
+     */
+    public static function setDeleteListener(?\Anorm\Lifecycle\DeleteListenerInterface $listener): void
+    {
+        self::$deleteListener = $listener;
+        if ($listener === null) {
+            self::$insideListener = false;
+        }
+    }
+
+    public static function getDeleteListener(): ?\Anorm\Lifecycle\DeleteListenerInterface
+    {
+        return self::$deleteListener;
     }
 
     /**
@@ -477,13 +500,51 @@ class DataMapper
         return $a === $b;
     }
 
-    public function delete($id)
+    /**
+     * @param int|string $id    The primary key value to delete.
+     * @param Model|null $model The model being deleted, when there is one. Passing it
+     *                          lets a DeleteListenerInterface see which model went, and
+     *                          clears that model's snapshot so a later write() is
+     *                          correctly treated as an INSERT.
+     * @return bool True when a row was deleted.
+     */
+    public function delete($id, ?Model $model = null)
     {
         $keyField = $this->map[$this->modelPrimaryKey];
-        $sql = 'DELETE FROM `' . $this->table . '` WHERE ' . $keyField . "='" . $id . "'";
-        $result = $this->query($sql);
-        // This allows for imprecise deletes which may not be the best idea. CP 25 Nov 2018
-        return $result->rowCount() >= 1;
+        $sql = 'DELETE FROM `' . $this->table . '` WHERE `' . $keyField . '` = ?';
+        $result = $this->query($sql, [$id], $model);
+        // A bound primary key matches at most one row, so this is 0 or 1.
+        $deleted = $result->rowCount() >= 1;
+        if ($deleted) {
+            $this->notifyDelete($id, $model);
+        }
+        return $deleted;
+    }
+
+    /**
+     * Fire onDelete (when the listener opted in and we are not already inside one),
+     * then drop the model's snapshot. Ordering matters: the listener runs first so it
+     * can still read $model->_lastSnapshot for the pre-delete values.
+     *
+     * @param int|string $id
+     * @param Model|null $model
+     */
+    private function notifyDelete($id, ?Model $model): void
+    {
+        $listener = self::$deleteListener;
+        if ($listener !== null && !self::$insideListener) {
+            self::$insideListener = true;
+            try {
+                $listener->onDelete($this->table, $id, $model);
+            } catch (\Throwable $e) {
+                error_log('Anorm delete listener threw: ' . $e->getMessage());
+            } finally {
+                self::$insideListener = false;
+            }
+        }
+        if ($model !== null) {
+            $model->_lastSnapshot = null;
+        }
     }
 
     public static function find($creatable, $pdo)

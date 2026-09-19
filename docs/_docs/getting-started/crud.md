@@ -20,7 +20,7 @@ class SomeTableModel extends Model {
         // Column types come from what the properties below declare, and are a guess
         // where they declare nothing — dump and correct the schema, then remove this
         // line, before production. See 'Schema modes'.
-        $this->_mapper->mode = DataMapper::MODE_DYNAMIC;
+        $this->mapper()->mode = DataMapper::MODE_DYNAMIC;
     }
 
     /** @var integer The primary key */
@@ -45,5 +45,31 @@ $model->write();
 ```php
 $id = 3; // Likely passed on via GET or POST
 $model = new SomeTableModel(Anorm::use('mydata'));
-$model->_mapper->delete($id);
+$model->id = $id;
+$model->delete();
+```
+
+`delete()` returns `false` when no row matched. `deleteOrThrow()` turns that
+into an exception instead:
+
+```php
+$model->id = $id;
+$model->deleteOrThrow();   // throws "SomeTable id '3' not deleted"
+```
+
+Both throw if the primary key property is not set.
+
+If you already hold the model — because you read it to check permissions, say
+— just delete it:
+
+```php
+$model->readOrThrow($id);
+$model->delete();
+```
+
+The mapper-level form still works and is the shortest thing to write, but it
+cannot tell a delete listener which model was removed (see Lifecycle hooks):
+
+```php
+$model->mapper()->delete($id);
 ```

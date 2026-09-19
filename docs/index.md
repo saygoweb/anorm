@@ -33,7 +33,7 @@ class SomeTableModel extends Model {
         // Development only: lets Anorm create and alter tables to match the model.
         // Types are inferred from values and are a best guess — dump and correct the
         // schema, then remove this line, before production. See 'Schema modes'.
-        $this->_mapper->mode = DataMapper::MODE_DYNAMIC;
+        $this->mapper()->mode = DataMapper::MODE_DYNAMIC;
     }
 
     /** @var integer The primary key */
@@ -80,5 +80,8 @@ $model = DataMapper::find('SomeTableModel', $anorm->pdo)
 ```php
 $id = 3; // Likely passed on via GET or POST
 $model = new SomeTableModel(Anorm::use('mydata'));
-$model->_mapper->delete($id);
+$model->id = $id;
+$model->delete();
 ```
+
+`deleteOrThrow()` is the same thing but throws when no row matched.
