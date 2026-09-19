@@ -27,13 +27,16 @@ use Anorm\Relationship\Relationship;
 class RelationshipSchema
 {
     /**
-     * Related model instances, keyed by class and connection.
+     * The last related model built for a class, with the connection it was built on.
      *
      * `Model::write()` re-creates constraints on every dynamic write, so the related
      * model would otherwise be constructed once per write per relationship. A model's
      * table and map are fixed by its constructor, so an instance is safe to keep.
      *
-     * @var array<string, array<string, Model|false>>
+     * The connection is held rather than hashed: `spl_object_hash()` reuses the hash
+     * of a collected object, which would hand back a model bound to a closed one.
+     *
+     * @var array<string, array{pdo: \PDO, model: Model|false}>
      */
     private static $models = [];
 
@@ -208,11 +211,10 @@ class RelationshipSchema
     private static function modelForClass($modelClass, \PDO $pdo)
     {
         $class = ltrim($modelClass, '\\');
-        $connection = spl_object_hash($pdo);
-        if (!isset(self::$models[$class][$connection])) {
-            self::$models[$class][$connection] = self::construct($class, $pdo);
+        if (!isset(self::$models[$class]) || self::$models[$class]['pdo'] !== $pdo) {
+            self::$models[$class] = ['pdo' => $pdo, 'model' => self::construct($class, $pdo)];
         }
-        $model = self::$models[$class][$connection];
+        $model = self::$models[$class]['model'];
         return $model === false ? null : $model;
     }
 
@@ -235,16 +237,5 @@ class RelationshipSchema
             error_log("Anorm: could not construct `$class` to read its table: " . $e->getMessage());
             return false;
         }
-    }
-
-    /**
-     * Forget the constructed models. Tests that replace a connection need this;
-     * nothing in ordinary use does.
-     *
-     * @return void
-     */
-    public static function forget()
-    {
-        self::$models = [];
     }
 }

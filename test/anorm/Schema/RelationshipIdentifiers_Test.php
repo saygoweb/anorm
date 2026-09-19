@@ -5,7 +5,9 @@ namespace Anorm\Test\Schema;
 require_once(__DIR__ . '/../../../vendor/autoload.php');
 
 use Anorm\Schema\RelationshipSchema;
+use Anorm\Relationship\Relationship;
 use Anorm\Test\FkCompanyModel;
+use Anorm\Test\FkUnbuildableModel;
 use Anorm\Test\FkHostingModel;
 use Anorm\Test\TestEnvironment;
 use PHPUnit\Framework\TestCase;
@@ -73,6 +75,37 @@ class RelationshipIdentifiers_Test extends TestCase
     public function testDerivedTableNameSplitsAWordFollowingADigit()
     {
         $this->assertEquals('t64_companies', RelationshipSchema::deriveTableName('T64CompanyModel'));
+    }
+
+    public function testAManyHasManyNamesNoForeignKeyOnAModelsOwnTable()
+    {
+        $post = new \Anorm\Test\PostModel($this->pdo);
+        $relationship = $post->_relationshipManager->getRelationship('tags');
+
+        $this->assertNull(
+            RelationshipSchema::forRelationship($post->_mapper, $relationship, $this->pdo),
+            'a many-to-many puts its keys on a join table, which is not a model'
+        );
+    }
+
+    public function testAColumnTheMapDoesNotMentionIsAlreadyAColumn()
+    {
+        $hosting = new FkHostingModel($this->pdo);
+
+        $this->assertEquals('company_id', RelationshipSchema::column($hosting->_mapper, 'company_id'));
+    }
+
+    public function testAColumnWithNoMapperAtAllIsWhatItSays()
+    {
+        $this->assertEquals('client_id', RelationshipSchema::column(null, 'client_id'));
+    }
+
+    public function testAModelThatCannotBeConstructedFallsBackToTheDerivedName()
+    {
+        $this->assertEquals(
+            'fk_unbuildables',
+            RelationshipSchema::tableForClass(FkUnbuildableModel::class, $this->pdo)
+        );
     }
 
     public function testTableForClassFallsBackToDerivationWhenTheModelCannotBeBuilt()
