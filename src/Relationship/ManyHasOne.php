@@ -61,28 +61,44 @@ class ManyHasOne extends Relationship
      *
      * @param string $sourceTable The source table name
      * @param string $relatedTable The related table name
+     * @param string|null $foreignKeyColumn The foreign key as a column, where known
+     * @param string|null $primaryKeyColumn The primary key as a column, where known
      * @return string The JOIN clause
      */
-    public function generateJoinClause($sourceTable, $relatedTable)
+    public function generateJoinClause($sourceTable, $relatedTable, $foreignKeyColumn = null, $primaryKeyColumn = null)
     {
-        return "LEFT JOIN `{$relatedTable}` ON `{$sourceTable}`.`{$this->foreignKey}` = `{$relatedTable}`.`{$this->primaryKey}`";
+        $foreignKey = $foreignKeyColumn === null ? $this->foreignKey : $foreignKeyColumn;
+        $primaryKey = $primaryKeyColumn === null ? $this->primaryKey : $primaryKeyColumn;
+        return "LEFT JOIN `{$relatedTable}` ON `{$sourceTable}`.`{$foreignKey}` = `{$relatedTable}`.`{$primaryKey}`";
     }
 
     /**
      * Generate foreign key constraint SQL for ManyHasOne relationship
      * Creates foreign key on the source table pointing to related table
+     *
+     * @param string $sourceTable The table carrying the foreign key
+     * @param string|null $targetTable The related model's table, where known
+     * @param string|null $foreignKeyColumn The foreign key as a column, where known
+     * @param string|null $primaryKeyColumn The primary key as a column, where known
+     * @return array<int, string>
      */
-    public function generateForeignKeyConstraints($sourceTable)
-    {
-        $targetTable = $this->getTableNameFromModelClass($this->relatedModelClass);
-        $constraintName = $this->getConstraintName($sourceTable, $targetTable);
+    public function generateForeignKeyConstraints(
+        $sourceTable,
+        $targetTable = null,
+        $foreignKeyColumn = null,
+        $primaryKeyColumn = null
+    ) {
+        $targetTable = $targetTable ?: $this->getTableNameFromModelClass($this->relatedModelClass);
+        $foreignKey = $foreignKeyColumn === null ? $this->foreignKey : $foreignKeyColumn;
+        $primaryKey = $primaryKeyColumn === null ? $this->primaryKey : $primaryKeyColumn;
+        $constraintName = $this->getConstraintName($sourceTable, $targetTable, $foreignKey);
         $onDelete = $this->constraintOptions['on_delete'];
         $onUpdate = $this->constraintOptions['on_update'];
 
         $sql = "ALTER TABLE `{$sourceTable}`
                 ADD CONSTRAINT `{$constraintName}`
-                FOREIGN KEY (`{$this->foreignKey}`)
-                REFERENCES `{$targetTable}`(`{$this->primaryKey}`)
+                FOREIGN KEY (`{$foreignKey}`)
+                REFERENCES `{$targetTable}`(`{$primaryKey}`)
                 ON DELETE {$onDelete}
                 ON UPDATE {$onUpdate}";
 

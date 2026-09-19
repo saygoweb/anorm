@@ -2,6 +2,8 @@
 
 namespace Anorm\Relationship;
 
+use Anorm\Schema\RelationshipSchema;
+
 /**
  * Abstract base class for all relationship types
  * Stores relationship metadata and provides common functionality
@@ -154,46 +156,76 @@ abstract class Relationship
     /**
      * Generate the appropriate JOIN clause for this relationship
      * Used by QueryBuilder for relationship-based queries
+     *
+     * A relationship's keys are declared as property names, and a JOIN is written in
+     * column names. A caller that has the mappers in hand resolves them and says so;
+     * one that does not gets the names as declared, which is the same thing for a
+     * model that named its property after its column.
+     *
+     * @param string $sourceTable
+     * @param string $relatedTable
+     * @param string|null $foreignKeyColumn The foreign key as a column, where known
+     * @param string|null $primaryKeyColumn The primary key as a column, where known
+     * @return string
      */
-    abstract public function generateJoinClause($sourceTable, $relatedTable);
+    abstract public function generateJoinClause($sourceTable, $relatedTable, $foreignKeyColumn = null, $primaryKeyColumn = null);
 
     /**
      * Generate foreign key constraint SQL for this relationship
      * Returns array of SQL statements to create necessary foreign keys
+     *
+     * As with `generateJoinClause()`, a caller that has resolved the relationship's
+     * names to tables and columns passes them; one that has not gets the names as
+     * declared. `ForeignKeyWriter` is the resolved path Anorm itself takes.
+     *
+     * @param string $sourceTable The table of the model declaring the relationship
+     * @param string|null $targetTable The related model's table, where known
+     * @param string|null $foreignKeyColumn The foreign key as a column, where known
+     * @param string|null $primaryKeyColumn The primary key as a column, where known
+     * @return array<int, string>
      */
-    abstract public function generateForeignKeyConstraints($sourceTable);
+    abstract public function generateForeignKeyConstraints(
+        $sourceTable,
+        $targetTable = null,
+        $foreignKeyColumn = null,
+        $primaryKeyColumn = null
+    );
 
     /**
      * Get the constraint name for this relationship
+     *
+     * The name carries the foreign key column, so a caller that knows how the
+     * relationship's key is spelled as a column says so. A caller that does not gets
+     * the name as declared, which is the same thing for a model that named its
+     * property after its column.
+     *
+     * @param string $sourceTable The table carrying the foreign key
+     * @param string|null $targetTable Unused; kept because callers pass it
+     * @param string|null $foreignKeyColumn The foreign key as a column, where known
+     * @return string
      */
-    public function getConstraintName($sourceTable, $targetTable = null)
+    public function getConstraintName($sourceTable, $targetTable = null, $foreignKeyColumn = null)
     {
         if ($this->constraintOptions['constraint_name']) {
             return $this->constraintOptions['constraint_name'];
         }
 
-        // Auto-generate constraint name
-        $targetTable = $targetTable ?: $this->getTableNameFromModelClass($this->relatedModelClass);
-        return "fk_{$sourceTable}_{$this->foreignKey}";
+        $column = $foreignKeyColumn === null ? $this->foreignKey : $foreignKeyColumn;
+        return "fk_{$sourceTable}_{$column}";
     }
 
     /**
      * Get table name from model class name (helper method)
+     *
+     * This is the guess for when the related model itself cannot be reached. Where a
+     * connection is in hand, `RelationshipSchema::tableForClass()` asks the model what
+     * its table is instead, which is the only answer that is not a guess.
+     *
+     * @param string $modelClass
+     * @return string
      */
     protected function getTableNameFromModelClass($modelClass)
     {
-        // Remove namespace and 'Model' suffix, convert to snake_case
-        $className = basename(str_replace('\\', '/', $modelClass));
-        $className = str_replace('Model', '', $className);
-
-        // Convert CamelCase to snake_case and pluralize
-        $tableName = strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', $className));
-
-        // Simple pluralization (add 's' if doesn't end with 's')
-        if (substr($tableName, -1) !== 's') {
-            $tableName .= 's';
-        }
-
-        return $tableName;
+        return RelationshipSchema::deriveTableName($modelClass);
     }
 }

@@ -5,6 +5,7 @@
 namespace Anorm;
 
 use Anorm\Relationship\RelationshipManager;
+use Anorm\Schema\ForeignKeyWriter;
 
 class Model
 {
@@ -397,203 +398,21 @@ class Model
 
     /**
      * Create a foreign key constraint from a relationship definition
+     *
+     * @param \Anorm\Relationship\Relationship $relationship
+     * @return void
      */
     private function createForeignKeyFromRelationship($relationship)
     {
-        $type = $relationship->getType();
-
-        if ($type === 'manyHasOne') {
-            // For belongsTo relationships, create foreign key on current table
-            $this->createForeignKey(
-                $this->_mapper->table,
-                $relationship->getForeignKey(),
-                $this->getTableNameFromModelClass($relationship->getRelatedModelClass()),
-                $relationship->getPrimaryKey(),
-                $relationship->getConstraintOptions()
-            );
-        } elseif ($type === 'oneHasMany') {
-            // For hasMany relationships, create foreign key on related table
-            $this->createForeignKey(
-                $this->getTableNameFromModelClass($relationship->getRelatedModelClass()),
-                $relationship->getForeignKey(),
-                $this->_mapper->table,
-                $relationship->getPrimaryKey(),
-                $relationship->getConstraintOptions()
-            );
-        } elseif ($type === 'manyHasMany') {
-            // For many-to-many relationships, create join table and foreign keys
-            $this->createManyToManyConstraints($relationship);
-        }
+        $this->foreignKeyWriter()->createFromRelationship($this->_mapper, $relationship);
     }
 
     /**
-     * Create join table and foreign key constraints for many-to-many relationships
+     * @return ForeignKeyWriter The one implementation of constraint creation, shared
+     *                          with TableMaker so the two cannot disagree again.
      */
-    private function createManyToManyConstraints($relationship)
+    private function foreignKeyWriter()
     {
-        // Get join table information
-        $joinTable = $relationship->getJoinTable();
-        $joinForeignKey = $relationship->getJoinForeignKey();
-        $joinRelatedKey = $relationship->getJoinRelatedKey();
-        $sourceTable = $this->_mapper->table;
-        $targetTable = $this->getTableNameFromModelClass($relationship->getRelatedModelClass());
-
-        // Create join table with proper columns
-        $this->createJoinTable($joinTable, $joinForeignKey, $joinRelatedKey);
-
-        // Create foreign key constraints on join table
-        $this->createForeignKey(
-            $joinTable,
-            $joinForeignKey,
-            $sourceTable,
-            $relationship->getPrimaryKey(),
-            $relationship->getConstraintOptions()
-        );
-
-        $this->createForeignKey(
-            $joinTable,
-            $joinRelatedKey,
-            $targetTable,
-            $relationship->getPrimaryKey(),
-            $relationship->getConstraintOptions()
-        );
-    }
-
-    /**
-     * Create a join table for many-to-many relationships
-     */
-    private function createJoinTable($joinTable, $joinForeignKey, $joinRelatedKey)
-    {
-        $sql = "CREATE TABLE IF NOT EXISTS `{$joinTable}` (
-                    `{$joinForeignKey}` INT(11) NOT NULL,
-                    `{$joinRelatedKey}` INT(11) NOT NULL,
-                    PRIMARY KEY (`{$joinForeignKey}`, `{$joinRelatedKey}`),
-                    INDEX `idx_{$joinTable}_{$joinForeignKey}` (`{$joinForeignKey}`),
-                    INDEX `idx_{$joinTable}_{$joinRelatedKey}` (`{$joinRelatedKey}`)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
-
-        $this->_pdo->query($sql);
-    }
-
-    /**
-     * Create a foreign key constraint
-     */
-    private function createForeignKey($table, $column, $referencedTable, $referencedColumn, $options = [])
-    {
-        $constraintName = $options['constraint_name'] ?? "fk_{$table}_{$column}";
-        $onDelete = $options['on_delete'] ?? 'RESTRICT';
-        $onUpdate = $options['on_update'] ?? 'CASCADE';
-
-        // Check if foreign key already exists
-        if ($this->foreignKeyExists($table, $constraintName)) {
-            return;
-        }
-
-        // Ensure the referenced table exists
-        $this->ensureTableExists($referencedTable);
-
-        // Ensure the column exists in the source table
-        $this->ensureColumnExists($table, $column);
-
-        // Ensure the referenced column exists in the target table
-        $this->ensureColumnExists($referencedTable, $referencedColumn);
-
-        $sql = "ALTER TABLE `{$table}`
-                ADD CONSTRAINT `{$constraintName}`
-                FOREIGN KEY (`{$column}`)
-                REFERENCES `{$referencedTable}`(`{$referencedColumn}`)
-                ON DELETE {$onDelete}
-                ON UPDATE {$onUpdate}";
-
-        try {
-            $this->_pdo->query($sql);
-        } catch (\PDOException $e) {
-            // Tolerate only "already exists", so re-running dynamic schema creation stays
-            // harmless. A constraint that cannot be created — an incompatible column type
-            // above all — is a schema error the caller has no other way to learn about.
-            if (!TableMaker::isDuplicateConstraintError($e)) {
-                throw $e;
-            }
-            error_log("Anorm: Foreign key constraint `$constraintName` already exists on `$table`: " . $e->getMessage());
-        }
-    }
-
-    /**
-     * Check if a foreign key constraint exists
-     */
-    private function foreignKeyExists($table, $constraintName)
-    {
-        $sql = "SELECT COUNT(*) as count
-                FROM information_schema.TABLE_CONSTRAINTS
-                WHERE TABLE_SCHEMA = DATABASE()
-                AND TABLE_NAME = ?
-                AND CONSTRAINT_NAME = ?
-                AND CONSTRAINT_TYPE = 'FOREIGN KEY'";
-
-        $stmt = $this->_pdo->prepare($sql);
-        $stmt->execute([$table, $constraintName]);
-        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-        return $result['count'] > 0;
-    }
-
-    /**
-     * Ensure a table exists, create it if it doesn't
-     */
-    private function ensureTableExists($tableName)
-    {
-        $sql = "CREATE TABLE IF NOT EXISTS `{$tableName}` (
-            id INT(11) AUTO_INCREMENT PRIMARY KEY
-        )";
-        $this->_pdo->query($sql);
-    }
-
-    /**
-     * Ensure a column exists in a table, create it if it doesn't
-     */
-    private function ensureColumnExists($tableName, $columnName)
-    {
-        // First ensure the table exists
-        $this->ensureTableExists($tableName);
-
-        // Check if column exists
-        $sql = "SELECT COUNT(*) as count
-                FROM information_schema.COLUMNS
-                WHERE TABLE_SCHEMA = DATABASE()
-                AND TABLE_NAME = ?
-                AND COLUMN_NAME = ?";
-
-        $stmt = $this->_pdo->prepare($sql);
-        $stmt->execute([$tableName, $columnName]);
-        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-        if ($result['count'] == 0) {
-            // Column doesn't exist, create it
-            $columnDefinition = "INT(11) NULL"; // Foreign key columns are typically INT(11)
-            $sql = "ALTER TABLE `{$tableName}` ADD `{$columnName}` {$columnDefinition}";
-            $this->_pdo->query($sql);
-        }
-    }
-
-    /**
-     * Get table name from model class name
-     */
-    private function getTableNameFromModelClass($modelClass)
-    {
-        // Remove namespace and 'Model' suffix, convert to snake_case
-        $className = basename(str_replace('\\', '/', $modelClass));
-        $className = str_replace('Model', '', $className);
-
-        // Convert CamelCase to snake_case and pluralize
-        $tableName = strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', $className));
-
-        // Better pluralization rules
-        if (substr($tableName, -1) === 'y') {
-            $tableName = substr($tableName, 0, -1) . 'ies';
-        } elseif (substr($tableName, -1) !== 's') {
-            $tableName .= 's';
-        }
-
-        return $tableName;
+        return new ForeignKeyWriter($this->_pdo);
     }
 }

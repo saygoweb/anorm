@@ -156,3 +156,38 @@ Anorm::$columnFn = '\My\App\Schema::columnDefinition';
 It must be installed before the first write, and it only runs when a column is
 created — none of these mechanisms corrects a column that already exists. That is what
 the dump-and-correct step is for.
+
+## Foreign keys name properties, and constraints are written in columns
+
+A relationship is declared in the terms a model author has in hand — a property:
+
+```php
+class HostingModel extends Model
+{
+    public function __construct(\PDO $pdo)
+    {
+        // ...
+        $this->belongsTo(ClientModel::class, 'clientId', 'id', 'client');
+    }
+
+    public $id;
+    public ?int $clientId = null;   // the column is `client_id`
+}
+```
+
+`clientId` is the property; `client_id` is the column, by the same `camelCase` to
+`snake_case` rule every other property follows. Dynamic mode resolves the name through
+the mapper's map before it writes any SQL, so the constraint goes on `client_id`, the
+JOIN `joinRelationship('client')` builds names `client_id`, and the constraint is
+called `fk_hostings_client_id`.
+
+A model that spells the property the way the column is spelled — `public $client_id`
+— is unaffected: the map maps such a property to itself.
+
+The table a relationship points at comes from the related model's own mapper, not from
+its class name. `ClientModel` reaches whatever `ClientModel` sets `$mapper->table` to,
+or whatever `DataMapper::autoTable()` derived for it. Only when the related class
+cannot be constructed at all does Anorm fall back to deriving a name from it.
+
+`anorm schema:diff` resolves the same names the same way, so what it says is missing is
+named the way the constraint dynamic mode would create is named.

@@ -7,6 +7,7 @@ namespace Anorm;
 use Anorm\Relationship\BatchLoadingOrchestrator;
 use Anorm\Relationship\Strategy\NestedRelationshipParser;
 use Anorm\Relationship\Performance\PerformanceMonitor;
+use Anorm\Schema\RelationshipSchema;
 
 class QueryBuilder
 {
@@ -140,11 +141,23 @@ class QueryBuilder
         // Get the related model to determine its table name
         $relatedClass = $relationship->getRelatedModelClass();
         $relatedInstance = new $relatedClass($this->instance->_mapper->pdo);
-        $relatedTable = $relatedInstance->_mapper->table;
-        $sourceTable = $this->instance->_mapper->table;
+        $relatedMapper = $relatedInstance->_mapper;
+        $relatedTable = $relatedMapper->table;
+        $sourceMapper = $this->instance->_mapper;
+        $sourceTable = $sourceMapper->table;
+
+        // A relationship names its keys as properties. A JOIN is written in columns,
+        // and both mappers are in hand here, so resolve rather than interpolate.
+        if ($relationship->getType() === 'oneHasMany') {
+            $foreignKeyColumn = RelationshipSchema::column($relatedMapper, $relationship->getForeignKey());
+            $primaryKeyColumn = RelationshipSchema::column($sourceMapper, $relationship->getPrimaryKey());
+        } else {
+            $foreignKeyColumn = RelationshipSchema::column($sourceMapper, $relationship->getForeignKey());
+            $primaryKeyColumn = RelationshipSchema::column($relatedMapper, $relationship->getPrimaryKey());
+        }
 
         // Generate the join clause
-        $joinClause = $relationship->generateJoinClause($sourceTable, $relatedTable);
+        $joinClause = $relationship->generateJoinClause($sourceTable, $relatedTable, $foreignKeyColumn, $primaryKeyColumn);
         $joinClause = str_replace('LEFT JOIN', $joinType . ' JOIN', $joinClause);
 
         $this->join($joinClause);

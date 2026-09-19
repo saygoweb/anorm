@@ -277,8 +277,7 @@ class SchemaDiff
             if ($relationship->getType() !== 'manyHasOne') {
                 continue;
             }
-            $foreignKey = $relationship->getForeignKey();
-            $column = isset($mapper->map[$foreignKey]) ? $mapper->map[$foreignKey] : $foreignKey;
+            $column = RelationshipSchema::column($mapper, $relationship->getForeignKey());
             if (isset($liveKeys[$column])) {
                 continue;
             }
@@ -297,8 +296,7 @@ class SchemaDiff
             }
 
             $relatedMapper = $relatedModel->_mapper;
-            $primaryKey = $relationship->getPrimaryKey();
-            $referencedColumn = isset($relatedMapper->map[$primaryKey]) ? $relatedMapper->map[$primaryKey] : $primaryKey;
+            $referencedColumn = RelationshipSchema::column($relatedMapper, $relationship->getPrimaryKey());
             $liveType = $this->inspector->columnType($table, $column);
             $referencedType = $this->inspector->columnType($relatedMapper->table, $referencedColumn);
             $reference = '`' . $relatedMapper->table . '`.`' . $referencedColumn . '`';
@@ -324,7 +322,7 @@ class SchemaDiff
                 $column,
                 'has no foreign key constraint for the declared `' . $relationship->getPropertyName()
                 . '` relationship to ' . $reference
-                . ' (expected `' . $relationship->getConstraintName($table) . '`)',
+                . ' (expected `' . $relationship->getConstraintName($table, $relatedMapper->table, $column) . '`)',
                 $liveType,
                 $referencedType
             );
