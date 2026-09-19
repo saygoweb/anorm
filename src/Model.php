@@ -32,6 +32,17 @@ class Model
     }
 
     /**
+     * The DataMapper that owns this model's table, column map and transformers.
+     * Prefer this to the public $_mapper property, which stays for backward
+     * compatibility but is, by the underscore convention, infrastructure.
+     * @return DataMapper
+     */
+    public function mapper(): DataMapper
+    {
+        return $this->_mapper;
+    }
+
+    /**
      * Get the PDO connection
      * @return \PDO
      */

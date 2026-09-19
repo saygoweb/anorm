@@ -11,8 +11,8 @@ expected to run. `MODE_DYNAMIC` creates and alters tables to match your models, 
 a **development aid**.
 
 ```php
-$this->_mapper->mode = DataMapper::MODE_DYNAMIC; // development
-$this->_mapper->mode = DataMapper::MODE_STATIC;  // the default, and production
+$this->mapper()->mode = DataMapper::MODE_DYNAMIC; // development
+$this->mapper()->mode = DataMapper::MODE_STATIC;  // the default, and production
 ```
 
 ## Why inference cannot be correct

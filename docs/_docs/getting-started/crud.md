@@ -20,7 +20,7 @@ class SomeTableModel extends Model {
         // Column types come from what the properties below declare, and are a guess
         // where they declare nothing — dump and correct the schema, then remove this
         // line, before production. See 'Schema modes'.
-        $this->_mapper->mode = DataMapper::MODE_DYNAMIC;
+        $this->mapper()->mode = DataMapper::MODE_DYNAMIC;
     }
 
     /** @var integer The primary key */
