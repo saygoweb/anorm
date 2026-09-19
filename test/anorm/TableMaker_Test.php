@@ -88,6 +88,85 @@ class TableMakerTest extends TestCase
         $this->assertEquals('DATETIME NULL', $result);
     }
 
+    // Inference is a best guess, but a guess can still be wrong in ways that cost data.
+    // These pin the cases from #56, #57 and #58.
+
+    public function testColumnDefinition_Zero_IsNotVarchar()
+    {
+        // A counter or balance whose first row is 0 used to type the column VARCHAR(128).
+        $this->assertEquals('INT(11) NULL', TableMaker::columnDefinition('balance', 0));
+    }
+
+    public function testColumnDefinition_ZeroFloat_IsNotVarchar()
+    {
+        $this->assertEquals('DOUBLE NULL', TableMaker::columnDefinition('rate', 0.0));
+    }
+
+    public function testColumnDefinition_False_IsBoolean()
+    {
+        $this->assertEquals('TINYINT(1) NULL', TableMaker::columnDefinition('is_active', false));
+    }
+
+    public function testColumnDefinition_True_IsBoolean()
+    {
+        $this->assertEquals('TINYINT(1) NULL', TableMaker::columnDefinition('is_active', true));
+    }
+
+    public function testColumnDefinition_EmptyString_IsVarchar()
+    {
+        $this->assertEquals('VARCHAR(128)', TableMaker::columnDefinition('note', ''));
+    }
+
+    public function testColumnDefinition_Null_IsVarchar()
+    {
+        // null really is an absence of information, so the fallback is the right answer.
+        $this->assertEquals('VARCHAR(128)', TableMaker::columnDefinition('note', null));
+    }
+
+    public function testColumnDefinition_NumericString_IsVarchar()
+    {
+        // '0' and '42' are strings the application chose to keep as strings.
+        $this->assertEquals('VARCHAR(128)', TableMaker::columnDefinition('code', '0'));
+        $this->assertEquals('VARCHAR(128)', TableMaker::columnDefinition('code', '42'));
+    }
+
+    public function testColumnDefinition_LargeInteger_IsBigInt()
+    {
+        // 10 GiB as bytes: INT(11) stops at 2147483647 and would clamp or be rejected.
+        $this->assertEquals('BIGINT(20) NULL', TableMaker::columnDefinition('disk_quota', 10737418240));
+        $this->assertEquals('BIGINT(20) NULL', TableMaker::columnDefinition('offset', -10737418240));
+    }
+
+    public function testColumnDefinition_IntegerBoundaries_StayInt()
+    {
+        $this->assertEquals('INT(11) NULL', TableMaker::columnDefinition('n', 2147483647));
+        $this->assertEquals('INT(11) NULL', TableMaker::columnDefinition('n', -2147483648));
+        $this->assertEquals('BIGINT(20) NULL', TableMaker::columnDefinition('n', 2147483648));
+    }
+
+    public function testColumnDefinition_StringContainingDate_IsNotDatetime()
+    {
+        // The #58 casualty: an error column whose first value happens to mention a date.
+        $this->assertEquals(
+            'VARCHAR(128)',
+            TableMaker::columnDefinition('last_error', 'registrar refused on 2026-09-19 at 10:00')
+        );
+    }
+
+    public function testColumnDefinition_WholeValueIsDate_IsDatetime()
+    {
+        $this->assertEquals('DATETIME NULL', TableMaker::columnDefinition('dtc', '2026-09-19'));
+        $this->assertEquals('DATETIME NULL', TableMaker::columnDefinition('dtc', '2026-09-19 10:00'));
+        $this->assertEquals('DATETIME NULL', TableMaker::columnDefinition('dtc', '2026-09-19 10:00:00'));
+        $this->assertEquals('DATETIME NULL', TableMaker::columnDefinition('dtc', '2026-09-19T10:00:00'));
+    }
+
+    public function testColumnDefinition_DateLikeButNotADate_IsVarchar()
+    {
+        $this->assertEquals('VARCHAR(128)', TableMaker::columnDefinition('ref', '2026-09-19-extra'));
+        $this->assertEquals('VARCHAR(128)', TableMaker::columnDefinition('ref', 'v2026-09-19'));
+    }
+
     public function testCreateTable_BadException_Throws()
     {
         $this->expectException(\Exception::class);
