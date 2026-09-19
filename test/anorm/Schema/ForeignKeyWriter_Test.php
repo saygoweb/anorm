@@ -131,15 +131,17 @@ class ForeignKeyWriter_Test extends TestCase
         $this->assertSame(1, $this->constraintCount('fk_hostings'));
     }
 
-    public function testAConstraintNameTakenElsewhereInTheSchemaIsToleratedRatherThanFatal()
+    public function testAConstraintNameAlreadyTakenOnTheTableIsToleratedRatherThanFatal()
     {
-        // InnoDB requires a foreign key name to be unique across the database, not
-        // just the table, so a name taken by another table is a failure this one
-        // cannot see coming. Re-running dynamic schema creation has to stay harmless.
-        $this->pdo->exec('CREATE TABLE `fk_companies` (
+        // A key of that name on another column cannot be reused for this one, so the
+        // name genuinely collides. `foreignKeyExists()` does not see it, because it
+        // looks only for foreign keys. Re-running dynamic schema creation, and a
+        // hand-written schema that happens to use the generated name, both land here.
+        $this->pdo->exec('CREATE TABLE `fk_hostings` (
             id INT(11) AUTO_INCREMENT PRIMARY KEY,
-            parent_id INT(11) NULL,
-            CONSTRAINT `fk_fk_hostings_company_id` FOREIGN KEY (`parent_id`) REFERENCES `fk_companies`(`id`)
+            company_id INT(11) NULL,
+            label VARCHAR(128) NULL,
+            UNIQUE KEY `fk_fk_hostings_company_id` (`label`)
         ) ENGINE=InnoDB');
 
         (new ForeignKeyWriter($this->pdo))->create($this->companySchema());
