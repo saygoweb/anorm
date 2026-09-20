@@ -130,6 +130,53 @@ constraints. Read `SHOW CREATE TABLE` for each table and look for:
 - **Indexes.** Dynamic mode adds none except those implied by a foreign key.
 - **`NOT NULL`, defaults, collations and charsets.** Inference never produces these.
 
+## Booleans
+
+SQL has no boolean. MySQL spells one `TINYINT(1)` holding 0 or 1, and PDO hands it back
+as the string `'0'` or `'1'`. Two ways to say what you mean, differing in how much you
+have to say.
+
+### `BooleanTransform`, where the mapper states the format
+
+A transformer is how a mapper says what a column holds, the same as for a date's format
+or an array's encoding:
+
+```php
+$mapper->transformers = ['email_verified' => new BooleanTransform()];
+```
+
+That settles all three questions at once. The column is `TINYINT(1)`, because a
+transformer implementing `ColumnTypeHintInterface` outranks even a declared type and
+does not care what value was sampled first. `true` is written as `1`. And `'0'` comes
+back as `false`, so `$model->emailVerified === false` holds — which is the part nothing
+else gives you.
+
+`NULL` stays `NULL` in both directions: a nullable flag has three states, and the third
+one means "not answered".
+
+### A declared `?bool`, where PHP already knows
+
+```php
+public ?bool $emailVerified = null;
+```
+
+A typed property is enough on its own. Dynamic mode types the column `TINYINT(1)` from
+the declaration, PHP coerces the column's `'0'` back to `false` on assignment to a typed
+property, and Anorm writes a PHP bool as `1` or `0`.
+
+The write half of that is not free, and is worth knowing about. `PDO::quote()` takes a
+string, and PHP renders `false` as `''` on the way in. Anorm converts a bool before it
+reaches `quote()`, because otherwise it would type a column `TINYINT` from the
+declaration and then be unable to write to it — failing with `Incorrect integer value:
+''`, which names neither the boolean nor the column.
+
+### Which to use
+
+Declaring `?bool` is lighter, and enough wherever you can declare it. Reach for
+`BooleanTransform` when you cannot or would rather not: a docblock-typed property, where
+PHP does no coercion and the property comes back a string; or a schema where the storage
+format should be stated on the mapper rather than inferred from the model.
+
 ## Pinning a column explicitly
 
 Declaring the property's type is the lighter answer, and covers a `null` property on a

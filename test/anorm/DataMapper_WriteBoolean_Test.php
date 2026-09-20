@@ -6,6 +6,7 @@ require_once(__DIR__ . '/../../vendor/autoload.php');
 
 use Anorm\DataMapper;
 use Anorm\Model;
+use Anorm\Transform\BooleanTransform;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -29,6 +30,54 @@ class BoolFlagModel extends Model
     /** @var bool */
     public $isActive = true;
 
+    public $label;
+}
+
+/**
+ * The idiomatic spelling: the column says outright that it holds a flag, and the
+ * transformer converts at both ends.
+ */
+class TransformedBoolFlagModel extends Model
+{
+    public function __construct(\PDO $pdo)
+    {
+        $mapper = DataMapper::createByClass($pdo, $this);
+        $mapper->table = 'bool_flags';
+        $mapper->transformers = [
+            'email_verified' => new BooleanTransform(),
+            'is_active' => new BooleanTransform(),
+        ];
+        parent::__construct($pdo, $mapper);
+    }
+
+    public $id;
+
+    /** @var ?bool */
+    public $emailVerified = false;
+
+    /** @var ?bool */
+    public $isActive = true;
+
+    public $label;
+}
+
+/**
+ * A property PHP itself knows is a boolean, with no transformer. Dynamic mode types
+ * the column from the declaration, and PHP coerces the column's string back to a bool
+ * on assignment — so the write path is the only step that has to be told.
+ */
+class TypedBoolFlagModel extends Model
+{
+    public function __construct(\PDO $pdo)
+    {
+        $mapper = DataMapper::createByClass($pdo, $this);
+        $mapper->table = 'bool_flags';
+        parent::__construct($pdo, $mapper);
+    }
+
+    public $id;
+    public ?bool $emailVerified = null;
+    public ?bool $isActive = null;
     public $label;
 }
 
@@ -128,6 +177,92 @@ class DataMapper_WriteBoolean_Test extends TestCase
         $model->write();
 
         $this->assertEquals(0, $this->row($model->id)['is_active']);
+    }
+
+    // With a transformer, which is how a mapper says what a column holds.
+
+    public function testATransformedBooleanRoundTripsAsABoolean()
+    {
+        $model = new TransformedBoolFlagModel($this->pdo);
+        $model->emailVerified = true;
+        $model->isActive = false;
+        $model->label = 'first';
+        $model->write();
+
+        $read = new TransformedBoolFlagModel($this->pdo);
+        $read->read($model->id);
+
+        $this->assertTrue($read->emailVerified, 'a transformer is what makes === true work');
+        $this->assertFalse($read->isActive);
+    }
+
+    public function testATransformedBooleanIsStoredAsZeroOrOne()
+    {
+        $model = new TransformedBoolFlagModel($this->pdo);
+        $model->emailVerified = false;
+        $model->isActive = true;
+        $model->label = 'first';
+        $model->write();
+
+        $row = $this->row($model->id);
+        $this->assertEquals(0, $row['email_verified']);
+        $this->assertEquals(1, $row['is_active']);
+    }
+
+    public function testATransformedNullStaysNull()
+    {
+        $model = new TransformedBoolFlagModel($this->pdo);
+        $model->emailVerified = null;
+        $model->label = 'first';
+        $model->write();
+
+        $read = new TransformedBoolFlagModel($this->pdo);
+        $read->read($model->id);
+
+        $this->assertNull($read->emailVerified, 'a nullable flag has three states, not two');
+    }
+
+    public function testATransformedBooleanColumnIsTinyint()
+    {
+        $this->pdo->exec('DROP TABLE IF EXISTS `bool_flags`');
+        $model = new TransformedBoolFlagModel($this->pdo);
+        $model->_mapper->mode = DataMapper::MODE_DYNAMIC;
+        $model->emailVerified = false;
+        $model->label = 'first';
+        $model->write();
+
+        $this->assertEquals('tinyint(1)', $this->columnType('bool_flags', 'email_verified'));
+    }
+
+    // Without a transformer, on a property PHP already knows is a boolean.
+
+    public function testADeclaredBoolPropertyRoundTripsWithNoTransformerAtAll()
+    {
+        // PHP coerces the column's '0' back to false on assignment to a typed
+        // property, and dynamic mode types the column from the declaration. Writing
+        // is the one step that has to be told, which is what this PR is.
+        $model = new TypedBoolFlagModel($this->pdo);
+        $model->emailVerified = true;
+        $model->isActive = false;
+        $model->label = 'first';
+        $model->write();
+
+        $read = new TypedBoolFlagModel($this->pdo);
+        $read->read($model->id);
+
+        $this->assertTrue($read->emailVerified);
+        $this->assertFalse($read->isActive);
+    }
+
+    private function columnType(string $table, string $column): ?string
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT COLUMN_TYPE FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?'
+        );
+        $statement->execute([$table, $column]);
+        $type = $statement->fetchColumn();
+        return $type === false ? null : (string) $type;
     }
 
     public function testDynamicModeCreatesAColumnItsOwnWritePathCanWriteTo()
