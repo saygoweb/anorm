@@ -130,7 +130,8 @@ constraints. Read `SHOW CREATE TABLE` for each table and look for:
 - **Text columns.** The guess tops out at `VARCHAR(256)` before `TEXT`. Anything
   holding prose, an error message or user-supplied content probably wants `TEXT`.
 - **Date columns.** Check that a column typed `DATETIME` really only ever holds dates,
-  and that one holding dates is not a `VARCHAR`.
+  and that one holding dates is not a `VARCHAR`. See below — this is the one the diff
+  can only guess at.
 - **Anything whose first written value was `0`, `''` or `false`.** These are the normal
   initial state of counters, flags and optional foreign keys, and they carry less type
   information than a typical value. Declaring the property's type settles these
@@ -186,6 +187,52 @@ Declaring `?bool` is lighter, and enough wherever you can declare it. Reach for
 `BooleanTransform` when you cannot or would rather not: a docblock-typed property, where
 PHP does no coercion and the property comes back a string; or a schema where the storage
 format should be stated on the mapper rather than inferred from the model.
+
+## Timestamps are the case a declared type does not settle
+
+A property that declares `/** @var string */` and holds an ISO datetime is telling the
+truth. `string` is what it is, and a generated model documents a `DATETIME` column as
+`?string`, because that is what PDO returns. So the declaration implies `VARCHAR`, and
+if a `null` first sample already typed the column `VARCHAR(128)` then the model and the
+column agree — and go on agreeing, wrongly, for as long as nobody looks.
+
+Nothing fails, which is what makes it survive an audit. `VARCHAR` accepts every value a
+`DATETIME` would, so writes and reads work and the application behaves correctly until
+something **sorts, ranges or compares** on the column. Then it sorts as text:
+`'2026-9-1 09:00:00'` comes after `'2026-10-01 09:00:00'`, and there is no error.
+
+This is the clearest case for the knowing tier. A
+[transformer](transformers.html) is not annotating the property, it is deciding the
+format, and its answer does not depend on which value arrived first:
+
+```php
+$mapper->transformers = ['last_synced_at' => new SqlDateTimeTransform()];
+```
+
+The column is `DATETIME` from the first write even when that write is `null`, the
+property is a `\DateTime` rather than a string that looks like one, and
+`schema:diff` reports a legacy `VARCHAR` column as drift because the model now implies
+something it can compare against. A consumer's own transformer — for `Moment\Moment`,
+say — does the same by implementing `ColumnTypeHintInterface`.
+
+Declaring the property `?\DateTime` is the lighter version and settles the column type,
+though it leaves the value a string on the way back in. Pinning
+`$mapper->columnDefinitions = ['last_synced_at' => 'DATETIME NULL']` settles the column
+and nothing else.
+
+### What `schema:diff` can do when none of that is there
+
+Auditing a legacy schema means auditing it before the models have been fixed, which is
+the whole point of the dump-and-correct step. A `string`-declared timestamp with no
+transformer is invisible to a comparison of types, because the model and the column
+honestly agree.
+
+So `anorm schema:diff` falls back to reading the column's *name*, and reports a
+`VARCHAR` or `TEXT` column called `*_at`, `*_date`, `dtc` or `dtu` as an informational
+`temporal_column_as_text` finding. It is a guess from a name and says so — never more
+than INFO, skipped for a column you have pinned, and silent once a transformer or a
+date-typed declaration gives it something better to go on.
+
 
 ## Pinning a column explicitly
 
