@@ -57,11 +57,19 @@ column [dynamic mode](schema-modes.html) creates, and the column
 [`anorm schema:diff`](schema-diff.html) expects to find. Both ask the same question in
 the same place, so they cannot drift apart.
 
-This is **the highest-confidence source of a column type Anorm has, short of pinning
-the column outright** — above a declared property type, and far above a sampled value.
-A sample is whatever happened to be written first, and the value that reaches a date
-column first is very often `null`, which is how a timestamp column ends up
-`VARCHAR(128)` and stays that way. A transformer's answer does not depend on timing.
+This is the difference between **knowing** a column type and **inferring** one, and it
+is a difference in kind rather than in confidence.
+
+Reading a property's declared type or sampling its value is inference: a reading of
+evidence, which may be right and cannot be certain. `/** @var string */` on a property
+holding an ISO datetime is a true statement that implies the wrong column. A sample is
+whatever happened to be written first, and the first value to reach a date column is
+very often `null` — which is how a timestamp ends up `VARCHAR(128)` and stays that way.
+
+A transformer is not evidence about the format. It *is* the format.
+`SqlDateTimeTransform` does not think the column is a date; it writes one. So its
+answer does not depend on what a property was annotated with or on which value arrived
+first, and it is taken above both.
 
 It is a separate interface so that implementing it stays optional. Not every
 transformer knows its column type — `FunctionTransform` wraps two arbitrary closures
@@ -136,13 +144,15 @@ reported, because the transformer is what the model implies:
 When dynamic mode creates a column, or `schema:diff` works out what a model implies,
 the sources are consulted in this order:
 
-1. `$mapper->columnDefinitions` — the column pinned outright.
-2. **A transformer implementing `ColumnTypeHintInterface`.**
-3. The type the model declares for the property.
-4. A value sampled from the model.
-5. `VARCHAR(128)`, which is what no information at all looks like.
+| | Source | |
+| --- | --- | --- |
+| 1 | `$mapper->columnDefinitions` | told outright |
+| 2 | **a transformer implementing `ColumnTypeHintInterface`** | **known** |
+| 3 | the type the model declares for the property | inferred |
+| 4 | a value sampled from the model | inferred |
+| 5 | `VARCHAR(128)` | nothing at all |
 
-A transformer sits above the declaration on purpose. `/** @var string */` on a property
-holding an ISO datetime is true and useless; the transformer knows it writes a
-formatted date. See [schema modes](schema-modes.html) for the whole order and what each
-source is worth.
+`ColumnIntent` records which of these an answer came from as well as the answer itself,
+which is why `schema:diff` can report a difference from an informed source as drift and
+stay quiet about a column that nothing has an opinion on. See
+[schema modes](schema-modes.html) for what each source is worth.

@@ -40,8 +40,16 @@ Declaring your property types is the way out of that one — see below.
 
 ## What the guess consults, in order
 
-A column that does not exist yet takes its definition from the best information the
-mapper and the model can offer:
+There are two tiers to this, and the difference between them is not confidence but
+kind. Anorm can **infer** a column type from a property's declared type or from a value
+it has seen — a reading of evidence, which may be right and cannot be certain. And it
+can **know** one from a registered transformer, because a transformer has already
+decided the storage format: `SqlDateTimeTransform` does not think the column is a date,
+it writes one.
+
+Knowing beats inferring, and neither is consulted where the column has simply been
+pinned. In full, a column that does not exist yet takes its definition from the best
+information the mapper and the model can offer:
 
 1. **An explicit definition on the mapper** — `$mapper->columnDefinitions`, below.
 2. **A transformer that knows the format it writes.** `SqlDateTimeTransform` writes a
@@ -56,9 +64,9 @@ mapper and the model can offer:
 4. **A value sampled from the model**, which is where the type used to come from.
 5. **`VARCHAR(128)`**, which is what no information at all looks like.
 
-A declaration and a sample are not rivals. The declaration settles the type, and the
-sample refines what it leaves open, because `int` does not say `INT` or `BIGINT` and
-`string` does not say how wide:
+Sources 3 and 4 are the inference tier and they are not rivals. The declaration settles
+the type, and the sample refines what it leaves open, because `int` does not say `INT`
+or `BIGINT` and `string` does not say how wide:
 
 ```php
 class HostingModel extends Model
