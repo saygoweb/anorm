@@ -1,6 +1,7 @@
 /vendor/
 /build/coverage/
 /build/code_coverage/
+/build/coverage-*/
 /build/logs/
 /ai/
 
@@ -9,3 +10,5 @@
 
 # Local overrides for the docker/ stack (see docker/.env.example)
 /docker/.env
+
+.claude/worktrees
