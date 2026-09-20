@@ -47,7 +47,9 @@ mapper and the model can offer:
 2. **A transformer that knows the format it writes.** `SqlDateTimeTransform` writes a
    formatted date, so its column is `DATETIME`; `JsonArrayTransform` writes encoded
    JSON, so its column is `TEXT`. Your own transformer can say the same by
-   implementing `Anorm\Schema\ColumnTypeHintInterface`.
+   implementing `Anorm\Schema\ColumnTypeHintInterface` — see
+   [transformers](transformers.html). This is the highest-confidence answer short of
+   pinning the column, because it does not depend on which value arrived first.
 3. **The type the model declares for the property** — a PHP 7.4 typed property, or an
    `@var` docblock. A declaration is intent rather than an accident of which value
    arrived first, so it is preferred over any sample.
