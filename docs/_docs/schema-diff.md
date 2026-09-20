@@ -73,7 +73,9 @@ Findings:
   informational, and it is skipped for a column the mapper pins. It is here because it
   is the one drift comparing types cannot find: a property declared `string` holding an
   ISO datetime implies `VARCHAR`, the column *is* `VARCHAR`, and the two agree however
-  wrong the column is. See [schema modes](schema-modes.html) for why that matters.
+  wrong the column is. Registering a [transformer](transformers.html) settles it
+  properly and silences this finding — at which point a column that is still text is
+  reported as an ordinary `type_mismatch` warning instead, on much firmer ground.
 - **`missing_foreign_key`** — a `belongsTo` with no constraint behind it.
 - **`foreign_key_type_mismatch`** — the constraint cannot be created at all, because
   the column and the key it should reference are different types. This is the one that

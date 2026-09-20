@@ -218,7 +218,10 @@ class SchemaDiff
      * nothing errors.
      *
      * A name is weaker evidence than a type, so this is only ever INFO, and it defers
-     * to anything the model states outright.
+     * to anything the model states outright — including a transformer, which settles
+     * the question properly and silences this. That is the point of it: a schema is
+     * audited before its models have been fixed, and this is the finding that says
+     * which columns are worth fixing them for.
      *
      * @param string $table
      * @param string $column
@@ -245,13 +248,14 @@ class SchemaDiff
         if (!self::readsAsTemporal($column)) {
             return null;
         }
-        $message = ' and is named as though it held a date — text sorts lexicographically, so ORDER BY and BETWEEN are wrong';
+        $message = ' and is named as though it held a date — text sorts lexicographically, so ORDER BY and BETWEEN are wrong.';
+        $remedy = ' A date transformer settles the column and the value together.';
         return new Finding(
             Finding::INFO,
             'temporal_column_as_text',
             $table,
             $column,
-            'is ' . $this->spell($liveType) . $message,
+            'is ' . $this->spell($liveType) . $message . $remedy,
             $liveType,
             null
         );

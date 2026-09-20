@@ -405,6 +405,15 @@ class SchemaDiff_Test extends TestCase
         $this->assertStringContainsString('sorts', $finding->message);
     }
 
+    public function testATextColumnNamedAsADate_SaysWhatWouldSettleIt()
+    {
+        // The finding is the on-ramp to the transformer, so it should name it. A
+        // reader who has to go and work out the remedy often does not.
+        $finding = $this->findingFor(new DiffAuditModel($this->pdo), 'last_synced_at', 'temporal_column_as_text');
+
+        $this->assertStringContainsString('transformer', $finding->message);
+    }
+
     public function testATextColumnNamedCreatedAt_IsReported()
     {
         $finding = $this->findingFor(new DiffAuditModel($this->pdo), 'created_at', 'temporal_column_as_text');
