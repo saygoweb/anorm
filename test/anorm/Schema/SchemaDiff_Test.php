@@ -267,7 +267,10 @@ class SchemaDiff_Test extends TestCase
 
         $this->assertSame(Finding::WARNING, $finding->severity);
         $this->assertStringContainsString('`client`', $finding->message);
-        $this->assertStringContainsString('fk_diff_orders_clientId', $finding->message);
+        // The name the writer would create, which is spelled with the column. Naming
+        // the property here would send the reader looking for a constraint that no
+        // version of Anorm has ever created.
+        $this->assertStringContainsString('fk_diff_orders_client_id', $finding->message);
     }
 
     public function testAConstraintThatExists_IsNotReported()

@@ -144,19 +144,47 @@ class DataMapper
         return [];
     }
 
+    /**
+     * The column name a property name maps to.
+     *
+     * `camelCase` becomes `snake_case`, which is the spelling Anorm is built around.
+     * A property already spelled with an underscore is already spelled the way the
+     * column is, so every segment is kept: the underscore is a word boundary the
+     * author has written out, not the end of the name.
+     *
+     * @param string $s A property name
+     * @return string The column name
+     */
     public static function propertyName($s)
     {
+        $columns = [];
+        foreach (\explode('_', $s) as $segment) {
+            $columns[] = self::columnSegment($segment);
+        }
+        return \implode('_', $columns);
+    }
+
+    /**
+     * One underscore-free segment of a property name, as a column name.
+     *
+     * @param string $s A segment, which may be camelCase and may be empty
+     * @return string
+     */
+    private static function columnSegment($s)
+    {
         $matches = [];
-        $matchCount = preg_match_all('/^([a-z0-9]+)((?:[A-Z][a-z0-9]*)*)/', $s, $matches);
-        $propertyName = '';
+        // A capitalised segment is the same word as a lower-case one: `billing_Line1`
+        // means what `billing_line1` means, so the first letter is not a boundary.
+        $matchCount = preg_match_all('/^([a-z0-9]+)((?:[A-Z][a-z0-9]*)*)/', \lcfirst($s), $matches);
+        $column = '';
         if ($matchCount == 1) {
-            $propertyName .= strtolower($matches[1][0]);
+            $column .= strtolower($matches[1][0]);
             $parts = self::splitUpper($matches[2][0]);
             foreach ($parts as $part) {
-                $propertyName .= '_' . strtolower($part);
+                $column .= '_' . strtolower($part);
             }
         }
-        return $propertyName;
+        return $column;
     }
 
     public static function autoMap($c)

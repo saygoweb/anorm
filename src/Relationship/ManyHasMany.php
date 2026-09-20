@@ -103,22 +103,38 @@ class ManyHasMany extends Relationship
      *
      * @param string $sourceTable The source table name
      * @param string $relatedTable The related table name
+     * @param string|null $foreignKeyColumn Unused: a join table's columns are named
+     *                                      outright, not through a model's map
+     * @param string|null $primaryKeyColumn The primary key as a column, where known
      * @return string The JOIN clause
      */
-    public function generateJoinClause($sourceTable, $relatedTable)
+    public function generateJoinClause($sourceTable, $relatedTable, $foreignKeyColumn = null, $primaryKeyColumn = null)
     {
-        $firstJoin = "LEFT JOIN `{$this->joinTable}` ON `{$sourceTable}`.`{$this->primaryKey}` = `{$this->joinTable}`.`{$this->joinForeignKey}`";
-        $secondJoin = "LEFT JOIN `{$relatedTable}` ON `{$this->joinTable}`.`{$this->joinRelatedKey}` = `{$relatedTable}`.`{$this->primaryKey}`";
+        $primaryKey = $primaryKeyColumn === null ? $this->primaryKey : $primaryKeyColumn;
+        $firstJoin = "LEFT JOIN `{$this->joinTable}` ON `{$sourceTable}`.`{$primaryKey}` = `{$this->joinTable}`.`{$this->joinForeignKey}`";
+        $secondJoin = "LEFT JOIN `{$relatedTable}` ON `{$this->joinTable}`.`{$this->joinRelatedKey}` = `{$relatedTable}`.`{$primaryKey}`";
         return $firstJoin . ' ' . $secondJoin;
     }
 
     /**
      * Generate foreign key constraint SQL for ManyHasMany relationship
      * Creates foreign keys on the join table pointing to both source and target tables
+     *
+     * @param string $sourceTable The table of the model declaring the relationship
+     * @param string|null $targetTable The related model's table, where known
+     * @param string|null $foreignKeyColumn Unused: a join table's columns are named
+     *                                      outright, not through a model's map
+     * @param string|null $primaryKeyColumn The primary key as a column, where known
+     * @return array<int, string>
      */
-    public function generateForeignKeyConstraints($sourceTable)
-    {
-        $targetTable = $this->getTableNameFromModelClass($this->relatedModelClass);
+    public function generateForeignKeyConstraints(
+        $sourceTable,
+        $targetTable = null,
+        $foreignKeyColumn = null,
+        $primaryKeyColumn = null
+    ) {
+        $targetTable = $targetTable ?: $this->getTableNameFromModelClass($this->relatedModelClass);
+        $primaryKey = $primaryKeyColumn === null ? $this->primaryKey : $primaryKeyColumn;
         $constraints = [];
 
         // Foreign key from join table to source table
@@ -129,7 +145,7 @@ class ManyHasMany extends Relationship
         $constraints[] = "ALTER TABLE `{$this->joinTable}`
                          ADD CONSTRAINT `{$sourceConstraintName}`
                          FOREIGN KEY (`{$this->joinForeignKey}`)
-                         REFERENCES `{$sourceTable}`(`{$this->primaryKey}`)
+                         REFERENCES `{$sourceTable}`(`{$primaryKey}`)
                          ON DELETE {$onDelete}
                          ON UPDATE {$onUpdate}";
 
@@ -139,7 +155,7 @@ class ManyHasMany extends Relationship
         $constraints[] = "ALTER TABLE `{$this->joinTable}`
                          ADD CONSTRAINT `{$targetConstraintName}`
                          FOREIGN KEY (`{$this->joinRelatedKey}`)
-                         REFERENCES `{$targetTable}`(`{$this->primaryKey}`)
+                         REFERENCES `{$targetTable}`(`{$primaryKey}`)
                          ON DELETE {$onDelete}
                          ON UPDATE {$onUpdate}";
 
