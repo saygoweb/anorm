@@ -256,6 +256,27 @@ class DataMapper
         return isset($model->$property) ? $model->$property : null;
     }
 
+    /**
+     * A value as a SQL literal.
+     *
+     * `PDO::quote()` takes a string, and PHP renders `false` as `''` on the way in.
+     * An empty string is not an integer under strict SQL mode, so writing a PHP
+     * `false` into the `TINYINT(1)` that a bool property is typed as fails with
+     * `Incorrect integer value: ''` — a message naming neither the boolean nor what
+     * to do about it. In SQL a bool is 0 or 1, which is what the type inference has
+     * always assumed it would be.
+     *
+     * @param mixed $value The value to write
+     * @return string A SQL literal
+     */
+    private function quote($value)
+    {
+        if (\is_bool($value)) {
+            return $value ? '1' : '0';
+        }
+        return $this->pdo->quote($value);
+    }
+
     public function write(&$c)
     {
         $hasListener  = (self::$changeListener !== null);
@@ -287,9 +308,9 @@ class DataMapper
                 } else {
                     if (array_key_exists($field, $this->transformers)) {
                         $transformedValue = $this->transformers[$field]->txModelToDatabase($propertyValue);
-                        $value = $transformedValue === null ? 'NULL' : $this->pdo->quote($transformedValue);
+                        $value = $transformedValue === null ? 'NULL' : $this->quote($transformedValue);
                     } else {
-                        $value = $this->pdo->quote($propertyValue);
+                        $value = $this->quote($propertyValue);
                     }
                 }
                 $values .= $value;
@@ -317,9 +338,9 @@ class DataMapper
                 } else {
                     if (array_key_exists($field, $this->transformers)) {
                         $transformedValue = $this->transformers[$field]->txModelToDatabase($propertyValue);
-                        $value = $transformedValue === null ? 'NULL' : $this->pdo->quote($transformedValue);
+                        $value = $transformedValue === null ? 'NULL' : $this->quote($transformedValue);
                     } else {
-                        $value = $this->pdo->quote($propertyValue);
+                        $value = $this->quote($propertyValue);
                     }
                 }
                 // TODO Move this to bound value CP 2020-06

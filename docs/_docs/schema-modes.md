@@ -40,23 +40,33 @@ Declaring your property types is the way out of that one — see below.
 
 ## What the guess consults, in order
 
-A column that does not exist yet takes its definition from the best information the
-mapper and the model can offer:
+There are two tiers to this, and the difference between them is not confidence but
+kind. Anorm can **infer** a column type from a property's declared type or from a value
+it has seen — a reading of evidence, which may be right and cannot be certain. And it
+can **know** one from a registered transformer, because a transformer has already
+decided the storage format: `SqlDateTimeTransform` does not think the column is a date,
+it writes one.
+
+Knowing beats inferring, and neither is consulted where the column has simply been
+pinned. In full, a column that does not exist yet takes its definition from the best
+information the mapper and the model can offer:
 
 1. **An explicit definition on the mapper** — `$mapper->columnDefinitions`, below.
 2. **A transformer that knows the format it writes.** `SqlDateTimeTransform` writes a
    formatted date, so its column is `DATETIME`; `JsonArrayTransform` writes encoded
    JSON, so its column is `TEXT`. Your own transformer can say the same by
-   implementing `Anorm\Schema\ColumnTypeHintInterface`.
+   implementing `Anorm\Schema\ColumnTypeHintInterface` — see
+   [transformers](transformers.html). This is the highest-confidence answer short of
+   pinning the column, because it does not depend on which value arrived first.
 3. **The type the model declares for the property** — a PHP 7.4 typed property, or an
    `@var` docblock. A declaration is intent rather than an accident of which value
    arrived first, so it is preferred over any sample.
 4. **A value sampled from the model**, which is where the type used to come from.
 5. **`VARCHAR(128)`**, which is what no information at all looks like.
 
-A declaration and a sample are not rivals. The declaration settles the type, and the
-sample refines what it leaves open, because `int` does not say `INT` or `BIGINT` and
-`string` does not say how wide:
+Sources 3 and 4 are the inference tier and they are not rivals. The declaration settles
+the type, and the sample refines what it leaves open, because `int` does not say `INT`
+or `BIGINT` and `string` does not say how wide:
 
 ```php
 class HostingModel extends Model
@@ -129,6 +139,53 @@ constraints. Read `SHOW CREATE TABLE` for each table and look for:
   property that declares no type and had nothing useful to sample.
 - **Indexes.** Dynamic mode adds none except those implied by a foreign key.
 - **`NOT NULL`, defaults, collations and charsets.** Inference never produces these.
+
+## Booleans
+
+SQL has no boolean. MySQL spells one `TINYINT(1)` holding 0 or 1, and PDO hands it back
+as the string `'0'` or `'1'`. Two ways to say what you mean, differing in how much you
+have to say.
+
+### `BooleanTransform`, where the mapper states the format
+
+A transformer is how a mapper says what a column holds, the same as for a date's format
+or an array's encoding:
+
+```php
+$mapper->transformers = ['email_verified' => new BooleanTransform()];
+```
+
+That settles all three questions at once. The column is `TINYINT(1)`, because a
+transformer implementing `ColumnTypeHintInterface` outranks even a declared type and
+does not care what value was sampled first. `true` is written as `1`. And `'0'` comes
+back as `false`, so `$model->emailVerified === false` holds — which is the part nothing
+else gives you.
+
+`NULL` stays `NULL` in both directions: a nullable flag has three states, and the third
+one means "not answered".
+
+### A declared `?bool`, where PHP already knows
+
+```php
+public ?bool $emailVerified = null;
+```
+
+A typed property is enough on its own. Dynamic mode types the column `TINYINT(1)` from
+the declaration, PHP coerces the column's `'0'` back to `false` on assignment to a typed
+property, and Anorm writes a PHP bool as `1` or `0`.
+
+The write half of that is not free, and is worth knowing about. `PDO::quote()` takes a
+string, and PHP renders `false` as `''` on the way in. Anorm converts a bool before it
+reaches `quote()`, because otherwise it would type a column `TINYINT` from the
+declaration and then be unable to write to it — failing with `Incorrect integer value:
+''`, which names neither the boolean nor the column.
+
+### Which to use
+
+Declaring `?bool` is lighter, and enough wherever you can declare it. Reach for
+`BooleanTransform` when you cannot or would rather not: a docblock-typed property, where
+PHP does no coercion and the property comes back a string; or a schema where the storage
+format should be stated on the mapper rather than inferred from the model.
 
 ## Pinning a column explicitly
 

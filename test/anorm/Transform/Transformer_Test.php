@@ -6,6 +6,7 @@ use PHPUnit\Framework\TestCase;
 
 use Anorm\Transformer;
 use Anorm\Test\TestEnvironment;
+use Anorm\Transform\BooleanTransform;
 use Anorm\Transform\FunctionTransform;
 use Anorm\Transform\JsonArrayTransform;
 use Anorm\Transform\SqlDateTimeTransform;
@@ -35,6 +36,43 @@ class TransformerTest extends TestCase
         $this->assertEquals(['key' => 'value'], $result1);
         $result2 = $t->txModelToDatabase($result1);
         $this->assertEquals('{"key":"value"}', $result2);
+    }
+
+    public function testBooleanTransform_RoundTripsABoolean()
+    {
+        $t = new BooleanTransform();
+
+        $this->assertSame(1, $t->txModelToDatabase(true));
+        $this->assertSame(0, $t->txModelToDatabase(false));
+        $this->assertTrue($t->txDatabaseToModel('1'));
+        $this->assertFalse($t->txDatabaseToModel('0'));
+    }
+
+    public function testBooleanTransform_LeavesNullAlone()
+    {
+        // A nullable flag has three states, and a transformer that collapsed NULL to
+        // false would lose the one that means "not answered".
+        $t = new BooleanTransform();
+
+        $this->assertNull($t->txModelToDatabase(null));
+        $this->assertNull($t->txDatabaseToModel(null));
+    }
+
+    public function testBooleanTransform_ReadsWhatMySqlActuallyReturns()
+    {
+        // A TINYINT arrives from PDO as a string, which is the whole reason a model
+        // cannot simply compare the property to true.
+        $t = new BooleanTransform();
+
+        $this->assertFalse($t->txDatabaseToModel('0'));
+        $this->assertTrue($t->txDatabaseToModel('1'));
+        $this->assertFalse($t->txDatabaseToModel(0));
+        $this->assertTrue($t->txDatabaseToModel(1));
+    }
+
+    public function testBooleanTransform_SaysWhatColumnItNeeds()
+    {
+        $this->assertEquals('TINYINT(1) NULL', (new BooleanTransform())->sqlColumnType());
     }
 
     public function testSqlDateTimeTransform_Ok()

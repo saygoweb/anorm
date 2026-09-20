@@ -202,6 +202,16 @@ class TableMaker
             if (\is_float($sampleData)) {
                 return "DOUBLE NULL";
             }
+            // Legacy, and a mistake we are keeping for now rather than defending.
+            // `Moment\Moment` is in neither `require` nor `require-dev`, so this
+            // string-matches a class the core does not depend on, cannot autoload and
+            // has no test for — to guess at something a transformer would simply know.
+            // The idiomatic spelling is a consumer-defined MomentTransform declaring
+            // `DATETIME NULL` through ColumnTypeHintInterface, which outranks this, so
+            // for anyone following that convention this branch never fires. It stays
+            // because removing it would take a Moment property with no transformer
+            // from DATETIME to VARCHAR(128): a deprecation, not a cleanup.
+            // @see docs/_docs/transformers.md
             if (is_object($sampleData) && get_class($sampleData) == 'Moment\Moment') {
                 return "DATETIME NULL";
             }
@@ -236,10 +246,17 @@ class TableMaker
             case 'string':
                 return self::stringDefinition($sampleData);
         }
+        // `DateTimeInterface` is PHP's own, and reading a date column off it is fair
+        // inference. The `Moment\Moment` half is the same regretted special case as in
+        // columnDefinition() above, on the same terms: a MomentTransform is the good
+        // way, and this is kept only so that removing it is a deprecation rather than
+        // a silent retyping of anyone's column.
         if ($declaredType === 'Moment\Moment' || \is_a($declaredType, \DateTimeInterface::class, true)) {
             return "DATETIME NULL";
         }
-        // Any other class: what it stores is its transformer's business, not the type's.
+        // Any other class: what it stores is its transformer's business, not the
+        // type's — which is the rule the Moment case above breaks, and why it is the
+        // only third-party class name written into this file.
         return null;
     }
 

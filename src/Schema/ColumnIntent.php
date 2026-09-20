@@ -11,10 +11,16 @@ use Anorm\DataMapper;
  * This is the one place that decides, so that the column dynamic mode creates and the
  * column a schema diff says the model implies cannot drift apart: both ask this.
  *
- * The grounds matter as much as the answer. A definition reached from a pin or a
- * declaration is something the model asserts; one reached from the VARCHAR(128)
- * fallback asserts nothing at all, and a diff that treated the two alike would report
- * every unannotated property as drift.
+ * The grounds matter as much as the answer, and they come in two tiers. A declared
+ * property type or a sampled value is something Anorm *infers* — a reading of evidence,
+ * which may be right and cannot be certain. A transformer is something it *knows*: a
+ * transformer has already decided the storage format, so it is not evidence about the
+ * column type, it is the column type. Knowing is taken above inferring, and both are
+ * taken below a column pinned outright.
+ *
+ * Below all of them is the VARCHAR(128) fallback, which asserts nothing at all — and a
+ * diff that treated it like an assertion would report every unannotated property as
+ * drift.
  *
  * @see \Anorm\TableMaker for the creating side
  * @see \Anorm\Schema\SchemaDiff for the comparing side
