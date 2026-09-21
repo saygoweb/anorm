@@ -662,4 +662,31 @@ class MangoQuery_Test extends TestCase
         $condition = $parser->parseSelector(['unmapped_field' => 'value']);
         $this->assertStringContainsString('`unmapped_field`', $condition->getSql());
     }
+
+    /**
+     * An unmapped field name goes into the SQL as an identifier. A backtick in that
+     * name must be doubled, or a caller that passes field names straight through
+     * hands the parser a way out of the quoting. See GHSA-xc47-9hw7-px38.
+     */
+    public function testMangoQueryParser_UnmappedFieldWithBacktick_StaysOneIdentifier()
+    {
+        $model = new SomeTableModel();
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        $condition = $parser->parseSelector(['name` = 1 OR `1' => 'value']);
+
+        $this->assertStringContainsString('`name`` = 1 OR ``1`', $condition->getSql());
+    }
+
+    public function testMangoQueryParser_SortFieldWithBacktick_StaysOneIdentifier()
+    {
+        $model = new SomeTableModel();
+        $mapper = $model->_mapper;
+        $parser = new MangoQueryParser($mapper);
+
+        $sortClause = $parser->parseSort(['name` DESC, `1']);
+
+        $this->assertStringContainsString('`name`` DESC, ``1` ASC', $sortClause);
+    }
 }
