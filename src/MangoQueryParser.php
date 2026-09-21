@@ -226,11 +226,22 @@ class MangoQueryParser
     {
         // Use the DataMapper to convert property names to column names
         if (isset($this->mapper->map[$field])) {
-            return '`' . $this->mapper->map[$field] . '`';
+            return self::quoteIdentifier($this->mapper->map[$field]);
         }
 
         // If not found in map, assume it's already a column name
-        return '`' . $field . '`';
+        return self::quoteIdentifier($field);
+    }
+
+    /**
+     * Wrap an identifier in backticks, doubling any backtick it contains. An unmapped
+     * field name reaches the SQL verbatim, so a caller that passes field names through
+     * without checking them against the model's map would otherwise hand a backtick a
+     * way out of the quoting. See GHSA-xc47-9hw7-px38.
+     */
+    private static function quoteIdentifier(string $identifier): string
+    {
+        return '`' . str_replace('`', '``', $identifier) . '`';
     }
 
     /**

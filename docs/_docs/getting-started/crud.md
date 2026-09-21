@@ -40,6 +40,27 @@ $model->name = 'bob';
 $model->write();
 ```
 
+### Read
+
+```php
+$model = new SomeTableModel(Anorm::use('mydata'));
+$model->read($id);            // false when no row matched
+$model->readOrThrow($id);     // throws "SomeTable id '3' not found"
+```
+
+The id you pass is bound as a parameter, so it is safe to hand `read()`,
+`readOrThrow()`, `write()` and `delete()` a value that came straight from a
+request — an arbitrary string matches no row rather than changing the query.
+Anorm 3.2.0 and earlier concatenated the primary key into the WHERE clause of
+`read()` and of the UPDATE issued by `write()`; upgrade to 3.2.1 or later.
+
+Field *names* are a different matter. `byMango()` takes the field names in a
+selector from its caller, and a name that is not in the model's map is passed
+through as a column name. Anorm quotes it so it cannot break out of the
+identifier, but an unchecked name can still address a column the caller was
+not meant to see — whitelist selector keys against the model's map before
+handing client input to `byMango()`.
+
 ### Delete
 
 ```php

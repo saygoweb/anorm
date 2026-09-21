@@ -355,11 +355,9 @@ class DataMapper
                 }, $c);
             } else {
                 $keyField = $this->map[$key];
-                $id = $keyValue;
-                $sql = 'UPDATE `' . $this->table . '` SET ' . $set . ' WHERE ' . $keyField . "='" . $id . "'";
-                $this->dynamicWrapper(function () use ($sql) {
-                    $this->pdo->query($sql);
-                }, $c);
+                // The key value is bound, never concatenated: an id is data, not SQL.
+                $sql = 'UPDATE `' . $this->table . '` SET ' . $set . ' WHERE `' . $keyField . '` = ?';
+                $this->query($sql, [$keyValue], $c);
             }
         }
 
@@ -386,10 +384,9 @@ class DataMapper
     {
         $databasePrimaryKey = $this->map[$this->modelPrimaryKey];
         // TODO Could make the '*' explicit from the map
-        $sql = 'SELECT * FROM `' . $this->table . '` WHERE ' . $databasePrimaryKey . "='" . $id . "'";
-        $result = $this->dynamicWrapper(function () use ($sql) {
-            return $this->pdo->query($sql);
-        }, $c);
+        // The key value is bound, never concatenated: an id is data, not SQL.
+        $sql = 'SELECT * FROM `' . $this->table . '` WHERE `' . $databasePrimaryKey . '` = ?';
+        $result = $this->query($sql, [$id], $c);
         return $this->readRow($c, $result);
     }
 
