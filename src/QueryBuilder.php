@@ -32,6 +32,23 @@ class QueryBuilder
     /** @var PerformanceMonitor|null Performance monitoring */
     private $performanceMonitor = null;
 
+    /**
+     * The clauses a DELETE can carry (WHERE, ORDER BY), exactly as they were
+     * appended to $sql and in the order they were given. $sql is a SELECT built
+     * up as text, so delete() assembles its statement from these instead.
+     *
+     * @var string[]
+     */
+    private $deleteClauses = [];
+
+    /** @var bool Whether a where() has supplied a condition that is not blank */
+    private $hasCondition = false;
+
+    /** @var array|null The [$n, $offset] given to the first limit() call */
+    private $deleteLimit = null;
+
+    /** @var string[] The clauses used so far that a DELETE cannot carry, by method name */
+    private $unsupportedByDelete = [];
 
     public function __construct($creatable, \PDO $pdo = null)
     {
@@ -47,6 +64,7 @@ class QueryBuilder
 
     public function select($sql)
     {
+        $this->unsupportedByDelete[] = 'select()';
         $this->sql .= 'SELECT ' . $sql;
         return $this;
     }
@@ -54,12 +72,17 @@ class QueryBuilder
     private function ensureSelect()
     {
         if (false === stripos($this->sql, 'SELECT')) {
+            // The implied SELECT * is not something the caller asked for, so it
+            // must not count against a later delete().
+            $unsupported = $this->unsupportedByDelete;
             $this->select("*");
+            $this->unsupportedByDelete = $unsupported;
         }
     }
 
     public function from($sql)
     {
+        $this->unsupportedByDelete[] = 'from()';
         $this->ensureSelect();
         $this->sql .= ' FROM ' . $sql;
         return $this;
@@ -68,12 +91,16 @@ class QueryBuilder
     private function ensureFrom()
     {
         if (false === stripos($this->sql, 'FROM')) {
+            // As in ensureSelect(): the mapper's own table is implied, not asked for.
+            $unsupported = $this->unsupportedByDelete;
             $this->from('`' . $this->instance->_mapper->table . '`');
+            $this->unsupportedByDelete = $unsupported;
         }
     }
 
     public function join($sql)
     {
+        $this->unsupportedByDelete[] = 'join()';
         $this->ensureFrom();
         $this->sql .= ' ' . $sql; // Assume the type of join is included in $sql
         return $this;
@@ -120,6 +147,7 @@ class QueryBuilder
         }
 
         $this->eagerLoadRelationships = array_merge($this->eagerLoadRelationships, $relationships);
+        $this->unsupportedByDelete[] = 'with()';
         return $this;
     }
 
@@ -160,7 +188,11 @@ class QueryBuilder
         $joinClause = $relationship->generateJoinClause($sourceTable, $relatedTable, $foreignKeyColumn, $primaryKeyColumn);
         $joinClause = str_replace('LEFT JOIN', $joinType . ' JOIN', $joinClause);
 
+        // Recorded around join() so that delete() names the method the caller used.
+        $unsupported = $this->unsupportedByDelete;
         $this->join($joinClause);
+        $unsupported[] = 'joinRelationship()';
+        $this->unsupportedByDelete = $unsupported;
         return $this;
     }
 
@@ -172,17 +204,33 @@ class QueryBuilder
             // Handle SqlCondition objects from Mango queries
             $this->sql .= ' WHERE ' . $sql->getSql();
             $this->boundData = array_merge($this->boundData ?? [], $sql->getBindings());
+            $this->recordCondition($sql->getSql());
         } else {
             // Handle traditional string SQL
             $this->sql .= ' WHERE ' . $sql;
             $this->boundData = $data;
+            $this->recordCondition($sql);
         }
 
         return $this;
     }
 
+    /**
+     * Remember a WHERE clause for delete(), and whether it says anything.
+     *
+     * @param mixed $sql The condition as where() appended it
+     */
+    private function recordCondition($sql): void
+    {
+        $this->deleteClauses[] = ' WHERE ' . $sql;
+        if (trim((string) $sql) !== '') {
+            $this->hasCondition = true;
+        }
+    }
+
     public function groupBy($sql)
     {
+        $this->unsupportedByDelete[] = 'groupBy()';
         $this->ensureFrom();
         $this->sql .= ' GROUP BY ' . $sql;
         return $this;
@@ -190,6 +238,7 @@ class QueryBuilder
 
     public function having($sql)
     {
+        $this->unsupportedByDelete[] = 'having()';
         $this->ensureFrom();
         $this->sql .= ' HAVING ' . $sql;
         return $this;
@@ -199,6 +248,7 @@ class QueryBuilder
     {
         $this->ensureFrom();
         $this->sql .= ' ORDER BY ' . $sql;
+        $this->deleteClauses[] = ' ORDER BY ' . $sql;
         return $this;
     }
 
@@ -295,6 +345,13 @@ class QueryBuilder
     public function limit($n, $offset = 0)
     {
         $this->ensureFrom();
+        if ($this->deleteLimit === null) {
+            // The first limit() wins, as it does for a read. Kept apart from the
+            // check below because that one also matches the word LIMIT inside an
+            // earlier clause, and a delete that silently lost its limit would
+            // remove more rows than it was asked to.
+            $this->deleteLimit = [$n, $offset];
+        }
         if (false === stripos($this->sql, 'LIMIT')) {
             $this->sql .= " LIMIT $offset, $n";
         }
@@ -325,6 +382,73 @@ class QueryBuilder
             throw new \Exception(sprintf("QueryBuilder: Expected one not found from '%s'", $this->sql));
         }
         return $result;
+    }
+
+    /**
+     * Delete every row the condition matches, in one statement.
+     *
+     * A terminal method like some() and one(): it issues a single
+     * `DELETE FROM <table> WHERE ...` against the model's own table, with the
+     * builder's bound data, and returns the number of rows deleted.
+     *
+     * ```php
+     * $deleted = DataMapper::find(EventModel::class, $pdo)
+     *     ->where('owner_id = :ownerId AND created_at < :cutoff', [':ownerId' => 3, ':cutoff' => '2026-01-01'])
+     *     ->delete();
+     * ```
+     *
+     * - A condition is required. With no where() (and no Mango selector) this
+     *   throws rather than emptying the table.
+     * - orderBy() and limit($n) are honoured, so rows can be deleted in bounded
+     *   batches. A limit() with a non-zero offset throws: DELETE has no offset.
+     * - select(), from(), join(), joinRelationship(), with(), groupBy() and
+     *   having() have no meaning for a delete and make this throw.
+     *
+     * **The DeleteListenerInterface is NOT called.** A listener is given one id
+     * and one model per delete, and a bulk delete has neither. Do not rely on a
+     * delete listener (for an audit trail, say) to see rows removed this way.
+     * Snapshots of models already loaded are left untouched too.
+     *
+     * @return int The number of rows deleted.
+     * @throws \LogicException When there is no condition, when limit() was given a
+     *                         non-zero offset, or when a clause that a DELETE
+     *                         cannot carry has been used. Nothing is deleted.
+     * @throws \InvalidArgumentException When limit() was not given a whole number.
+     */
+    public function delete(): int
+    {
+        if (!empty($this->unsupportedByDelete)) {
+            throw new \LogicException(sprintf(
+                'QueryBuilder::delete() cannot be combined with %s',
+                implode(', ', array_unique($this->unsupportedByDelete))
+            ));
+        }
+        if (!$this->hasCondition) {
+            throw new \LogicException(
+                'QueryBuilder::delete() requires a condition: call where() (or byMango() with a selector) first. Refusing to delete every row.'
+            );
+        }
+
+        /** @var DataMapper */
+        $mapper = $this->instance->_mapper;
+        $sql = 'DELETE FROM `' . $mapper->table . '`' . implode('', $this->deleteClauses);
+
+        if ($this->deleteLimit !== null) {
+            list($n, $offset) = $this->deleteLimit;
+            if (!is_numeric($offset) || $offset != 0) {
+                throw new \LogicException('QueryBuilder::delete() cannot be combined with a limit() offset: DELETE has no offset');
+            }
+            if (!(is_int($n) && $n >= 0) && !(is_string($n) && ctype_digit($n))) {
+                throw new \InvalidArgumentException('QueryBuilder::delete() needs limit() to be given a whole number');
+            }
+            // A row count cannot be bound alongside the caller's own parameters
+            // (it would have to match their named or positional style), so it is
+            // validated as digits above and written as an integer.
+            $sql .= ' LIMIT ' . (int) $n;
+        }
+
+        $result = $mapper->query($sql, $this->boundData, $this->instance);
+        return $result->rowCount();
     }
 
     /**
