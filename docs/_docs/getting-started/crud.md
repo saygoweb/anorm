@@ -94,3 +94,48 @@ cannot tell a delete listener which model was removed (see Lifecycle hooks):
 ```php
 $model->mapper()->delete($id);
 ```
+
+### Delete many
+
+To delete every row that matches a condition, end a `find()` with `delete()`
+instead of `some()` or `one()`. It issues one `DELETE FROM <table> WHERE …`
+and returns the number of rows deleted — no rows are read and no models are
+built:
+
+```php
+$deleted = DataMapper::find(EventModel::class, $pdo)
+    ->where('owner_id = :ownerId AND created_at < :cutoff', [':ownerId' => 3, ':cutoff' => '2026-01-01'])
+    ->delete();          // int: rows deleted
+```
+
+Values are bound exactly as they are for a read, and a Mango selector
+(`byMango()`) works as the condition too.
+
+**A condition is required.** `delete()` with no `where()` — or with a Mango
+query whose selector is empty — throws a `LogicException` and deletes nothing,
+so emptying a table is never one forgotten method call away.
+
+`orderBy()` and `limit($n)` are honoured, which lets a large delete run in
+bounded batches:
+
+```php
+do {
+    $deleted = DataMapper::find(EventModel::class, $pdo)
+        ->where('created_at < :cutoff', [':cutoff' => $cutoff])
+        ->orderBy('id')
+        ->limit(1000)
+        ->delete();
+} while ($deleted > 0);
+```
+
+A `limit()` with a non-zero offset throws, because `DELETE` has no offset.
+`select()`, `from()`, `join()`, `joinRelationship()`, `with()`, `groupBy()`
+and `having()` mean nothing to a delete, and using one before `delete()`
+throws a `LogicException` that names it.
+
+**A delete listener is not called.** `DeleteListenerInterface::onDelete()` is
+given one id and one model per delete, and a bulk delete has neither. If you
+rely on a listener for an audit trail, rows removed this way are not in it —
+record the bulk delete yourself, or delete the rows one model at a time.
+Snapshots held by models you have already loaded are left as they are, just as
+they are when another process deletes the row.

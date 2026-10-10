@@ -161,6 +161,14 @@ a listener that deletes or writes from inside `onDelete` is not re-invoked.
 Exceptions are handled the same way too — a listener that throws is logged via
 `error_log` and swallowed, and the delete still reports success.
 
+### Bulk deletes are not reported
+
+`QueryBuilder::delete()` — `DataMapper::find(...)->where(...)->delete()` —
+removes every matching row in one statement and does **not** call `onDelete`.
+It has no single id and no model to hand a listener. A listener used for
+auditing therefore sees nothing of a bulk delete; see "Delete many" on the
+CRUD page.
+
 ### Snapshots
 
 After a successful `delete()` that was given a model, that model's
