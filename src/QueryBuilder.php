@@ -50,7 +50,7 @@ class QueryBuilder
     /** @var string[] The clauses used so far that a DELETE cannot carry, by method name */
     private $unsupportedByDelete = [];
 
-    public function __construct($creatable, \PDO $pdo = null)
+    public function __construct($creatable, ?\PDO $pdo = null)
     {
         if (is_string($creatable) && \class_exists($creatable)) {
             $this->method = 'new';

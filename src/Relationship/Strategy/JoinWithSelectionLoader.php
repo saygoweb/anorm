@@ -16,7 +16,7 @@ class JoinWithSelectionLoader implements BatchLoaderInterface
     /** @var FieldSelectionParser */
     private $fieldParser;
 
-    public function __construct(FieldSelectionParser $fieldParser = null)
+    public function __construct(?FieldSelectionParser $fieldParser = null)
     {
         $this->fieldParser = $fieldParser ?: new FieldSelectionParser();
     }

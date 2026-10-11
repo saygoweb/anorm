@@ -17,7 +17,7 @@ class QueryStrategySelector implements QueryStrategyInterface
     /** @var array Configuration options for strategy selection */
     private $config;
 
-    public function __construct(DataSizeEstimator $dataEstimator = null, array $config = [])
+    public function __construct(?DataSizeEstimator $dataEstimator = null, array $config = [])
     {
         $this->dataEstimator = $dataEstimator ?: new DataSizeEstimator();
         $this->config = array_merge($this->getDefaultConfig(), $config);

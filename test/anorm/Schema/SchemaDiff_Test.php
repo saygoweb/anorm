@@ -21,7 +21,7 @@ use Anorm\Test\TestEnvironment;
 
 class DiffClientModel extends Model
 {
-    public function __construct(\PDO $pdo = null)
+    public function __construct(?\PDO $pdo = null)
     {
         $pdo = $pdo ?: Anorm::pdo();
         $mapper = DataMapper::createByClass($pdo, $this);
@@ -42,7 +42,7 @@ class DiffClientModel extends Model
 
 class DiffHostingModel extends Model
 {
-    public function __construct(\PDO $pdo = null)
+    public function __construct(?\PDO $pdo = null)
     {
         $pdo = $pdo ?: Anorm::pdo();
         $mapper = DataMapper::createByClass($pdo, $this);
@@ -63,7 +63,7 @@ class DiffHostingModel extends Model
 
 class DiffOrderModel extends Model
 {
-    public function __construct(\PDO $pdo = null)
+    public function __construct(?\PDO $pdo = null)
     {
         $pdo = $pdo ?: Anorm::pdo();
         $mapper = DataMapper::createByClass($pdo, $this);
@@ -78,7 +78,7 @@ class DiffOrderModel extends Model
 
 class DiffEventModel extends Model
 {
-    public function __construct(\PDO $pdo = null)
+    public function __construct(?\PDO $pdo = null)
     {
         $pdo = $pdo ?: Anorm::pdo();
         $mapper = DataMapper::createByClass($pdo, $this);
@@ -102,7 +102,7 @@ class DiffEventModel extends Model
 
 class DiffAuditModel extends Model
 {
-    public function __construct(\PDO $pdo = null)
+    public function __construct(?\PDO $pdo = null)
     {
         $pdo = $pdo ?: Anorm::pdo();
         $mapper = DataMapper::createByClass($pdo, $this);
@@ -125,7 +125,7 @@ class DiffAuditModel extends Model
 
 class DiffGhostModel extends Model
 {
-    public function __construct(\PDO $pdo = null)
+    public function __construct(?\PDO $pdo = null)
     {
         $pdo = $pdo ?: Anorm::pdo();
         $mapper = DataMapper::createByClass($pdo, $this);

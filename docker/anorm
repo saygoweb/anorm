@@ -345,7 +345,7 @@ Checking another PHP version
   The image defaults to php:7.4-cli, the floor Anorm supports. To run the same
   checkout against a newer interpreter, rebuild with PHP_VARIANT set:
 
-    PHP_VARIANT=8.3-cli docker/anorm up --build
+    PHP_VARIANT=8.4-cli docker/anorm up --build
     docker/anorm test
     PHP_VARIANT=7.4-cli docker/anorm up --build   # back to the floor
 

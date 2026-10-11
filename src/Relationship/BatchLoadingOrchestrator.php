@@ -26,8 +26,8 @@ class BatchLoadingOrchestrator
     private $config;
 
     public function __construct(
-        QueryStrategySelector $strategySelector = null,
-        FieldSelectionParser $fieldParser = null,
+        ?QueryStrategySelector $strategySelector = null,
+        ?FieldSelectionParser $fieldParser = null,
         array $config = []
     ) {
         $this->strategySelector = $strategySelector ?: new QueryStrategySelector();
