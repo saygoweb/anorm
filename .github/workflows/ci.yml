@@ -24,9 +24,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-version: ['7.4', '8.0', '8.1', '8.2', '8.3']
+        # The floor this library supports, and the newest release it is run on.
+        php-version: ['7.4', '8.4']
         include:
-          - php-version: '8.1'
+          - php-version: '8.4'
             coverage: true
 
     services:
@@ -75,6 +76,18 @@ jobs:
 
     - name: Install dependencies
       run: composer install --prefer-dist --no-progress --no-interaction
+
+    # A deprecation raised when a file is compiled never fails a test, and a
+    # consumer that turns deprecations into exceptions cannot load the class.
+    - name: Lint for syntax errors and compile-time deprecations
+      run: |
+        output=$(find src tools bin test -name '*.php' -print0 \
+          | xargs -0 -n1 php -d error_reporting=-1 -d display_errors=1 -l 2>&1 \
+          | grep -v '^No syntax errors' | grep -v '^$' || true)
+        if [ -n "$output" ]; then
+          echo "$output"
+          exit 1
+        fi
 
     - name: Wait for MariaDB to be ready
       run: |

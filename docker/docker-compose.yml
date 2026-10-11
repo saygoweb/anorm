@@ -17,7 +17,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        # 7.4 is Anorm's supported floor. Set PHP_VARIANT to 8.0-cli ... 8.3-cli
+        # 7.4 is Anorm's supported floor. Set PHP_VARIANT to 8.4-cli
         # to run the same checkout against a newer interpreter.
         PHP_VARIANT: ${PHP_VARIANT:-7.4-cli}
         # Set by docker/anorm from the invoking user so files written in the

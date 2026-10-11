@@ -71,7 +71,7 @@ docker/anorm quality # phpcs + phpstan
 same checkout, rebuild with `PHP_VARIANT` set:
 
 ```bash
-PHP_VARIANT=8.3-cli docker/anorm up --build
+PHP_VARIANT=8.4-cli docker/anorm up --build
 ```
 
 See [`docker/README.md`](docker/README.md) for the details.
@@ -104,7 +104,7 @@ This project includes a DevContainer configuration for VS Code. Open the project
 
 The project uses GitHub Actions for continuous integration:
 
-- **CI Workflow**: Runs tests on multiple PHP versions (7.4, 8.0, 8.1, 8.2, 8.3)
+- **CI Workflow**: Runs tests on PHP 7.4 and 8.4
 - **Code Quality**: Runs PHPStan, PHP CodeSniffer, and security scans
 - **Coverage**: Generates coverage reports and uploads to Coveralls
 - **Artifacts**: Coverage reports are available as downloadable artifacts

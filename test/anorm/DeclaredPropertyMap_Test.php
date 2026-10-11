@@ -22,7 +22,7 @@ use Anorm\Test\TestEnvironment;
 /** Declares four columns; three of them have no value to report. */
 class MapDeclaredModel extends Model
 {
-    public function __construct(\PDO $pdo = null)
+    public function __construct(?\PDO $pdo = null)
     {
         $pdo = $pdo ?: Anorm::pdo();
         $mapper = DataMapper::createByClass($pdo, $this);

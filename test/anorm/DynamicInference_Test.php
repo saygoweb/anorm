@@ -21,7 +21,7 @@ use Anorm\Test\TestEnvironment;
 /** Properties carry defaults, which is the only type information a read has to offer. */
 class InfWidgetModel extends Model
 {
-    public function __construct(\PDO $pdo = null)
+    public function __construct(?\PDO $pdo = null)
     {
         $pdo = $pdo ?: Anorm::pdo();
         $mapper = DataMapper::createByClass($pdo, $this);
@@ -39,7 +39,7 @@ class InfWidgetModel extends Model
 /** Properties are null, so a read has nothing to sample and needs the override. */
 class InfGadgetModel extends Model
 {
-    public function __construct(\PDO $pdo = null)
+    public function __construct(?\PDO $pdo = null)
     {
         $pdo = $pdo ?: Anorm::pdo();
         $mapper = DataMapper::createByClass($pdo, $this);
@@ -56,7 +56,7 @@ class InfGadgetModel extends Model
 /** Null property and no override: nothing to infer from, which is the point. */
 class InfPlainModel extends Model
 {
-    public function __construct(\PDO $pdo = null)
+    public function __construct(?\PDO $pdo = null)
     {
         $pdo = $pdo ?: Anorm::pdo();
         $mapper = DataMapper::createByClass($pdo, $this);

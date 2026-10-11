@@ -13,7 +13,7 @@ use Anorm\Model;
  */
 class FkUnbuildableModel extends Model
 {
-    public function __construct(\PDO $pdo = null)
+    public function __construct(?\PDO $pdo = null)
     {
         throw new \RuntimeException('this model needs more than a connection: ' . ($pdo === null ? 'none' : 'one'));
     }

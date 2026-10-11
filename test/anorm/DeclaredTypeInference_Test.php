@@ -21,7 +21,7 @@ use Anorm\Transform\SqlDateTimeTransform;
 /** Typed properties: the declaration is there even when the value is null. */
 class DeclWidgetModel extends Model
 {
-    public function __construct(\PDO $pdo = null)
+    public function __construct(?\PDO $pdo = null)
     {
         $pdo = $pdo ?: Anorm::pdo();
         $mapper = DataMapper::createByClass($pdo, $this);
@@ -40,7 +40,7 @@ class DeclWidgetModel extends Model
 /** Docblocks: how every model written before PHP 7.4 declares the same thing. */
 class DeclLegacyModel extends Model
 {
-    public function __construct(\PDO $pdo = null)
+    public function __construct(?\PDO $pdo = null)
     {
         $pdo = $pdo ?: Anorm::pdo();
         $mapper = DataMapper::createByClass($pdo, $this);
@@ -61,7 +61,7 @@ class DeclLegacyModel extends Model
 /** A pin is still the last word, over a declaration as over a sample. */
 class DeclPinnedModel extends Model
 {
-    public function __construct(\PDO $pdo = null)
+    public function __construct(?\PDO $pdo = null)
     {
         $pdo = $pdo ?: Anorm::pdo();
         $mapper = DataMapper::createByClass($pdo, $this);
@@ -78,7 +78,7 @@ class DeclPinnedModel extends Model
 /** Transformers know the format they write, whatever the property says. */
 class DeclTransformedModel extends Model
 {
-    public function __construct(\PDO $pdo = null)
+    public function __construct(?\PDO $pdo = null)
     {
         $pdo = $pdo ?: Anorm::pdo();
         $mapper = DataMapper::createByClass($pdo, $this);

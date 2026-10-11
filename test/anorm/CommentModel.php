@@ -8,7 +8,7 @@ use Anorm\Model;
 
 class CommentModel extends Model
 {
-    public function __construct(\PDO $pdo = null)
+    public function __construct(?\PDO $pdo = null)
     {
         $pdo = $pdo ?: Anorm::pdo();
         $mapper = DataMapper::createByClass($pdo, $this);

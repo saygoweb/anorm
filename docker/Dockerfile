@@ -9,7 +9,7 @@
 #   * 7.4 is the floor Anorm supports (see composer.json), and the version the
 #     CI matrix has been quietly failing on — so it is what this image defaults
 #     to. Override PHP_VARIANT to check a newer interpreter with the same
-#     checkout: PHP_VARIANT=8.3-cli docker/anorm up --build
+#     checkout: PHP_VARIANT=8.4-cli docker/anorm up --build
 #   * Xdebug is pinned rather than floating. `pecl install xdebug` resolves to
 #     3.4+, which requires PHP 8 and fails the build outright on 7.4.
 #

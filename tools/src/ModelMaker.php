@@ -25,7 +25,7 @@ class ModelMaker {
     /** @var string */
     public $table;
 
-    public function __construct(\PDO $pdo = null, $table, $options = null)
+    public function __construct(?\PDO $pdo, $table, $options = null)
     {
         if ($pdo)
         {

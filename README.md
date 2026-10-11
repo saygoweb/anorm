@@ -49,7 +49,7 @@ composer quality
 ```
 
 ### Requirements
-- PHP 7.4+ (tested on 7.4, 8.0, 8.1, 8.2, 8.3)
+- PHP 7.4+ (tested on 7.4 and 8.4)
 - MySQL/MariaDB
 - Composer
 

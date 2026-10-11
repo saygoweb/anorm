@@ -49,7 +49,7 @@ The image variant is a build arg, so the same checkout can be run against a
 newer interpreter:
 
 ```bash
-PHP_VARIANT=8.3-cli docker/anorm up --build
+PHP_VARIANT=8.4-cli docker/anorm up --build
 docker/anorm test
 PHP_VARIANT=7.4-cli docker/anorm up --build   # back to the floor
 ```
