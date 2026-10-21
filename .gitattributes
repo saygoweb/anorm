@@ -1,0 +1,26 @@
+# Keep dev-only files out of composer dist archives (git archive).
+# Runtime: src/, tools/src/ (used by bin/anorm.php), bin/, composer.json, LICENSE, README.md
+/.devcontainer/ export-ignore
+/.github/ export-ignore
+/.serena/ export-ignore
+/.vscode/ export-ignore
+/docker/ export-ignore
+/docs/ export-ignore
+/scripts/ export-ignore
+/test/ export-ignore
+/.env export-ignore
+/.gitattributes export-ignore
+/.gitignore export-ignore
+/CLAUDE.md export-ignore
+/CONTRIBUTING.md export-ignore
+/DEVELOPERS.md export-ignore
+/README-DEVCONTAINER.md export-ignore
+/composer.lock export-ignore
+/phpcs.xml export-ignore
+/phpstan.neon export-ignore
+/phpunit.xml export-ignore
+/phpunit-no-coverage.xml export-ignore
+/setup-remote-agent.sh export-ignore
+/test_git_completion.sh export-ignore
+# Stray empty junk file literally named "table}"
+/table\} export-ignore
