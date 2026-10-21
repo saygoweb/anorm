@@ -22,5 +22,3 @@
 /phpunit-no-coverage.xml export-ignore
 /setup-remote-agent.sh export-ignore
 /test_git_completion.sh export-ignore
-# Stray empty junk file literally named "table}"
-/table\} export-ignore
