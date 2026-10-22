@@ -24,11 +24,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # The floor this library supports, the release coverage runs on, and
-        # the newest release.
-        php-version: ['7.4', '8.4', '8.5']
+        # The floor this library supports, and the newest release it is run on.
+        # The coverage run uses phpunit.xml, which turns deprecations into
+        # failures, so the newest release is the one it runs on.
+        php-version: ['7.4', '8.5']
         include:
-          - php-version: '8.4'
+          - php-version: '8.5'
             coverage: true
 
     services:
