@@ -24,8 +24,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # The floor this library supports, and the newest release it is run on.
-        php-version: ['7.4', '8.4']
+        # The floor this library supports, the release coverage runs on, and
+        # the newest release.
+        php-version: ['7.4', '8.4', '8.5']
         include:
           - php-version: '8.4'
             coverage: true
